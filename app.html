@@ -419,6 +419,7 @@ footer{text-align:center;padding:22px;font-size:.7rem;color:var(--soft);font-sty
   <div id="menuboard"></div>
   <div class="tipbox" id="tips"></div>
   <button class="btn ghost" onclick="buildMenu()" data-i18n="menu_rebuild">↻ Build a different menu</button>
+  <button class="btn ghost" id="selallbtn" onclick="selectAllMenu()" data-i18n="menu_selall">Select all recipes</button>
   <button class="btn amber" id="sendbtn" onclick="sendToCircle()" data-i18n="menu_send">Approve meals &amp; send to Care Circle</button>
   <br><button class="btn ghost sm" id="checkbtn" onclick="menuCheck()" data-i18n="menu_check">Check my menu for conflicts →</button>
   <div class="card" id="menucheck" style="display:none;"></div>
@@ -598,7 +599,7 @@ en:{
  fam_invalid:'This Care Circle link isn’t valid anymore. Ask the family to send it again.'
 },
 es:{
- vt_family:'Paciente',vt_circle:'Apoyo',
+ vt_family:'Paciente',vt_circle:'Apoyo',menu_selall:'Seleccionar todas',
  ob1_eyebrow:'Bienvenida · 1 de 3',ob1_title:'¿Para quién cocinamos?',
  ob1_sub:'Un minuto de preguntas. Después, cada menú, receta y lista de compras se arma — y se revisa — para esta persona.',
  ob1_name:'Su nombre',ob1_facing:'¿Qué están enfrentando?',continue:'Continuar →',back:'← Atrás',
@@ -795,11 +796,15 @@ function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
 
 async function pushClaimsToDB(items){
   if(!FAMILY)return false;
-  // Spread approved meals over the next 7 days, starting tomorrow
-  const start=addDays(new Date(),1);
-  const rows=items.map((a,i)=>({title:a.item.n,description:a.item.why,time_window:a.slot,date_slot:isoDate(addDays(start,i%7))}));
-  const {error}=await sb.rpc('mk_add_items',{p_slug:FAMILY.slug,p_family_token:familyToken(),p_items:rows});
+  // The chosen recipes become the Care Circle menu; friends pick the day themselves
+  const rows=items.map(a=>({name:a.item.n,course:a.slot}));
+  const {error}=await sb.rpc('mk_set_menu',{p_slug:FAMILY.slug,p_family_token:familyToken(),p_items:rows});
   if(error){flagErr('err1',/not_family/.test(error.message)?tr('err_family_only'):tr('err_save'));return false;}
+  if(!lsGet('mk_pw_'+FAMILY.slug,null)){
+    const pw=String(Math.floor(100000+Math.random()*900000));
+    const r=await sb.rpc('mk_set_passcode',{p_slug:FAMILY.slug,p_family_token:familyToken(),p_code:pw});
+    if(!r.error){lsSet('mk_pw_'+FAMILY.slug,pw);lsSet('mk_code_'+FAMILY.slug,pw);}
+  }
   return true;
 }
 
@@ -1320,9 +1325,17 @@ function renderMenu(p){
   document.getElementById('tips').innerHTML=`<b>${tr('tips_h',{c:condLabel(S.cond)})}</b><ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul>`;
   show('menu');
 }
+function selectAllMenu(){
+  const all=[];SLOTS.forEach(([key])=>(S.menu.slots[key]||[]).forEach((it,i)=>all.push({k:key+':'+i,slot:key,item:it})));
+  const everything=all.every(a=>S.approved.some(x=>x.k===a.k));
+  S.approved=everything?[]:all;
+  document.querySelectorAll('#menuboard .opt').forEach(el=>{if(all.some(x=>x.k===el.dataset.k))el.classList.toggle('sel',!everything)});
+  document.getElementById('selallbtn').textContent=everything?(LANG==='es'?'Seleccionar todas':'Select all recipes'):(LANG==='es'?'Quitar selección':'Clear selection');
+}
 function optEl(item,slot,idx){
   const d=document.createElement('div');d.className='opt';
   const k=slot+':'+idx;
+  d.dataset.k=k;
   if(S.approved.some(a=>a.k===k))d.classList.add('sel');
   d.innerHTML=`<div>${item.mine?`<span class="tag mine">${tr('my_recipe')}</span>`:''}<b>${item.n}</b><small>${item.why}</small><small style="color:#8a5e12;margin-top:3px;">⏱ ${item.time||''}</small></div><div class="checkmark">✓</div>`;
   d.onclick=()=>{d.classList.toggle('sel');
@@ -1369,12 +1382,14 @@ function circleLink(){const url=new URL(location.origin+'/');url.searchParams.se
 function showShareLink(){
   if(!FAMILY)return;
   const link=circleLink();
-  const msg=tr('share_msg',{n:circleName(),l:link});
+  const pw=lsGet('mk_pw_'+FAMILY.slug,'');
+  const msg=tr('share_msg',{n:circleName(),l:link})+(pw?`\n${LANG==='es'?'Contraseña':'Password'}: ${pw}`:'');
   const qrImg=`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}`;
   const box=document.getElementById('shareBox');
   if(!box)return;
   box.innerHTML=`<div class="card"><b>${tr('share_title')}</b><p class="sub" style="margin:6px 0;">${tr('share_sub')}</p>
     <input type="text" readonly value="${link}" style="width:100%;margin-bottom:8px;" onclick="this.select()">
+    ${pw?`<div style="margin:0 0 10px;font-size:.95rem">${LANG==='es'?'Contraseña del grupo':'Group password'}: <b style="font-size:1.2rem;letter-spacing:.15em">${pw}</b><br><small style="color:var(--soft)">${LANG==='es'?'Envía el enlace y la contraseña. Solo quien tenga ambos puede ver la página.':'Send the link and the password. Only people with both can open the page.'}</small></div>`:''}
     <div class="sharebtns">
       <a class="btn wa sm" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">🟢 ${tr('share_wa')}</a>
       <a class="btn ghost sm" href="sms:?&body=${encodeURIComponent(msg)}">💬 ${tr('share_sms')}</a>
@@ -1385,7 +1400,7 @@ function showShareLink(){
   </div>`;
 }
 function copyLink(){
-  const link=circleLink(),b=document.getElementById('copybtn');
+  const _pw=lsGet('mk_pw_'+FAMILY.slug,''),link=circleLink()+(_pw?`\n${LANG==='es'?'Contraseña':'Password'}: ${_pw}`:''),b=document.getElementById('copybtn');
   const done=()=>{b.textContent='✓ '+tr('share_copied');setTimeout(()=>{b.textContent='📋 '+tr('share_copy');},2000);};
   const legacy=()=>{ // older phones / non-secure contexts
     const ta=document.createElement('textarea');ta.value=link;ta.style.position='fixed';ta.style.opacity='0';

@@ -2,687 +2,195 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MealKind Care Circle</title>
 <meta name="robots" content="noindex">
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-/* Layout: one recipient, four tabs — Care Circle (calendar + reminders), Messages, Extra Help (icon grid + funds), Cook for Myself (recipes → week plan → shopping list with fridge check) */
-:root{
-  --forest:#3A6B4A; --forest-deep:#2B5038; --gold:#E8A33D; --gold-soft:#F6E2BC;
-  --bg:#FAF6EC; --surface:#FFFDF7; --ink:#1F2A22; --muted:#5E6B60; --line:#E3DCC9;
-  --open-bg:#FFF4DF; --open-ink:#8A5A12; --done-bg:#E5EFE7; --done-ink:#2B5038; --on-forest:#FFFDF7;
-  --display:"Cormorant Garamond", Georgia, "Times New Roman", serif;
-  --body:"Jost", "Helvetica Neue", Arial, sans-serif;
-}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --forest:#7FB08F; --forest-deep:#A7CDB3; --gold:#F0B65A; --gold-soft:#3D3220;
-  --bg:#141A16; --surface:#1C241E; --ink:#ECE8DC; --muted:#A3AE9F; --line:#2F3A31;
-  --open-bg:#3A2E18; --open-ink:#F3C77A; --done-bg:#223328; --done-ink:#A7CDB3; --on-forest:#122016; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --forest:#7FB08F; --forest-deep:#A7CDB3; --gold:#F0B65A; --gold-soft:#3D3220;
-  --bg:#141A16; --surface:#1C241E; --ink:#ECE8DC; --muted:#A3AE9F; --line:#2F3A31;
-  --open-bg:#3A2E18; --open-ink:#F3C77A; --done-bg:#223328; --done-ink:#A7CDB3; --on-forest:#122016; color-scheme:dark}
-*{box-sizing:border-box}
+/* One simple page: password → who it's for → calendar + recipe list → sign up with reminders */
+:root{--forest:#1F3D2B;--forest-2:#3A6B4A;--gold:#E8A33D;--gold-soft:#FBF1DE;--cream:#FDFBF7;--card:#FFFFFF;--ink:#2B2B28;--soft:#6C675E;--line:#EFE7D8;--good-bg:#E5EFE7;--good:#2B5038;--warn:#B5471F;
+--display:"Cormorant Garamond",Georgia,serif;--body:"Jost","Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;padding:0 16px;padding-block:0 60px}
-.wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
-h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.1;text-wrap:balance;margin:0}
-h2{font-size:1.9rem} h3{font-size:1.25rem}
-.eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:500}
-.muted{color:var(--muted)} .small{font-size:.85rem}
-.sample{font-size:.75rem;color:var(--muted);text-align:center;margin:0}
-button,.btn{font-family:var(--body);font-size:.92rem;font-weight:500;border-radius:999px;padding:.55rem 1.1rem;border:1px solid var(--forest);background:var(--forest);color:var(--on-forest);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+html,body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+body{padding:0 16px 60px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);color:var(--forest);font-weight:600;line-height:1.1;text-wrap:balance}
+h2{font-size:1.8rem}
+.eyebrow{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.muted{color:var(--soft)}.small{font-size:.86rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+button,.btn{font-family:var(--body);font-weight:600;font-size:1rem;border-radius:999px;padding:12px 22px;border:2px solid var(--forest);background:var(--forest);color:var(--cream);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 button.ghost,.btn.ghost{background:transparent;color:var(--forest)}
 button.gold,.btn.gold{background:var(--gold);border-color:var(--gold);color:#2A1E08}
-button.sm,.btn.sm{padding:.3rem .8rem;font-size:.82rem}
-button:disabled{opacity:.55;cursor:default}
-button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-input,textarea,select{font:inherit;width:100%;padding:.55rem .7rem;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
-input[type=checkbox]{width:auto;accent-color:var(--forest)}
-label{font-size:.82rem;font-weight:500;color:var(--muted);display:flex;flex-direction:column;gap:4px}
-label.inline{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-weight:400}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
-.sec-head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-.chip{display:inline-block;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;white-space:nowrap}
-.chip.open{background:var(--open-bg);color:var(--open-ink)}
-.chip.done{background:var(--done-bg);color:var(--done-ink)}
-.av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:.85rem;color:#fff;flex:none}
-.person{display:flex;align-items:center;gap:10px;min-width:0}
-.pname{font-weight:500}
-.role{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600}
+button.sm{padding:7px 14px;font-size:.88rem}
+button:disabled{opacity:.5}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input,select,textarea{font:inherit;width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--forest)}
+label{display:flex;flex-direction:column;gap:6px;font-size:.9rem;font-weight:500;color:var(--soft)}
+label.check{flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-weight:400}
+header.top{display:flex;justify-content:space-between;align-items:center;padding:calc(14px + env(safe-area-inset-top,0px)) 0 6px;max-width:760px;margin:0 auto}
+header.top a{font-family:var(--display);font-size:1.6rem;font-weight:700;color:var(--forest);text-decoration:none}
+header.top a span{color:var(--gold)}
+.tag{font-size:.75rem;background:var(--good-bg);color:var(--good);border-radius:999px;padding:4px 10px;font-weight:600}
 
-/* header + tabs */
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin:0 -16px;padding:10px 16px 0}
-.top-in{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
-.brand{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.brand b{font-family:var(--display);font-size:1.5rem;color:var(--forest-deep)}
-.brand b span{color:var(--gold)}
-.roles{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px;align-self:flex-start}
-.roles button{background:transparent;border:none;color:var(--muted);padding:.45rem 1rem;font-size:.86rem}
-.roles button[aria-pressed=true]{background:var(--forest);color:var(--on-forest)}
-.rolebar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.rolehint{font-size:.8rem;color:var(--muted)}
-.screen-note{background:var(--done-bg);color:var(--done-ink);border-radius:12px;padding:10px 14px;font-size:.88rem}
-.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
-.tabs a{flex:none;padding:.6rem .9rem;color:var(--muted);text-decoration:none;font-weight:500;border-bottom:3px solid transparent;display:flex;align-items:center;gap:6px}
-.tabs a[aria-current=page]{color:var(--forest-deep);border-color:var(--gold)}
-.tabs svg{width:18px;height:18px}
-.view{padding-top:24px}
+/* password */
+.gate{max-width:420px;margin:40px auto 0;text-align:center;display:flex;flex-direction:column;gap:14px}
+.gate input{text-align:center;font-size:1.6rem;letter-spacing:.4em;font-variant-numeric:tabular-nums}
+.err{color:var(--warn);font-size:.92rem;min-height:1.2em}
 
-/* hero */
-.hero{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:center}
-.photo{position:relative;aspect-ratio:1;max-width:100%;border-radius:50%;overflow:hidden;border:4px solid var(--gold);background:var(--gold-soft);display:grid;place-items:center}
+/* who it's for */
+.hero{display:flex;gap:18px;align-items:center}
+.photo{width:96px;height:96px;border-radius:50%;flex:none;border:3px solid var(--gold);background:var(--gold-soft);display:grid;place-items:center;overflow:hidden;font-family:var(--display);font-size:2.4rem;color:var(--forest)}
 .photo img{width:100%;height:100%;object-fit:cover}
-.photo .ph{font-family:var(--display);font-size:4rem;color:var(--forest)}
-.photo-btn{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:.75rem;padding:.3rem .8rem;white-space:nowrap;color:var(--on-forest)!important;flex-direction:row!important}
-.hero h1{font-size:clamp(2.2rem,6vw,3.2rem);color:var(--forest-deep)}
-.hero p{margin:.6rem 0 0;max-width:58ch}
-.progress{margin-top:14px;display:flex;flex-direction:column;gap:6px;max-width:420px}
-.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
-.bar span{display:block;height:100%;background:var(--forest)}
-.progress small{color:var(--muted);font-variant-numeric:tabular-nums}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.hero h1{font-size:clamp(2rem,6vw,2.8rem)}
+.blurb{font-size:1.05rem;white-space:pre-line}
+.notes{background:var(--gold-soft);border-radius:14px;padding:12px 16px;font-size:.95rem}
 
-/* reminder */
-.remind{display:grid;grid-template-columns:1fr minmax(0,300px);gap:18px;align-items:center;background:var(--gold-soft);border:1px solid var(--gold);border-radius:16px;padding:18px}
-.sms{background:var(--surface);border-radius:18px 18px 18px 4px;padding:12px 14px;font-size:.88rem;box-shadow:0 1px 0 var(--line);min-width:0}
-.sms .from{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-
-.org{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
-.people{display:flex;flex-wrap:wrap;gap:14px}
-
-/* board */
-.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-.task{display:flex;gap:12px;align-items:flex-start;min-width:0;padding:14px}
-.task .meta{min-width:0;flex:1}
-.task .when{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
-.filters{display:flex;gap:8px;flex-wrap:wrap}
-
-.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.note{background:var(--surface);border-left:3px solid var(--gold);border-radius:4px 12px 12px 4px;padding:12px 14px}
-.note ul{margin:0;padding-left:18px}
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.steps div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 8px;font-size:.9rem}
+.steps b{display:block;font-family:var(--display);font-size:1.6rem;color:var(--gold);line-height:1}
 
 /* calendar */
-.cal{display:flex;flex-direction:column;gap:10px}
-.day{display:grid;grid-template-columns:72px 1fr;gap:14px;align-items:start;padding:12px 14px}
-.dayitems{display:flex;flex-direction:column;gap:10px;min-width:0}
-.ditem{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--line)}
-.ditem:last-of-type{border-bottom:none;padding-bottom:0}
-.addx{align-self:flex-start}
-.dayitems>.signup{grid-column:auto}
-.date{text-align:center;border-right:1px solid var(--line);padding-right:12px}
-.date .dow{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.date .num{font-family:var(--display);font-size:2rem;font-weight:700;line-height:1;color:var(--forest-deep)}
-.date .mon{font-size:.72rem;color:var(--muted)}
-.day.treat .date .num{color:var(--gold)}
-.slot{min-width:0}
-.tag{font-size:.78rem;color:var(--open-ink);font-weight:500}
-.signup{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:10px;border-top:1px dashed var(--line)}
-.signup .full{grid-column:1/-1}
-.signup fieldset{grid-column:1/-1;border:1px solid var(--line);border-radius:10px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px 18px;margin:0}
-.signup legend{font-size:.82rem;color:var(--muted);font-weight:500;padding:0 4px}
-.signup .act-row{grid-column:1/-1;display:flex;justify-content:flex-end}
-.repeat{grid-column:1/-1;font-size:.82rem;color:var(--open-ink)}
+.calhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.dow{text-align:center;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);padding-bottom:2px}
+.day{position:relative;min-height:64px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);padding:6px;text-align:left;color:var(--ink);font-weight:500;display:flex;flex-direction:column;gap:3px;cursor:pointer}
+.day .n{font-family:var(--display);font-size:1.3rem;font-weight:700;color:var(--forest);line-height:1}
+.day .cnt{font-size:.7rem;background:var(--good-bg);color:var(--good);border-radius:999px;padding:1px 6px;align-self:flex-start;font-weight:600}
+.day.treat{border-color:var(--gold);background:var(--gold-soft)}
+.day.treat .n{color:#9a6510}
+.day.sel{outline:3px solid var(--forest);outline-offset:1px}
+.day.past{opacity:.35;cursor:default}
+.day.empty{visibility:hidden}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--soft)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px;margin-right:5px;border:1.5px solid var(--line)}
 
-/* messages */
-.wall{columns:2 260px;column-gap:14px}
-.msg{break-inside:avoid;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
-.msg p{margin:0;font-family:var(--display);font-size:1.25rem;line-height:1.35}
-.msg img{border-radius:10px;width:100%;max-height:280px;object-fit:cover}
-.msg footer{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.lock{font-size:.75rem;color:var(--muted)}
-.compose{display:grid;gap:10px;border-style:dashed}
+/* day panel */
+.panel{display:flex;flex-direction:column;gap:14px;border:2px solid var(--forest)}
+.panel h3{font-size:1.6rem}
+.meal{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:8px 0}
+.meal:last-child{border-bottom:none}
+.form{display:grid;gap:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.preview{font-size:.9rem;color:var(--soft)}
+.preview details{margin-top:4px}
+.preview ul{padding-left:18px;margin:4px 0}
 
-/* extra help */
-.needs-list{display:flex;flex-direction:column;gap:12px}
-.need{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:start}
-.need .ico{width:52px;height:52px;border-radius:14px;background:var(--done-bg);color:var(--forest-deep);display:grid;place-items:center}
-.need .ico svg{width:30px;height:30px}
-.need-body{min-width:0}.need-body p{margin:.3rem 0 0;font-size:.92rem}
-.need-act{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
-.needform{display:grid;gap:10px}
-@media (max-width:640px){.need{grid-template-columns:44px 1fr}.need-act{grid-column:1/-1;flex-direction:row;justify-content:flex-start}}
-.helpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
-.help{display:flex;flex-direction:column;gap:10px}
-.help .ico{width:52px;height:52px;border-radius:14px;background:var(--done-bg);color:var(--forest-deep);display:grid;place-items:center}
-.help .ico svg{width:30px;height:30px}
-.help .ico.money{background:var(--gold-soft);color:var(--open-ink)}
-.help ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.help li{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.88rem;border-top:1px solid var(--line);padding-top:6px}
-.help li span{min-width:0}
-.help p{margin:0;font-size:.9rem;color:var(--muted);flex:1}
+/* recipe list */
+.course h3{font-size:1.3rem;margin:12px 0 6px}
+.rec{border-bottom:1px solid var(--line);padding:8px 0}
+.rec summary{cursor:pointer;font-weight:500}
+.rec p{font-size:.9rem;color:var(--soft);margin-top:4px}
+.rec ul{font-size:.9rem;padding-left:18px;margin:4px 0}
 
-/* cook for myself */
-.needs{display:flex;gap:8px;flex-wrap:wrap}
-.needs button{font-size:.82rem;padding:.35rem .9rem}
-.recipes{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
-.recipe{display:flex;flex-direction:column;gap:8px}
-.recipe .tags{display:flex;gap:4px;flex-wrap:wrap}
-.recipe .tags span{font-size:.7rem;background:var(--done-bg);color:var(--done-ink);padding:1px 7px;border-radius:99px}
-.recipe p{margin:0;font-size:.88rem;color:var(--muted);flex:1}
-.recipe select{font-size:.85rem;padding:.4rem .5rem}
-.planwrap{overflow-x:auto}
-.plan{display:grid;grid-template-columns:90px repeat(7,minmax(118px,1fr));gap:6px;min-width:900px}
-.plan .h{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center;padding:4px}
-.plan .rl{font-size:.8rem;color:var(--muted);display:flex;align-items:center;font-weight:500}
-.cell{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px;min-height:64px;display:flex;flex-direction:column;gap:4px}
-.cell.filled{border-color:var(--forest)}
-.cell .rn{font-size:.82rem;font-weight:500;line-height:1.25}
-.cell select{font-size:.75rem;padding:.25rem .3rem;border-radius:6px}
-.shop{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,280px);gap:18px;align-items:start}
-.aisle h3{font-size:1.1rem;margin:10px 0 4px;color:var(--forest-deep)}
-.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:.9rem}
-.item.have .nm{text-decoration:line-through;color:var(--muted)}
-.item .q{color:var(--muted);font-variant-numeric:tabular-nums;font-size:.82rem;white-space:nowrap}
-.order{position:sticky;top:120px;display:flex;flex-direction:column;gap:10px}
-.order .big{font-family:var(--display);font-size:2.4rem;font-weight:700;line-height:1;color:var(--forest-deep);font-variant-numeric:tabular-nums}
-.order .btn{width:100%}
-.disclaim{font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.links{display:flex;gap:10px;flex-wrap:wrap}
+.toast{pointer-events:none;position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--forest);color:var(--cream);padding:12px 18px;border-radius:999px;font-size:.95rem;z-index:10;max-width:calc(100% - 32px);text-align:center}
+.ver{text-align:center;font-size:.7rem;color:#9A958B;margin-top:30px}
+@media (max-width:520px){.two{grid-template-columns:1fr}.day{min-height:54px;padding:5px}.day .n{font-size:1.1rem}.hero{flex-direction:column;text-align:center}}
+</style></head>
+<body>
+<header class="top"><a href="/">Meal<span>Kind</span></a><span class="tag" id="famTag" hidden>Family view</span></header>
 
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--forest-deep);color:var(--bg);padding:.6rem 1.1rem;border-radius:99px;font-size:.9rem;z-index:10;max-width:calc(100% - 32px);text-align:center}
-@media (max-width:640px){
-  .hero{grid-template-columns:1fr;text-align:center;justify-items:center}
-  .photo{width:170px}
-  .progress{margin-inline:auto;width:100%}
-  .hero .row{justify-content:center}
-  .remind{grid-template-columns:1fr}
-  .day{grid-template-columns:60px 1fr}
-  .ditem>.act{grid-column:1/-1}
-  .ditem>.act button{width:100%}
-  .signup{grid-template-columns:1fr}
-  .shop{grid-template-columns:1fr}
-  .order{position:static}
-}
-@media (prefers-reduced-motion:no-preference){button{transition:transform .15s}button:active{transform:scale(.97)}}
-.status{background:var(--gold-soft);border:1px solid var(--gold);border-radius:12px;padding:10px 14px;font-size:.88rem}
-html,body{margin:0}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-</head><body>
+<!-- PASSWORD -->
+<form class="gate" id="gate" hidden>
+  <div class="eyebrow">Care Circle</div>
+  <h1>Enter the password</h1>
+  <p class="muted">The family shared a password with the link. You only need to enter it once on this device.</p>
+  <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" aria-label="Password">
+  <div class="err" id="gateErr" role="alert"></div>
+  <button type="submit">Open the Care Circle</button>
+</form>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <symbol id="i-meal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h18a8 8 0 0 1-8 7h-2a8 8 0 0 1-8-7Z"/><path d="M8 9c0-2 2-2 2-4M12 9c0-2 2-2 2-4M16 9c0-2 2-2 2-4"/></symbol>
-    <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10Z"/></symbol>
-    <symbol id="i-hand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11V5a1.5 1.5 0 0 1 3 0v5M10 10V4a1.5 1.5 0 0 1 3 0v6M13 10V5a1.5 1.5 0 0 1 3 0v6M16 11V8a1.5 1.5 0 0 1 3 0v6a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-3l-2.5-4a1.5 1.5 0 0 1 2.5-1.6L7 14"/></symbol>
-    <symbol id="i-pot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-6ZM2 10h2M20 10h2M9 7h6M12 4v3"/></symbol>
-    <symbol id="i-lawn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h11l2-4M17 10l3-6"/><rect x="4" y="11" width="11" height="5" rx="1"/><circle cx="7" cy="18" r="2"/><circle cx="14" cy="18" r="2"/><path d="M2 22h20"/></symbol>
-    <symbol id="i-car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16v-4l2-5h14l2 5v4H3Z"/><path d="M3 12h18"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
-    <symbol id="i-ball" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6c3 3 3 9.8 0 12.8M18.4 5.6c-3 3-3 9.8 0 12.8"/></symbol>
-    <symbol id="i-paw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="16" rx="4.5" ry="3.8"/><circle cx="6" cy="10" r="1.8"/><circle cx="9.5" cy="6.5" r="1.8"/><circle cx="14.5" cy="6.5" r="1.8"/><circle cx="18" cy="10" r="1.8"/></symbol>
-    <symbol id="i-clean" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3 9 13M6 13h7l1 8H5l1-8Z"/><path d="M8 17v4M11 17v4M18 4l.6 1.4L20 6l-1.4.6L18 8l-.6-1.4L16 6l1.4-.6L18 4Z"/></symbol>
-    <symbol id="i-pay" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9a3 3 0 0 0-3-1.5c-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2A3 3 0 0 1 9 15M12 6v1.5M12 16.5V18"/></symbol>
-    <symbol id="i-basket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18l-2 10H5L3 10ZM8 10l4-6 4 6M9 14v3M15 14v3"/></symbol>
-  </defs>
-</svg>
-
-<header class="top">
-  <div class="top-in">
-    <div class="brand"><a href="/" style="text-decoration:none"><b>Meal<span>Kind</span></b></a><span class="small muted" id="brandName">Loading…</span></div>
-    <div class="rolebar">
-      <div class="roles" role="group" aria-label="Who is using this page">
-        <button data-role="patient">Patient &amp; family</button>
-        <button data-role="support">Supporters</button>
-      </div>
-      <span class="rolehint" id="roleHint"></span>
-    </div>
-    <nav class="tabs" id="tabs">
-      <a href="#train" data-roles="patient support"><svg><use href="#i-meal"/></svg><span id="trainTab">Care Circle</span></a>
-      <a href="#cook" data-roles="patient"><svg><use href="#i-pot"/></svg>My meals</a>
-      <a href="#help" data-roles="patient support"><svg><use href="#i-hand"/></svg>Extra help</a>
-      <a href="#messages" data-roles="patient support"><svg><use href="#i-heart"/></svg>Messages</a>
-    </nav>
-  </div>
-</header>
-
-<!-- CARE CIRCLE -->
-<main class="wrap view" id="v-train">
-  <p class="status" id="status" hidden></p>
+<main class="wrap" id="page" hidden>
+  <!-- WHO IT'S FOR -->
   <section class="hero">
-    <div>
-      <div class="photo" id="photo"><span class="ph"></span>
-        <label class="btn photo-btn" for="photoIn" id="photoLabel" hidden>Add photo</label>
-      </div>
-      <input type="file" id="photoIn" accept="image/*" hidden>
-    </div>
-    <div>
-      <div class="eyebrow">MealKind Care Circle</div>
-      <h1 id="heroTitle">Loading…</h1>
-      <p id="heroStory"></p>
-      <button type="button" class="sm ghost" id="introBtn" hidden style="margin-top:8px">Add a short introduction</button>
-      <form id="introEdit" hidden style="display:grid;gap:8px;margin-top:10px;max-width:560px">
-        <label>Who is this page for?<input id="introName" maxlength="80" placeholder="e.g. Dave Martinez"></label>
-        <label>Introduction<textarea id="introText" rows="4" maxlength="2000" placeholder="Hi everyone, this page is for Dave, who's going through renal care over the next few weeks. We're so grateful for your support, however you can help."></textarea></label>
-        <div class="row"><button type="submit" class="sm">Save introduction</button></div>
-      </form>
-      <div class="progress"><div class="bar"><span id="barFill"></span></div><small id="barText"></small></div>
-      <div class="row" style="margin-top:16px">
-        <button class="gold" data-go="cal">Sign up to cook</button>
-        <button class="ghost" id="shareBtn">Copy invite link</button>
-      </div>
-    </div>
+    <div class="photo" id="photo"></div>
+    <div><div class="eyebrow">Care Circle</div><h1 id="title"></h1></div>
   </section>
-
-  <section class="remind" id="remind"></section>
-
-  <section class="card org">
-    <div class="people" id="orgPeople"></div>
-    <div id="orgTools" hidden style="width:100%"><form id="orgAddForm" class="row" style="width:100%;border-top:1px dashed var(--line);padding-top:12px">
-      <span class="small muted" style="flex-basis:100%">Organizer tools: add a co-organizer</span>
-      <input id="orgNewName" placeholder="Name" style="flex:1 1 160px" aria-label="Co-organizer name">
-      <input id="orgNewNote" placeholder="e.g. neighbor" style="flex:1 1 160px" aria-label="How they know the family">
-      <button class="sm" type="submit">Add</button>
-    </form></div>
-  </section>
-
-  <section>
-    <div class="sec-head">
-      <div><div class="eyebrow">At a glance</div><h2>Who's doing what</h2></div>
-      <div class="filters" id="filters"><button class="sm" data-f="all">All</button><button class="sm ghost" data-f="open">Still needed</button><button class="sm ghost" data-f="done">Covered</button></div>
-    </div>
-    <div class="board" id="board"></div>
-  </section>
-
-  <section>
-    <div class="sec-head"><div><div class="eyebrow">Read before you cook</div><h2>Food notes</h2></div></div>
-    <div class="notes" id="notes"></div>
-    <p class="small muted" id="had" style="margin-top:10px"></p>
-  </section>
-
-  <section id="cal-sec">
-    <div class="sec-head"><div><div class="eyebrow">Upcoming</div><h2>Calendar</h2></div>
-      <small class="muted"><span style="color:var(--gold);font-weight:600">Gold date</span> = treatment day</small></div>
-    <div class="cal" id="cal"></div>
-  </section>
-</main>
-
-<!-- MESSAGES -->
-<main class="wrap view" id="v-messages" hidden>
-  <div class="sec-head" style="margin:0"><div><div class="eyebrow">For the family</div><h2>Messages</h2></div></div>
-  <form class="card compose" id="msgForm">
-    <div class="row" style="align-items:stretch">
-      <label style="flex:1 1 180px">Your name<input id="mName" required></label>
-      <label style="flex:1 1 180px">Add a photo (optional)<input id="mImg" type="file" accept="image/*"></label>
-    </div>
-    <label>Your message<textarea id="mText" rows="3" required placeholder="Thinking of you this week…"></textarea></label>
-    <div class="row" style="justify-content:space-between">
-      <label class="inline"><input type="checkbox" id="mPrivate"> Only the family can see this</label>
-      <button type="submit">Send message</button>
-    </div>
-  </form>
-  <p class="small muted" id="privNote" style="margin:0"></p>
-  <div class="wall" id="wall"></div>
-</main>
-
-<!-- EXTRA HELP -->
-<main class="wrap view" id="v-help" hidden>
-  <div class="sec-head" style="margin:0"><div><div class="eyebrow">Beyond meals</div><h2>Extra help</h2><p class="muted" id="helpIntro" style="margin:.4rem 0 0;max-width:60ch"></p></div></div>
-
-  <form class="card needform" id="needForm" hidden>
-    <h3>Add something you need</h3>
-    <div class="row" style="align-items:stretch">
-      <label style="flex:1 1 180px">Type of help<select id="needType">
-        <option value="Ride">Ride to an appointment</option><option>Groceries</option><option>Errand</option><option>School pickup</option><option>Kids to clubs</option><option>Clean the home</option><option>Walk the dogs</option><option>Mow the lawn</option><option value="Other">Something else</option>
-      </select></label>
-      <label style="flex:1 1 180px" id="needTitleWrap" hidden>Short title<input id="needTitle" maxlength="120" placeholder="e.g. Pick up prescriptions"></label>
-    </div>
-    <div class="row" style="align-items:stretch">
-      <label style="flex:1 1 150px">Date (optional)<input type="date" id="needDate"></label>
-      <label style="flex:1 1 150px">Time (optional)<input id="needTime" maxlength="40" placeholder="e.g. 3:15 pm"></label>
-    </div>
-    <label>Details<textarea id="needDetails" rows="3" maxlength="600" placeholder="e.g. Front and back yard. The mower is in the garage. Any time Saturday morning."></textarea></label>
-    <div class="row" style="justify-content:flex-end"><button type="submit">Add to the list</button></div>
-  </form>
-
-  <div class="card row" id="helperCard" style="align-items:stretch">
-    <label style="flex:1 1 180px">Your name<input id="hName" autocomplete="name"></label>
-    <label style="flex:1 1 180px">Mobile (for reminders)<input id="hPhone" type="tel" autocomplete="tel" placeholder="(210) 555-0142"></label>
+  <p class="blurb" id="blurb"></p>
+  <div id="blurbEdit" hidden>
+    <button class="sm ghost" id="blurbBtn" type="button">Write a short note for friends</button>
+    <form id="blurbForm" class="form" hidden style="margin-top:10px">
+      <label>Who is this for?<input id="bName" maxlength="80" placeholder="e.g. Dave Martinez"></label>
+      <label>A short note<textarea id="bText" rows="4" maxlength="1000" placeholder="Hi everyone, this page is for Dave, who's going through renal care over the next few weeks. We're so grateful for your support, however you can help."></textarea></label>
+      <div><button type="submit" class="sm">Save</button></div>
+    </form>
   </div>
-  <div class="helpgrid" id="helpGrid"></div>
+  <p class="notes" id="notes"></p>
 
-  <section>
-    <div class="sec-head"><div><div class="eyebrow">Can't be there in person?</div><h2>Help from afar</h2></div></div>
-    <div class="helpgrid">
-      <div class="card help" id="gfmCard" hidden>
-        <div class="ico money"><svg><use href="#i-basket"/></svg></div>
-        <h3>Meal fund</h3>
-        <p>A fundraiser that covers groceries and meals during care.</p>
-        <a class="btn gold" id="gfmBtn" href="#" target="_blank" rel="noopener">Give to the meal fund</a>
-        <div id="gfmEdit" class="row" hidden><input id="gfmLink" placeholder="https://www.gofundme.com/f/…" style="flex:1;min-width:0" aria-label="GoFundMe link"><button class="sm ghost" id="gfmSave" type="button">Save link</button></div>
+  <!-- FAMILY ONLY -->
+  <section class="card" id="famBox" hidden>
+    <div class="eyebrow">Share with friends</div>
+    <p style="margin:6px 0 10px">Send the link <strong>and</strong> the password. Only people with both can see this page.</p>
+    <div class="form">
+      <label>Link<input id="shareLink" readonly></label>
+      <div class="two">
+        <label>Password<input id="sharePw" readonly placeholder="Not set"></label>
+        <label>Change password<input id="newPw" inputmode="numeric" maxlength="8" placeholder="4–8 digits"></label>
       </div>
-      <div class="card help" id="amzCard" hidden>
-        <div class="ico money"><svg><use href="#i-heart"/></svg></div>
-        <h3>Gift list</h3>
-        <p>Comfort items and essentials the family has picked out.</p>
-        <a class="btn gold" id="amzBtn" href="#" target="_blank" rel="noopener">Open the gift list</a>
-        <div id="amzEdit" class="row" hidden><input id="amzLink" placeholder="https://www.amazon.com/hz/wishlist/…" style="flex:1;min-width:0" aria-label="Amazon list link"><button class="sm ghost" id="amzSave" type="button">Save link</button></div>
-      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="sm gold" id="copyBtn" type="button">Copy link and password</button><button class="sm ghost" id="pwBtn" type="button">Save new password</button></div>
+      <p class="small muted">To change the recipe list, go back to the MealKind app and send the menu again. Tap any day to mark it as a treatment day.</p>
     </div>
   </section>
+
+  <!-- HOW IT WORKS -->
+  <div class="steps"><div><b>1</b>Pick a day</div><div><b>2</b>Pick a recipe</div><div><b>3</b>Add your details</div></div>
+
+  <!-- CALENDAR -->
+  <section>
+    <div class="calhead"><h2 id="monthLbl">Calendar</h2>
+      <div style="display:flex;gap:8px"><button class="sm ghost" id="prevBtn" type="button" aria-label="Earlier weeks">‹</button><button class="sm ghost" id="nextBtn" type="button" aria-label="Later weeks">›</button></div></div>
+    <div class="legend" style="margin:6px 0 10px"><span><i style="background:var(--gold-soft);border-color:var(--gold)"></i>Treatment day</span><span><i style="background:var(--good-bg);border-color:var(--good-bg)"></i>Meals planned</span></div>
+    <div class="grid" id="dows"></div>
+    <div class="grid" id="cal" style="margin-top:6px"></div>
+  </section>
+
+  <!-- SELECTED DAY -->
+  <section class="card panel" id="dayPanel" hidden></section>
+
+  <!-- MY TURNS -->
+  <section class="card" id="mine" hidden></section>
+
+  <!-- RECIPES -->
+  <section class="card">
+    <div class="eyebrow">Chosen by the family</div>
+    <h2>Recipes on the menu</h2>
+    <p class="small muted" style="margin-top:4px">Every recipe here fits their diet. Tap one to see the ingredients and method.</p>
+    <div id="menuList"></div>
+  </section>
+
+  <section class="links" id="links" hidden></section>
+  <p class="ver">Version 11 · 8 Oct 2026</p>
 </main>
-
-<!-- COOK FOR MYSELF -->
-<main class="wrap view" id="v-cook" hidden>
-  <div>
-    <div class="eyebrow">Patient &amp; family</div>
-    <h2>My meals</h2>
-    <p class="muted" style="margin:.4rem 0 0;max-width:62ch">Every recipe here has been checked against this page's allergies and foods to avoid. Pick a condition, add recipes to your week, then check your fridge. MealKind builds the shopping list from what's left.</p>
-    <p class="screen-note" id="screenNote" style="margin-top:12px"></p>
-  </div>
-
-  <section>
-    <div class="sec-head" style="margin-bottom:10px"><h3>Recipes written for</h3></div>
-    <div class="needs" id="needs"></div>
-  </section>
-
-  <section>
-    <div class="sec-head"><div><div class="eyebrow">Step 1</div><h2>Recipes</h2></div><span class="small muted" id="recCount"></span></div>
-    <div class="recipes" id="recipes"></div>
-  </section>
-
-  <section>
-    <div class="sec-head"><div><div class="eyebrow">Step 2</div><h2>My week</h2></div>
-      <div class="row"><button class="sm ghost" id="autoFill">Fill empty dinners</button><button class="sm ghost" id="clearPlan">Clear week</button></div></div>
-    <div class="planwrap"><div class="plan" id="plan"></div></div>
-  </section>
-
-  <section>
-    <div class="sec-head"><div><div class="eyebrow">Step 3</div><h2>Fridge check &amp; shopping list</h2></div></div>
-    <div class="shop">
-      <div class="card" id="shopList"></div>
-      <aside class="card order">
-        <div class="eyebrow">To buy</div>
-        <div class="big" id="buyCount">0</div>
-        <div class="small muted" id="buySub"></div>
-        <button id="copyList">Copy shopping list</button>
-        <a class="btn gold" href="https://www.heb.com/" target="_blank" rel="noopener">Order on H-E-B</a>
-        <a class="btn ghost" href="https://www.instacart.com/" target="_blank" rel="noopener">Order on Instacart</a>
-        <a class="btn ghost" href="https://www.walmart.com/cp/food/976759" target="_blank" rel="noopener">Order on Walmart</a>
-        <p class="small muted" style="margin:0">Tick "Have it" for anything already in your fridge or pantry. It drops off the list.</p>
-      </aside>
-    </div>
-  </section>
-  <p class="disclaim">These recipes are general comfort-food ideas. Your oncology dietitian can tell you what fits your treatment, especially around food safety and weight.</p>
-</main>
-
-<p style="text-align:center;font-size:.7rem;color:var(--muted);margin:40px 0 0">Version 10 · 8 Oct 2026</p>
 <div class="toast" id="toast" hidden></div>
 
 <script>
-const SUPABASE_URL="https://cyxwfacrfrievhdgaoku.supabase.co";
-const SUPABASE_KEY="sb_publishable_WHoTJ70SNONQhLgDUsnOlw_p56uKC-i";
+const SUPABASE_URL="https://cyxwfacrfrievhdgaoku.supabase.co",SUPABASE_KEY="sb_publishable_WHoTJ70SNONQhLgDUsnOlw_p56uKC-i";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}},raw(k){try{return localStorage.getItem(k)}catch{return null}}};
 const Q=new URLSearchParams(location.search);
-const SLUG=(Q.get("circle")||Q.get("f")||"demo-maria").trim();
-(function(){let ok=false;try{ok=!!localStorage.getItem("mk_privacy_v1")}catch(e){}if(!ok)location.replace("/?circle="+encodeURIComponent(SLUG)+"&next=care-circle")})();
-const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
-let FAMILY_TOKEN=Q.get("t")||store.get("mk_org_"+SLUG,null)||store.get("mk_family_token_"+SLUG,null);
-if(Q.get("t")){store.set("mk_org_"+SLUG,Q.get("t"));try{history.replaceState(null,"",location.pathname+"?circle="+encodeURIComponent(SLUG)+location.hash)}catch{}}
-const IS_ORG=!!FAMILY_TOKEN;
-
-const colors=["#3A6B4A","#B5762A","#6A5A8C","#3F6E8C","#9C4F4F","#5E7A3A"];
-const initials=n=>String(n||"?").split(/\s+/).filter(Boolean).map(w=>w[0]).join("").slice(0,2).toUpperCase();
-const colorFor=n=>colors[[...String(n)].reduce((a,c)=>a+c.charCodeAt(0),0)%colors.length];
-const av=n=>`<span class="av" style="background:${colorFor(n)}">${esc(initials(n))}</span>`;
+const SLUG=(Q.get("circle")||Q.get("f")||"").trim();
+if(!SLUG){location.replace("/")}
+(function(){let ok=false;try{ok=!!localStorage.getItem("mk_privacy_v1")}catch(e){}if(!ok&&SLUG)location.replace("/?circle="+encodeURIComponent(SLUG)+"&next=care-circle")})();
+// family code: from the app on this device (or an organizer link)
+const rawTok=store.raw("mk_family_token_"+SLUG);
+let TOKEN=Q.get("t")||store.get("mk_org_"+SLUG,null)||(rawTok?rawTok.replace(/^"|"$/g,""):null);
+if(Q.get("t")){store.set("mk_org_"+SLUG,Q.get("t"));try{history.replaceState(null,"",location.pathname+"?circle="+encodeURIComponent(SLUG))}catch{}}
+let CODE=store.get("mk_code_"+SLUG,null);
+const ME=store.get("mk_me",{name:"",phone:"",email:""});
+const MINE=store.get("mk_mine_"+SLUG,[]);   // [{id,token}]
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const fmt=d=>{if(!d)return{dow:"Any",num:"–",mon:"day",long:"a flexible day"};const x=new Date(d+"T12:00");return{dow:x.toLocaleDateString("en-US",{weekday:"short"}),num:x.getDate(),mon:x.toLocaleDateString("en-US",{month:"short"}),long:x.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})}};
-const today=()=>new Date().toLocaleDateString("en-CA");
+const iso=d=>d.toLocaleDateString("en-CA");
+const todayISO=iso(new Date());
+const longDate=s=>new Date(s+"T12:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,3500)}
-const ERR={already_claimed:"Someone just took this spot. Please pick another date.",missing_name:"Please add your name.",not_found:"This page couldn't be found.",not_your_slot:"Only the person who signed up can release this date.",bad_date:"Pick a date from today onward.",slow_down:"Lots of activity right now. Try again in a few minutes.",bad_photo:"That photo couldn't be used. Try another.",not_family:"Organizer link not recognised. Ask the organizer for a fresh link.",missing_fields:"Please add your name and a message.",bad_gofundme:"Use a link that starts with https://www.gofundme.com/"};
+const ERR={bad_code:"That password isn't right. Check the message the family sent you.",no_password_yet:"The family hasn't set a password yet. Ask them to open the MealKind app and send the menu.",not_found:"This Care Circle link isn't valid.",missing_name:"Please add your name.",missing_recipe:"Please choose a recipe.",bad_date:"Please choose a day from today onward.",slow_down:"Lots of activity right now. Try again in a few minutes.",not_family:"Only the family can do that.",bad_code_format:"Passwords are 4 to 8 numbers.",not_your_slot:"Only the person who signed up can cancel this."};
 const errMsg=e=>{const m=(e&&e.message)||"";const k=Object.keys(ERR).find(k=>m.includes(k));return k?ERR[k]:"Something went wrong. Check your connection and try again."};
 async function rpc(fn,args){const {data,error}=await sb.rpc(fn,args);if(error)throw error;return data}
 
-/* volunteer details + claims remembered on this device */
-const ME=store.get("mk_me",{name:"",phone:"",email:""});
-const CLAIMS=store.get("mk_claims_"+SLUG,[]); // [{item, token}]
-const saveMe=()=>store.set("mk_me",ME), saveClaims=()=>store.set("mk_claims_"+SLUG,CLAIMS);
-
-const HELP_TYPES=[
-  {key:"Mow the lawn",icon:"i-lawn",blurb:"Front and back yard."},
-  {key:"School pickup",icon:"i-car",blurb:"Collect the kids from school."},
-  {key:"Kids to clubs",icon:"i-ball",blurb:"Drive the kids to practice or clubs."},
-  {key:"Walk the dogs",icon:"i-paw",blurb:"A walk around the block."},
-  {key:"Clean the home",icon:"i-clean",blurb:"Kitchen, bathrooms, vacuuming."},
-];
-const S={page:null,slots:[],open:null,filter:"all"};
-
-async function load(){
-  try{
-    const p=await rpc("mk_get_page",{p_slug:SLUG});
-    if(!p){$("status").textContent="This MealKind page couldn't be found. Check the link you were sent.";$("status").hidden=false;return}
-    S.page=p;
-    S.slots=(p.items||[]).map(i=>({id:i.id,date:i.date,type:i.type||"Meal",title:i.title,desc:i.description,who:i.status==="open"?null:i.who,what:i.what,status:i.status,tw:i.time_window}))
-      .filter(s=>!s.date||s.date>=today()||s.who);
-    $("status").hidden=!/DEMO/.test(p.display_name||"");
-    $("status").textContent="Demo page with example names. Sign-ups here are real database entries.";
-    renderAll();
-  }catch(e){$("status").hidden=false;$("status").textContent=errMsg(e)}
-}
-
-/* tabs */
-const VIEWS=["train","messages","help","cook"];
-function show(v){if(!VIEWS.includes(v))v="train";if(typeof ROLE!=="undefined"&&!allowed(v))v="train";VIEWS.forEach(x=>$("v-"+x).hidden=x!==v);[...$("tabs").children].forEach(a=>a.setAttribute("aria-current",a.getAttribute("href")==="#"+v?"page":"false"));window.scrollTo(0,0)}
-$("tabs").addEventListener("click",e=>{const a=e.target.closest("a");if(!a)return;e.preventDefault();const v=a.getAttribute("href").slice(1);try{history.replaceState(null,"","#"+v)}catch{}show(v)});
-
-/* hero + organizers */
-function renderHero(){
-  const p=S.page,name=p.recipient_name||p.display_name||"Our friend";
-  document.title=`Meals for ${name} · MealKind Care Circle`;
-  $("heroTitle").textContent=`Meals for ${name}`;
-  $("brandName").textContent=`${name.split(" ")[0]}'s page`;
-  
-  const ph=$("photo");ph.querySelector("img")?.remove();
-  if(p.photo_url){const img=document.createElement("img");img.src=p.photo_url;img.alt=name;ph.prepend(img);ph.querySelector(".ph").hidden=true}
-  else{ph.querySelector(".ph").hidden=false;ph.querySelector(".ph").textContent=initials(name)}
-  $("photoLabel").hidden=!IS_ORG;
-  $("photoLabel").textContent=p.photo_url?"Change photo":"Add photo";
-  const t=S.slots.length,f=S.slots.filter(s=>s.who).length;
-  $("barFill").style.width=(t?f/t*100:0)+"%";
-  $("barText").textContent=t?`${f} of ${t} spots covered · ${t-f} still needed`:"No dates added yet";
-}
-function renderOrg(){
-  const os=S.page.organizers||[];
-  $("orgPeople").innerHTML=os.length?os.map(o=>`<div class="person">${av(o.name)}<div><div class="role">${esc(o.role)}</div><div class="pname">${esc(o.name)}</div><div class="small muted">${esc(o.note||"")}</div></div></div>`).join(""):(IS_ORG?`<span class="muted">Add the people who help you run this page, so supporters know who to ask.</span>`:"");
-  $("orgPeople").closest(".org").hidden=!os.length&&!IS_ORG;
-  $("orgTools").hidden=!IS_ORG;
-}
-$("orgAddForm").addEventListener("submit",async e=>{e.preventDefault();const n=$("orgNewName").value.trim();if(!n)return;try{await rpc("mk_add_organizer",{p_slug:SLUG,p_family_token:FAMILY_TOKEN,p_name:n,p_role:"Co-organizer",p_note:$("orgNewNote").value.trim()||null});e.target.reset();toast(`${n} added as co-organizer`);load()}catch(err){toast(errMsg(err))}});
-
-/* reminder panel: this device's next turn */
-function renderRemind(){
-  if(ROLE==="patient"){const t=S.slots.length,f=S.slots.filter(s=>s.who).length;
-    $("remind").innerHTML=`<div><div class="eyebrow">Patient &amp; family</div><h3>${t-f?`${t-f} ${t-f===1?"spot still needs":"spots still need"} a helper`:"Everything is covered"}</h3><p class="small" style="margin:.3rem 0 0">Share your page so supporters can sign up. They get text reminders before their turn.</p></div><div><button class="gold" type="button" onclick="document.getElementById('shareBtn').click()">Copy invite link</button></div>`;return}
-  const mine=S.slots.filter(s=>s.who&&CLAIMS.some(c=>c.item===s.id)).sort((a,b)=>(a.date||"9").localeCompare(b.date||"9"))[0];
-  if(!mine){$("remind").innerHTML=`<div><div class="eyebrow">Reminders</div><h3>Sign up and we'll remind you</h3><p class="small" style="margin:.3rem 0 0">Pick a date below and add your mobile number. MealKind texts you two days before and the morning of, with the drop-off details.</p></div>`;return}
-  const c=CLAIMS.find(c=>c.item===mine.id),d=fmt(mine.date),first=(mine.who||"").split(" ")[0],cooking=!!courseOf(mine),forName=(S.page.recipient_name||S.page.display_name||"the family").split(" ")[0];
-  const win=S.page.drop_off_window;
-  $("remind").innerHTML=`<div><div class="eyebrow">Your next turn · ${esc(mine.who)}</div><h3>${esc(d.long)}: ${cooking?"you're bringing "+esc(slotLabel(mine).toLowerCase()):esc(mine.type.toLowerCase())}</h3>
-    <p class="small" style="margin:.3rem 0 .4rem">${esc(mine.what||"")}${cooking&&win?" · drop off "+esc(win):""}</p>
-    ${c.drop?`<p class="small" style="margin:0 0 .6rem"><strong>Drop-off:</strong> ${esc(c.drop)}</p>`:""}
-    <div class="row"><span class="small muted">${c.reminders&&c.reminders.length&&c.phone?"Text reminders: "+esc(c.reminders.join(", ")):"No text reminders set"}</span><button class="sm ghost" id="swapBtn">Can't make it? Release this date</button></div></div>
-    <div class="sms"><div class="from">MealKind · reminder preview</div>Hi ${esc(first)}, a reminder that you're ${cooking?"bringing "+esc(slotLabel(mine).toLowerCase()):"helping"} for ${esc(forName)} on ${esc(d.long)}${cooking&&win?". Drop-off "+esc(win):""}. ${esc(mine.what||"")}</div>`;
-  $("swapBtn").onclick=async()=>{try{await rpc("mk_release_slot",{p_slug:SLUG,p_item:mine.id,p_claim_token:c.token});CLAIMS.splice(CLAIMS.indexOf(c),1);saveClaims();toast("Date released. Reminders cancelled.");load()}catch(err){toast(errMsg(err))}};
-}
-function renderBoard(){
-  const list=S.slots.filter(s=>S.filter==="all"||(S.filter==="open"?!s.who:s.who));
-  $("board").innerHTML=list.map(s=>{const d=fmt(s.date);return `<div class="card task">${s.who?av(s.who):`<span class="av" style="background:var(--line);color:var(--muted)">?</span>`}<div class="meta"><div class="when">${esc(d.dow)} ${esc(d.mon)} ${esc(d.num)} · ${esc(slotLabel(s))}</div><div class="pname">${s.who?esc(s.who):"Open"}</div><div class="small muted">${esc(s.what||"")}</div></div><span class="chip ${s.who?"done":"open"}">${s.who?"Covered":"Needed"}</span></div>`}).join("")||`<p class="muted">Nothing here.</p>`;
-}
-function renderNotes(){
-  const p=S.page,cards=[];
-  cards.push({h:"Drop-off",li:[p.drop_off_window||"Ask the organizer","Address shown after you sign up"]});
-  Object.entries(p.food_notes||{}).forEach(([h,li])=>cards.push({h,li:Array.isArray(li)?li:[String(li)]}));
-  if((p.allergy_flags||[]).length&&!Object.keys(p.food_notes||{}).some(k=>/avoid|allerg/i.test(k)))cards.push({h:"Allergies",li:p.allergy_flags});
-  $("notes").innerHTML=cards.map(c=>`<div class="note"><h3>${esc(c.h)}</h3><ul>${c.li.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`).join("");
-  const had=S.slots.filter(s=>s.who&&s.type==="Meal"&&s.what).map(s=>esc(s.what));
-  $("had").innerHTML=had.length?`<strong>Already planned:</strong> ${had.join(" · ")}`:"";
-}
-/* ---------- Calendar: grouped by day, supporters choose from the screened menu ---------- */
-const COURSES=[["breakfast","Breakfast"],["lunch","Lunch"],["dinner","Dinner"],["snack","Snack"],["dessert","Dessert"]];
-const COURSE_LABEL=Object.fromEntries(COURSES);
-const EXTRA_COURSES=["breakfast","snack","dessert"];          // these can be offered more than once a day
-function courseOf(s){const t=String(s.tw||"").toLowerCase();if(COURSE_LABEL[t])return t;const y=String(s.type||"").toLowerCase();if(COURSE_LABEL[y])return y;return s.type==="Meal"?"dinner":null}
-function slotLabel(s){const c=courseOf(s);return c?COURSE_LABEL[c]:s.type}
-function requestedDish(s){const t=(s.title||"").trim();if(!t||s.type!=="Meal")return "";return /^(dinner|lunch|breakfast|snack|dessert|meal)$/i.test(t)?"":t}
-function menuOptions(course){return eligible().sort((a,b)=>(a.slot===course?0:1)-(b.slot===course?0:1))}
-function pickerHTML(key,course,requested){
-  const list=menuOptions(course),req=requested&&list.find(r=>r.n===requested);
-  const groups=COURSES.map(([c,l])=>{const rs=list.filter(r=>r.slot===c);if(!rs.length)return"";
-    return `<optgroup label="${l}${c===course?" (suggested)":""}">${rs.map(r=>`<option value="${r.id}" ${req&&req.id===r.id?"selected":""}>${esc(r.n)}</option>`).join("")}</optgroup>`}).join("");
-  const reqOther=requested&&!req?`<option value="__req" selected>Requested: ${esc(requested)}</option>`:"";
-  const ordered=course?groups.replace(/(<optgroup label="[^"]*\(suggested\)">.*?<\/optgroup>)/s,"")+"":groups;
-  const sugg=(groups.match(/<optgroup label="[^"]*\(suggested\)">.*?<\/optgroup>/s)||[""])[0];
-  return `<label class="full">Choose what you'll bring
-      <select id="m${key}" data-pick="${key}" data-course="${course||""}">${reqOther}${sugg}${ordered}<option value="__other">Something else (type it)</option></select></label>
-    <label class="full" id="ow${key}" hidden>What you'll bring<input id="w${key}" placeholder="e.g. homemade chicken soup"></label>
-    <div class="full small muted" id="pv${key}"></div>
-    <div class="repeat" id="r${key}" hidden></div>`;
-}
-function previewPick(key){
-  const sel=$("m"+key);if(!sel)return;const v=sel.value,pv=$("pv"+key),ow=$("ow"+key);
-  ow.hidden=v!=="__other";
-  const r=RB[v];
-  pv.innerHTML=r?`${esc(r.d)} · ${esc(r.min)}<details style="margin-top:4px"><summary>Ingredients &amp; method</summary><ul style="margin:.3rem 0;padding-left:18px">${r.ing.map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><p style="color:var(--ink)">${esc(r.how)}</p></details>`:(v==="__req"?"The family asked for this dish.":"");
-  // repeat warning only for main meals; breakfast, snacks and desserts can be brought more than once
-  const course=sel.dataset.course,name=r?r.n:(v==="__req"?sel.options[sel.selectedIndex].text.replace(/^Requested: /,""):""),w=$("r"+key);
-  const hit=name&&!EXTRA_COURSES.includes(course)&&S.slots.find(s=>s.who&&s.what&&s.what.toLowerCase()===name.toLowerCase());
-  w.hidden=!hit;if(hit)w.textContent=`Heads up: ${hit.who} is already bringing ${hit.what}. Something different would be welcome.`;
-}
-function pickedWhat(key){const sel=$("m"+key),v=sel.value;if(v==="__other")return $("w"+key).value.trim();if(v==="__req")return sel.options[sel.selectedIndex].text.replace(/^Requested: /,"");return RB[v]?RB[v].n:""}
-function contactHTML(key){return `<label>Your name<input id="n${key}" required value="${esc(ME.name)}" autocomplete="name"></label>
-      <label>Mobile (for text reminders)<input id="p${key}" type="tel" value="${esc(ME.phone)}" placeholder="(210) 555-0142" autocomplete="tel"></label>
-      <label class="full">Email (optional)<input id="e${key}" type="email" value="${esc(ME.email)}" autocomplete="email"></label>`}
-function remindHTML(key){return `<fieldset><legend>Remind me</legend>
-        <label class="inline"><input type="checkbox" name="rm${key}" value="2 days before" checked> 2 days before</label>
-        <label class="inline"><input type="checkbox" name="rm${key}" value="Morning of" checked> Morning of</label>
-        <label class="inline"><input type="checkbox" name="rm${key}" value="Email too"> Email too</label>
-      </fieldset>`}
-function renderCal(){
-  const tr=S.page.treatment_dates||[];
-  const days=[];S.slots.forEach((s,i)=>{const k=s.date||"";let d=days.find(x=>x.k===k);if(!d){d={k,items:[]};days.push(d)}d.items.push([s,i])});
-  $("cal").innerHTML=days.map(day=>{const d=fmt(day.k||null),isT=tr.includes(day.k);
-    let h=`<div class="card day ${isT?"treat":""}"><div class="date"><div class="dow">${esc(d.dow)}</div><div class="num">${esc(d.num)}</div><div class="mon">${esc(d.mon)}</div></div><div class="dayitems">`;
-    day.items.forEach(([s,i])=>{const req=requestedDish(s),lab=slotLabel(s);
-      h+=`<div class="ditem">`;
-      if(s.who)h+=`<div class="slot"><div class="eyebrow">${esc(lab)}${s.tw&&!COURSE_LABEL[String(s.tw).toLowerCase()]?" · "+esc(s.tw):""}</div><div class="person" style="margin-top:4px">${av(s.who)}<div style="min-width:0"><div class="pname">${esc(s.who)}</div><div class="small muted">${esc(s.what||"")}</div></div></div></div><div class="act"><span class="chip done">Covered</span></div>`;
-      else h+=`<div class="slot"><div class="eyebrow">${esc(lab)}</div>${!courseOf(s)&&s.title&&s.title!==s.type?`<div class="small"><strong>${esc(s.title)}</strong></div>`:""}${!courseOf(s)&&s.desc?`<div class="small muted">${esc(s.desc)}</div>`:""}${req?`<div class="small">Requested: <strong>${esc(req)}</strong></div>`:""}<div class="tag">${isT?"Treatment day · ":""}Still needed</div></div><div class="act">${ROLE==="patient"?`<span class="chip open">Needed</span>`:`<button data-open="${i}">${S.open===i?"Close":"I'll take this"}</button>`}</div>`;
-      if(S.open===i){const meal=!!courseOf(s);
-        h+=`<form class="signup" data-form="${i}">${contactHTML(i)}${meal?pickerHTML(i,courseOf(s),req):`<label class="full">Details<input id="w${i}" required placeholder="e.g. leaving at 8:15 am"></label>`}${remindHTML(i)}<div class="act-row"><button type="submit">Confirm</button></div></form>`}
-      h+=`</div>`});
-    if(ROLE!=="patient"&&day.k&&day.k>=today()){const xk="x"+day.k.replace(/-/g,"");
-      h+=S.open===xk?`<form class="signup" data-extra="${day.k}" data-key="${xk}">
-        <label class="full">What are you adding?<select id="c${xk}" data-xcourse="${xk}">${EXTRA_COURSES.map(c=>`<option value="${c}">${COURSE_LABEL[c]}</option>`).join("")}</select></label>
-        ${contactHTML(xk)}<div class="full" id="pk${xk}">${pickerHTML(xk,"breakfast","")}</div>${remindHTML(xk)}
-        <div class="act-row"><button type="button" class="ghost" data-open="${xk}">Cancel</button><button type="submit">Confirm</button></div></form>`
-      :`<button type="button" class="sm ghost addx" data-open="${xk}">+ Add breakfast, snack or dessert</button>`}
-    return h+"</div></div>"}).join("")||`<p class="muted">The organizer hasn't added dates yet.</p>`;
-  document.querySelectorAll("#cal [data-pick]").forEach(s=>previewPick(s.dataset.pick));
-}
-$("cal").addEventListener("click",e=>{const b=e.target.closest("[data-open]");if(!b)return;const v=b.dataset.open,k=/^\d+$/.test(v)?+v:v;S.open=S.open===k?null:k;renderCal();if(S.open!==null)($("m"+S.open)||$("w"+S.open))?.focus()});
-$("cal").addEventListener("change",e=>{
-  if(e.target.dataset.pick)previewPick(e.target.dataset.pick);
-  if(e.target.dataset.xcourse){const k=e.target.dataset.xcourse;$("pk"+k).innerHTML=pickerHTML(k,e.target.value,"");previewPick(k)}
-});
-$("cal").addEventListener("submit",async e=>{e.preventDefault();const f=e.target,extra=f.dataset.extra,key=extra?f.dataset.key:+f.dataset.form;
-  const n=$("n"+key).value.trim(),ph=$("p"+key).value.trim(),em=$("e"+key).value.trim();
-  const w=$("m"+key)?pickedWhat(key):$("w"+key).value.trim();
-  if(!n){toast("Please add your name.");return}if(!w){toast("Choose or type what you'll bring.");return}
-  const rm=[...f.querySelectorAll(`[name=rm${key}]:checked`)].map(x=>x.value);
-  const btn=f.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="Saving…";
-  try{let item,r;
-    if(extra){const course=$("c"+key).value;r=await rpc("mk_offer_help",{p_slug:SLUG,p_type:COURSE_LABEL[course],p_date:extra,p_name:n,p_phone:ph||null,p_email:em||null,p_note:w,p_reminders:rm});item=r.id}
-    else{const s=S.slots[key];r=await rpc("mk_claim_slot",{p_slug:SLUG,p_item:s.id,p_name:n,p_what:w,p_phone:ph||null,p_email:em||null,p_reminders:rm});item=s.id}
-    Object.assign(ME,{name:n,phone:ph,email:em});saveMe();
-    CLAIMS.push({item,token:r.claim_token,drop:r.drop_off_note||"",reminders:rm,phone:!!ph});saveClaims();
-    S.open=null;await load();toast(`Thanks, ${n.split(" ")[0]}. You're on the calendar.`);$("remind").scrollIntoView({behavior:"smooth",block:"center"});
-  }catch(err){toast(/bad_type/.test(err.message||"")?"Adding extras needs a quick database update. Ask the organizer.":errMsg(err));btn.disabled=false;btn.textContent="Confirm";if(/already_claimed/.test(err.message||""))load()}});
-$("filters").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(!b)return;S.filter=b.dataset.f;[...e.currentTarget.children].forEach(x=>x.classList.toggle("ghost",x!==b));renderBoard()});
-document.querySelector("[data-go=cal]").onclick=()=>$("cal-sec").scrollIntoView({behavior:"smooth"});
-$("shareBtn").addEventListener("click",async()=>{const link=location.origin+location.pathname+"?circle="+encodeURIComponent(SLUG);try{await navigator.clipboard.writeText(link);toast("Invite link copied")}catch{toast(link)}});
-
-/* photo upload (storage) */
-async function uploadPhoto(file){
-  if(file.size>5*1024*1024)throw new Error("bad_photo");
-  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,5)||"jpg";
-  const path=`${SLUG}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-  const {error}=await sb.storage.from("family-photos").upload(path,file,{contentType:file.type||"image/jpeg"});
-  if(error)throw new Error("bad_photo");
-  return sb.storage.from("family-photos").getPublicUrl(path).data.publicUrl;
-}
-$("photoIn").addEventListener("change",async e=>{const f=e.target.files[0];if(!f||!IS_ORG)return;toast("Uploading photo…");try{const url=await uploadPhoto(f);await rpc("mk_update_page",{p_slug:SLUG,p_family_token:FAMILY_TOKEN,p:{photo_url:url}});toast("Photo updated");load()}catch(err){toast(errMsg(err))}});
-
-/* messages */
-async function renderWall(){
-  const pub=S.page.messages||[];let priv=[];
-  if(IS_ORG){try{priv=await rpc("mk_private_messages",{p_slug:SLUG,p_family_token:FAMILY_TOKEN})||[]}catch{}}
-  const all=[...priv.map(m=>({...m,private:true})),...pub];
-  $("wall").innerHTML=all.map(m=>`<article class="card msg">${m.photo_url?`<img src="${esc(m.photo_url)}" alt="Photo from ${esc(m.who)}" loading="lazy">`:""}<p>${esc(m.text)}</p><footer><div class="person">${av(m.who)}<span class="pname">${esc(m.who)}</span></div>${m.private?`<span class="lock">Private to family</span>`:""}</footer></article>`).join("")||`<p class="muted">No messages yet. Be the first.</p>`;
-  const pc=S.page.private_count||0;
-  $("privNote").textContent=!IS_ORG&&pc?`${pc} private ${pc===1?"note has":"notes have"} been sent to the family.`:"";
-  if(!$("mName").value)$("mName").value=ME.name;
-}
-$("msgForm").addEventListener("submit",async e=>{e.preventDefault();const who=$("mName").value.trim(),text=$("mText").value.trim();if(!who||!text)return;const btn=e.target.querySelector("button[type=submit]");btn.disabled=true;
-  try{let url=null;const f=$("mImg").files[0];if(f)url=await uploadPhoto(f);
-    await rpc("mk_post_message",{p_slug:SLUG,p_name:who,p_text:text,p_photo_url:url,p_private:$("mPrivate").checked});
-    ME.name=ME.name||who;saveMe();e.target.reset();$("mName").value=who;toast("Message sent");await load()}catch(err){toast(errMsg(err))}finally{btn.disabled=false}});
-
-/* extra help: the family lists what they need; supporters take it */
-const NEED_ICON={"Mow the lawn":"i-lawn","School pickup":"i-car","Kids to clubs":"i-ball","Walk the dogs":"i-paw","Clean the home":"i-clean","Ride":"i-car","Groceries":"i-basket","Errand":"i-hand","Other":"i-hand"};
-const isNeed=s=>!courseOf(s)&&s.type!=="Meal";
-function renderHelp(){
-  const p=S.page,name=(p.recipient_name||p.display_name||"the family").split(" ")[0];
-  const supporter=ROLE!=="patient";
-  $("helpIntro").textContent=IS_ORG?`List the everyday jobs you'd like help with. Add a date and any details, and supporters can take them on.`
-    :`Jobs ${name}'s family has asked for help with. Pick one and it goes on the calendar with your name.`;
-  $("needForm").hidden=!IS_ORG;$("helperCard").hidden=!supporter;
-  if(supporter){$("hName").value=$("hName").value||ME.name;$("hPhone").value=$("hPhone").value||ME.phone}
-  const needs=S.slots.filter(isNeed).sort((a,b)=>(a.date||"9").localeCompare(b.date||"9"));
-  $("helpGrid").innerHTML=needs.map(s=>{const d=s.date?fmt(s.date).long:"Any day";
-    const title=s.title&&s.title!==s.type?s.title:(s.type==="Ride"?"Ride to an appointment":s.type);
-    return `<div class="card help"><div class="ico"><svg><use href="#${NEED_ICON[s.type]||"i-hand"}"/></svg></div>
-      <h3>${esc(title)}</h3><div class="small muted">${esc(d)}${s.tw?" · "+esc(s.tw):""}</div>
-      <p>${esc(s.desc||"")}</p>
-      ${s.who?`<div class="small">Taken by <strong>${esc(s.who)}</strong></div><span class="chip done" style="align-self:flex-start">Covered</span>`
-        :(supporter?`<button class="gold" data-claim="${s.id}">I'll do it</button>`:`<span class="chip open" style="align-self:flex-start">Needed</span>`)}
-      ${IS_ORG&&!s.who?`<button class="sm ghost" data-remove="${s.id}" style="align-self:flex-start">Remove</button>`:""}</div>`}).join("")
-    ||`<p class="muted">${IS_ORG?"Nothing listed yet. Add the first thing you need above.":"The family hasn't listed anything yet. Check back soon."}</p>`;
-  $("gfmCard").hidden=!(p.gofundme_url||IS_ORG);$("gfmBtn").hidden=!p.gofundme_url;if(p.gofundme_url)$("gfmBtn").href=p.gofundme_url;
-  $("gfmEdit").hidden=!IS_ORG;$("gfmLink").value=p.gofundme_url||"";
-  $("amzCard").hidden=!(p.amazon_url||IS_ORG);$("amzBtn").hidden=!p.amazon_url;if(p.amazon_url)$("amzBtn").href=p.amazon_url;
-  $("amzEdit").hidden=!IS_ORG;$("amzLink").value=p.amazon_url||"";
-}
-$("needType").addEventListener("change",e=>$("needTitleWrap").hidden=e.target.value!=="Other");
-$("needForm").addEventListener("submit",async e=>{e.preventDefault();
-  const type=$("needType").value,item={type,title:type==="Other"?($("needTitle").value.trim()||"Help needed"):type,date:$("needDate").value,time:$("needTime").value.trim(),details:$("needDetails").value.trim()};
-  if(type==="Other"&&!$("needTitle").value.trim()){toast("Give it a short title.");return}
-  try{await rpc("mk_add_needs",{p_slug:SLUG,p_family_token:FAMILY_TOKEN,p_items:[item]});e.target.reset();$("needTitleWrap").hidden=true;toast("Added to the list");load()}
-  catch(err){toast(/function|schema cache/i.test(err.message||"")?"This needs the latest database update.":errMsg(err))}});
-function helper(){const n=$("hName").value.trim(),ph=$("hPhone").value.trim();if(!n){toast("Add your name first.");$("hName").focus();return null}Object.assign(ME,{name:n,phone:ph});saveMe();return{n,ph}}
-$("helpGrid").addEventListener("click",async e=>{
-  const c=e.target.closest("[data-claim]"),r=e.target.closest("[data-remove]");if(!c&&!r)return;
-  try{
-    if(r){await rpc("mk_remove_need",{p_slug:SLUG,p_family_token:FAMILY_TOKEN,p_item:r.dataset.remove});toast("Removed");return load()}
-    const h=helper();if(!h)return;const s=S.slots.find(x=>x.id===c.dataset.claim);
-    const res=await rpc("mk_claim_slot",{p_slug:SLUG,p_item:s.id,p_name:h.n,p_what:"On it",p_phone:h.ph||null,p_email:ME.email||null,p_reminders:["2 days before","Morning of"]});
-    CLAIMS.push({item:s.id,token:res.claim_token,drop:res.drop_off_note||"",reminders:["2 days before","Morning of"],phone:!!h.ph});saveClaims();
-    toast(`Thank you. ${s.title&&s.title!==s.type?s.title:s.type} is yours.`);load();
-  }catch(err){toast(errMsg(err));load()}
-});
-$("gfmSave").addEventListener("click",async()=>{try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:FAMILY_TOKEN,p:{gofundme_url:$("gfmLink").value.trim()}});toast("Meal fund link saved");load()}catch(err){toast(errMsg(err))}});
-$("amzSave").addEventListener("click",async()=>{try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:FAMILY_TOKEN,p:{amazon_url:$("amzLink").value.trim()}});toast("Gift list saved");load()}catch(err){toast(/bad_amazon/.test(err.message||"")?"Use an Amazon link that starts with https://www.amazon.com/":errMsg(err))}});
-
-/* introduction: written by the family */
-const INTRO_EXAMPLE="Hi everyone, this page is for Dave, who's going through renal care over the next few weeks. We're so grateful for your support, however you can help.";
-function renderIntro(){
-  const p=S.page,box=$("introEdit");
-  $("heroStory").textContent=p.story||"";
-  $("introBtn").hidden=!IS_ORG;$("introBtn").textContent=p.story?"Edit introduction":"Add a short introduction";
-  if(!IS_ORG)box.hidden=true;
-}
-$("introBtn").addEventListener("click",()=>{const box=$("introEdit");box.hidden=!box.hidden;if(!box.hidden){$("introText").value=S.page.story||"";$("introName").value=S.page.recipient_name||"";$("introText").focus()}});
-$("introEdit").addEventListener("submit",async e=>{e.preventDefault();
-  try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:FAMILY_TOKEN,p:{story:$("introText").value.trim(),recipient_name:$("introName").value.trim()}});$("introEdit").hidden=true;toast("Introduction saved");load()}catch(err){toast(errMsg(err))}});
-
-/* ---------- My meals: same recipe library and safety screening as the MealKind app ---------- */
+/* recipe details (same library as the app) */
 var activeFlags=()=>({custom:[]});
 function R(slot,tags,n,why,time,ings,steps){return{slot,tags,n,why,time,ings,steps};}
 const POOL=[
@@ -972,93 +480,118 @@ function vet(r,flags){
 function isSafeFor(r,allergyFlags,dietaryFlags){
   return vet(r,{allergy:allergyFlags,diet:dietaryFlags,custom:activeFlags().custom}).safe;
 }
-const COND=[["all","All conditions"],["cancer","Cancer"],["dialysis","Kidney / dialysis"],["cardio","Heart"],["stroke","Stroke"],["gi","Digestive / GI"],["ortho","Surgery & ortho"],["parkinsons","Parkinson's"],["als","ALS"],["tbi","Brain injury"],["alzheimers","Alzheimer's & dementia"],["depression","Depression"],["postpartum","Postpartum"]];
-const FLAG_LABEL={tree_nut:"tree nuts",peanut:"peanuts",milk:"dairy",wheat_gluten:"gluten",egg:"eggs",shellfish:"shellfish",fish:"fish",sesame:"sesame",high_potassium:"high-potassium foods",high_sodium:"high-sodium foods",high_sugar:"high-sugar foods",acidic:"acidic foods",high_phosphorus:"high-phosphorus foods"};
-const IMPLIED={dialysis:["high_potassium","high_sodium","high_phosphorus"],cardio:["high_sodium"],stroke:["high_sodium"]};
-const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],MEALS=["Breakfast","Lunch","Dinner"];
-const C={cond:store.get("mk_cond_"+SLUG,"all"),plan:store.get("mk_plan2_"+SLUG,{}),have:new Set(store.get("mk_have2_"+SLUG,[]))};
-const saveCook=()=>{store.set("mk_plan2_"+SLUG,C.plan);store.set("mk_have2_"+SLUG,[...C.have]);store.set("mk_cond_"+SLUG,C.cond)};
-const rid=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-");
-const AISLE=[["Meat & fish",/chicken|turkey|beef|salmon|fish|tuna|meat|steak/i],["Dairy & eggs",/milk|cheese|yogurt|butter|cream|egg|ricotta|mozzarella|parmesan|custard|whipped/i],["Frozen",/frozen|ice cream|sorbet/i],["Bakery",/bread|pita|tortilla|cake|wafer|cracker|muffin/i],["Produce",/apple|banana|berr|lemon|lime|carrot|zucchini|potato|pepper|onion|garlic|ginger|celery|spinach|avocado|cucumber|grape|pear|peach|broccoli|tomato|lettuce|dill|herb|green bean|peas/i]];
-const aisleOf=n=>{for(const [a,re] of AISLE)if(re.test(n))return a;return "Pantry"};
-const RLIB=POOL.map(r=>({id:rid(r.n),n:r.n,d:r.why,t:r.tags,slot:r.slot,min:r.time,how:(r.steps||[]).map((x,i)=>(i+1)+". "+x).join(" "),al:r.allergens||[],raw:r,ing:(r.ings||[]).map(i=>[i[0],i[1]||"",aisleOf(i[0])])}));
-const RB=Object.fromEntries(RLIB.map(r=>[r.id,r]));
-Object.keys(C.plan).forEach(k=>{if(!RB[C.plan[k]])delete C.plan[k]});
-if(!COND.some(c=>c[0]===C.cond))C.cond="all";
-function famCond(){const c=((S.page||{}).dietary_flags||[]).find(x=>x.startsWith("cond:"));const k=c?c.slice(5):null;return COND.some(x=>x[0]===k)?k:null}
-function pageFlags(){
-  const p=S.page||{},a=p.allergy_flags||[],d=p.dietary_flags||[];
-  const diet=d.filter(x=>!x.startsWith("texture:")&&FLAG_LABEL[x]);
-  (IMPLIED[C.cond]||[]).forEach(x=>{if(!diet.includes(x))diet.push(x)});
-  return {allergy:a.filter(x=>!x.startsWith("other:")&&FLAG_LABEL[x]),diet,custom:a.filter(x=>x.startsWith("other:")).map(x=>x.slice(6))};
-}
-// A recipe is shown only if it is written for the chosen condition (or for everyone) AND passes every allergy and diet check
-function vetFull(r,f){const v=vet(r.raw,f);if(!v.safe)return v;
-  // condFlags like high_phosphorus have no trigger list in the app; check them directly
-  const extra=(f.diet||[]).filter(d=>(r.raw.condFlags||[]).includes(d));return {safe:!extra.length,hits:extra}}
-function eligible(){const fc=famCond();if(fc)C.cond=fc;const f=pageFlags();return RLIB.filter(r=>(C.cond==="all"||r.t.includes(C.cond)||r.t.includes("all"))&&vetFull(r,f).safe)}
-function renderNeeds(){const fc=famCond();
-  if(fc){C.cond=fc;$("needs").innerHTML=`<span class="chip done" style="font-size:.85rem;padding:6px 14px">${esc(Object.fromEntries(COND)[fc])}</span><span class="small muted" style="align-self:center">Only recipes written for this condition, or safe for everyone, are shown.</span>`;return}
-  $("needs").innerHTML=COND.filter(c=>c[0]!=="all").map(([k,l])=>`<button class="${C.cond===k?"":"ghost"}" data-need="${k}">${l}</button>`).join("")+(C.cond==="all"?`<p class="small" style="flex-basis:100%;color:var(--open-ink);margin:4px 0 0">Choose the condition so we only show recipes written for it.</p>`:"")}
-function renderScreen(){
-  const f=pageFlags(),words=[...f.allergy.map(x=>FLAG_LABEL[x]),...f.diet.map(x=>FLAG_LABEL[x]),...f.custom];
-  const total=RLIB.filter(r=>C.cond==="all"||r.t.includes(C.cond)||r.t.includes("all")).length,shown=eligible().length;
-  $("screenNote").textContent=(words.length?`Screened to avoid: ${words.join(", ")}. `:"No allergies or foods to avoid are saved for this page yet. ")+`Showing ${shown} of ${total} recipes${total-shown?` · ${total-shown} hidden because they don't fit`:""}.`;
-}
-const slotOptions=()=>DAYS.flatMap(d=>MEALS.map(m=>`<option value="${d}-${m}">${d} ${m.toLowerCase()}</option>`)).join("");
-function renderRecipes(){
-  const list=eligible(),lab=Object.fromEntries(COND);
-  $("recCount").textContent=`${list.length} recipes`;
-  $("recipes").innerHTML=list.map(r=>`<div class="card recipe"><div class="tags"><span>${esc(r.slot[0].toUpperCase()+r.slot.slice(1))}</span>${r.t.filter(t=>lab[t]&&t!=="all").slice(0,3).map(t=>`<span>${esc(lab[t])}</span>`).join("")}</div><h3>${esc(r.n)}</h3><p>${esc(r.d)}</p>
-    <details class="small"><summary>Ingredients &amp; method</summary><ul style="margin:.4rem 0;padding-left:18px">${r.ing.map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><p style="color:var(--ink)">${esc(r.how)}</p>${r.al.length?`<p>Contains: ${esc(r.al.map(a=>FLAG_LABEL[a]||a).join(", "))}</p>`:""}</details>
-    <div class="small muted">${esc(r.min)} · ${r.ing.length} ingredients</div>
-    <div class="row" style="flex-wrap:nowrap"><select id="sel-${r.id}" aria-label="Choose a day for ${esc(r.n)}">${slotOptions()}</select><button class="sm" data-addr="${r.id}">Add</button></div></div>`).join("")||`<p class="muted">No recipes fit every restriction for this condition. Try "All conditions", or ask the care team which foods are safe.</p>`;
-}
-function renderPlan(){
-  const el=eligible(),ok=new Set(el.map(r=>r.id));
-  let h=`<div></div>`+DAYS.map(d=>`<div class="h">${d}</div>`).join("");
-  MEALS.forEach(m=>{h+=`<div class="rl">${m}</div>`;DAYS.forEach(d=>{const k=`${d}-${m}`,id=C.plan[k],bad=id&&!ok.has(id);
-    h+=`<div class="cell ${id?"filled":""}" ${bad?'style="border-color:#B5471F"':""}>${id?`<div class="rn">${esc(RB[id].n)}</div>${bad?`<div class="small" style="color:#B5471F">Doesn't fit current restrictions</div>`:""}`:""}<select data-cell="${k}" aria-label="${d} ${m}"><option value="">${id?"Remove":"+ Add"}</option>${el.map(r=>`<option value="${r.id}" ${r.id===id?"selected":""}>${esc(r.n)}</option>`).join("")}</select></div>`})});
-  $("plan").innerHTML=h;
-}
-function shopping(){const map=new Map();Object.values(C.plan).forEach(id=>RB[id]&&RB[id].ing.forEach(([n,amt,a])=>{const cur=map.get(n)||{n,amts:[],a};if(amt)cur.amts.push(amt);map.set(n,cur)}));return[...map.values()]}
-function renderShop(){
-  const items=shopping(),aisles=["Produce","Meat & fish","Dairy & eggs","Bakery","Frozen","Pantry"],buy=items.filter(i=>!C.have.has(i.n));
-  $("buyCount").textContent=buy.length;
-  $("buySub").textContent=`items for ${Object.keys(C.plan).length} planned meals · ${items.length-buy.length} already at home`;
-  if(!items.length){$("shopList").innerHTML=`<p class="muted" style="margin:0">Add recipes to your week and the list builds itself here.</p>`;return}
-  $("shopList").innerHTML=`<div class="row" style="justify-content:space-between"><div class="eyebrow">Fridge check</div><span class="small muted">Tick what you already have</span></div>`+aisles.map(a=>{const its=items.filter(i=>i.a===a);if(!its.length)return"";return `<div class="aisle"><h3>${a}</h3>${its.map(i=>`<div class="item ${C.have.has(i.n)?"have":""}"><span class="nm">${esc(i.n)}</span><span class="row" style="gap:12px;flex-wrap:nowrap"><span class="q">${esc(i.amts.join(" + "))}</span><label class="inline small"><input type="checkbox" data-have="${esc(i.n)}" ${C.have.has(i.n)?"checked":""}> Have it</label></span></div>`).join("")}</div>`}).join("");
-}
-function renderCook(){renderNeeds();renderScreen();renderRecipes();renderPlan();renderShop()}
-$("needs").addEventListener("click",e=>{const b=e.target.closest("[data-need]");if(!b)return;C.cond=b.dataset.need;saveCook();renderCook()});
-$("recipes").addEventListener("click",e=>{const b=e.target.closest("[data-addr]");if(!b)return;const k=$("sel-"+b.dataset.addr).value;C.plan[k]=b.dataset.addr;saveCook();renderPlan();renderShop();toast(`${RB[b.dataset.addr].n} added to ${k.replace("-"," ").toLowerCase()}`)});
-$("plan").addEventListener("change",e=>{const k=e.target.dataset.cell;if(!k)return;if(e.target.value)C.plan[k]=e.target.value;else delete C.plan[k];saveCook();renderPlan();renderShop()});
-$("shopList").addEventListener("change",e=>{const n=e.target.dataset.have;if(!n)return;e.target.checked?C.have.add(n):C.have.delete(n);saveCook();renderShop()});
-$("autoFill").onclick=()=>{const pool=eligible().filter(r=>r.slot==="dinner");if(!pool.length){toast("No dinners fit these restrictions");return}let j=0;DAYS.forEach(d=>{const k=d+"-Dinner";if(!C.plan[k]){C.plan[k]=pool[j%pool.length].id;j++}});saveCook();renderPlan();renderShop();toast("Empty dinners filled")};
-$("clearPlan").onclick=()=>{C.plan={};saveCook();renderPlan();renderShop()};
-$("copyList").onclick=async()=>{const t=shopping().filter(i=>!C.have.has(i.n)).map(i=>`- ${i.n}${i.amts.length?" ("+i.amts.join(" + ")+")":""}`).join("\n");if(!t){toast("Nothing to buy");return}try{await navigator.clipboard.writeText("MealKind shopping list\n"+t);toast("List copied. Paste it into your grocery app.")}catch{toast("Copy didn't work here. Select the list and copy it.")}};
+const RECIPE=Object.fromEntries(POOL.map(r=>[r.n,r]));
+const COURSES=[["breakfast","Breakfast"],["lunch","Lunch"],["dinner","Dinner"],["snack","Snack"],["dessert","Dessert"]];
+const CLABEL=Object.fromEntries(COURSES);
+const FLAG={tree_nut:"tree nuts",peanut:"peanuts",milk:"dairy",wheat_gluten:"gluten",egg:"eggs",shellfish:"shellfish",fish:"fish",sesame:"sesame",high_potassium:"high-potassium foods",high_sodium:"high-sodium foods",high_sugar:"high-sugar foods",acidic:"acidic foods",high_phosphorus:"high-phosphorus foods"};
 
-/* ---------- Patient & family vs Supporters ---------- */
-let ROLE=store.get("mk_role_"+SLUG,IS_ORG?"patient":"support");
-const ROLE_HINT={patient:"Plan meals, see who's helping, read messages.",support:"Sign up for a meal or a job, and send a message."};
-function allowed(v){const a=document.querySelector(`#tabs a[href="#${v}"]`);return !!a&&a.dataset.roles.split(" ").includes(ROLE)}
-function setRole(r){
-  ROLE=r==="patient"?"patient":"support";store.set("mk_role_"+SLUG,ROLE);
-  document.querySelectorAll("[data-role]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.role===ROLE));
-  document.querySelectorAll("#tabs a").forEach(a=>a.hidden=!a.dataset.roles.split(" ").includes(ROLE));
-  $("roleHint").textContent=ROLE_HINT[ROLE];
-  $("trainTab").textContent=ROLE==="patient"?"Overview":"Sign up to help";
-  const ctaBtn=document.querySelector("[data-go=cal]");if(ctaBtn)ctaBtn.textContent=ROLE==="patient"?"See who's helping":"Sign up to help";
-  S.open=null;
-  const cur=(location.hash||"#train").slice(1);show(allowed(cur)?cur:"train");
-  if(S.page){renderRemind();renderCal()}
+let P=null,SEL=null,OFFSET=0;
+async function load(){
+  try{P=await rpc("mk_get_circle",{p_slug:SLUG,p_code:CODE,p_family_token:TOKEN});
+    $("gate").hidden=true;$("page").hidden=false;render();}
+  catch(e){
+    if(/bad_code/.test(e.message||"")&&CODE){CODE=null;store.set("mk_code_"+SLUG,null)}
+    $("page").hidden=true;$("gate").hidden=false;
+    if(CODE||/no_password_yet|not_found/.test(e.message||""))$("gateErr").textContent=errMsg(e);
+    $("code").focus();}
 }
-document.querySelectorAll("[data-role]").forEach(b=>b.onclick=()=>setRole(b.dataset.role));
+$("gate").addEventListener("submit",e=>{e.preventDefault();const c=$("code").value.trim();if(!c){$("gateErr").textContent="Enter the password.";return}
+  CODE=c;store.set("mk_code_"+SLUG,c);$("gateErr").textContent="";load().then(()=>{if(!$("page").hidden)return;$("gateErr").textContent=ERR.bad_code})});
 
-function renderAll(){renderHero();renderIntro();renderOrg();renderRemind();renderBoard();renderNotes();renderCal();renderHelp();renderWall();renderCook()}
-show((location.hash||"#train").slice(1));
-setRole(ROLE);renderCook();load();
+function name(){return (P.recipient_name||P.display_name||"your friend")}
+function render(){
+  const fam=!!P.is_family;
+  $("famTag").hidden=!fam;
+  document.title=`Meals for ${name()} · MealKind`;
+  $("title").textContent=`Meals for ${name()}`;
+  $("photo").innerHTML=P.photo_url?`<img src="${esc(P.photo_url)}" alt="">`:esc(name()[0]||"M");
+  $("blurb").textContent=P.story||(fam?"":"");
+  $("blurbEdit").hidden=!fam;$("blurbBtn").textContent=P.story?"Edit the note for friends":"Write a short note for friends";
+  const avoid=[...(P.allergy_flags||[]).filter(x=>!x.startsWith("other:")).map(x=>FLAG[x]||x),...(P.allergy_flags||[]).filter(x=>x.startsWith("other:")).map(x=>x.slice(6)),...(P.dietary_flags||[]).filter(x=>FLAG[x]).map(x=>FLAG[x])];
+  $("notes").innerHTML=(avoid.length?`<strong>Please avoid:</strong> ${esc(avoid.join(", "))}. `:"")+(P.drop_off_window?`<strong>Drop-off:</strong> ${esc(P.drop_off_window)}. `:"")+`The recipes below already follow these rules.`;
+  $("famBox").hidden=!fam;
+  if(fam){const link=location.origin+"/?circle="+encodeURIComponent(SLUG);$("shareLink").value=link;$("sharePw").value=CODE||store.get("mk_pw_"+SLUG,"")||"";if(!P.has_password)$("sharePw").placeholder="Not set yet: add one";}
+  const l=[];if(P.gofundme_url)l.push(`<a class="btn gold" href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">Give to the meal fund</a>`);if(P.amazon_url)l.push(`<a class="btn ghost" href="${esc(P.amazon_url)}" target="_blank" rel="noopener">Open the gift list</a>`);
+  $("links").innerHTML=l.join("");$("links").hidden=!l.length;
+  renderCal();renderPanel();renderMine();renderMenu();
+}
 
+/* calendar: 4 weeks from this week's Monday */
+function weekStart(){const d=new Date();const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day+OFFSET*28);return d}
+function renderCal(){
+  $("dows").innerHTML=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(x=>`<div class="dow">${x}</div>`).join("");
+  const start=weekStart(),tr=P.treatment_dates||[],days=[];
+  for(let i=0;i<28;i++){const d=new Date(start);d.setDate(start.getDate()+i);days.push(d)}
+  const first=days[0],last=days[27];
+  $("monthLbl").textContent=first.toLocaleDateString("en-US",{month:"long"})+(first.getMonth()!==last.getMonth()?" – "+last.toLocaleDateString("en-US",{month:"long"}):"");
+  $("prevBtn").disabled=OFFSET<=0;
+  $("cal").innerHTML=days.map(d=>{const k=iso(d),past=k<todayISO,n=(P.meals||[]).filter(m=>m.date===k).length;
+    return `<button type="button" class="day ${tr.includes(k)?"treat":""} ${past?"past":""} ${SEL===k?"sel":""}" data-day="${k}" ${past?"disabled":""} aria-label="${esc(longDate(k))}${n?`, ${n} planned`:""}${tr.includes(k)?", treatment day":""}">
+      <span class="n">${d.getDate()}</span>${n?`<span class="cnt">${n} meal${n>1?"s":""}</span>`:""}</button>`}).join("");
+}
+$("cal").addEventListener("click",e=>{const b=e.target.closest("[data-day]");if(!b||b.disabled)return;SEL=SEL===b.dataset.day?null:b.dataset.day;renderCal();renderPanel();if(SEL)$("dayPanel").scrollIntoView({behavior:"smooth",block:"start"})});
+$("prevBtn").onclick=()=>{if(OFFSET>0){OFFSET--;renderCal()}};$("nextBtn").onclick=()=>{if(OFFSET<3){OFFSET++;renderCal()}};
+
+function menuOptions(){
+  const menu=P.menu||[];
+  if(!menu.length)return `<option value="">No recipes on the menu yet</option>`;
+  return COURSES.map(([c,l])=>{const items=menu.filter(m=>m.course===c);if(!items.length)return"";
+    return `<optgroup label="${l}">${items.map(m=>`<option value="${esc(m.name)}" data-course="${c}">${esc(m.name)}</option>`).join("")}</optgroup>`}).join("");
+}
+function previewHTML(n){const r=RECIPE[n];if(!r)return"";return `${esc(r.why)} · ${esc(r.time||"")}<details><summary>Ingredients &amp; method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details>`}
+function renderPanel(){
+  const p=$("dayPanel");if(!SEL){p.hidden=true;return}p.hidden=false;
+  const meals=(P.meals||[]).filter(m=>m.date===SEL),isT=(P.treatment_dates||[]).includes(SEL);
+  p.innerHTML=`<div><div class="eyebrow">${isT?"Treatment day":"Selected day"}</div><h3>${esc(longDate(SEL))}</h3></div>
+    ${meals.length?`<div>${meals.map(m=>`<div class="meal"><div><strong>${esc(m.recipe)}</strong><div class="small muted">${esc(CLABEL[m.course]||"Meal")}</div></div><div class="small">${esc(m.who||"")}</div></div>`).join("")}</div>`:`<p class="muted">Nobody has signed up for this day yet.</p>`}
+    ${P.is_family?`<div><button class="sm ghost" type="button" id="treatBtn">${isT?"Remove treatment day":"Mark as treatment day"}</button></div>`:""}
+    <form class="form" id="joinForm">
+      <div class="eyebrow">${meals.length?"Bring something else":"Bring a meal"}</div>
+      <label>Choose a recipe<select id="jRecipe" required>${menuOptions()}</select></label>
+      <div class="preview" id="jPrev"></div>
+      <div class="two"><label>Your name<input id="jName" required autocomplete="name" value="${esc(ME.name)}"></label>
+      <label>Mobile (for text reminders)<input id="jPhone" type="tel" autocomplete="tel" value="${esc(ME.phone)}" placeholder="(210) 555-0142"></label></div>
+      <label>Email (optional)<input id="jEmail" type="email" autocomplete="email" value="${esc(ME.email)}"></label>
+      <label class="check"><input type="checkbox" id="r2" checked> Remind me 2 days before</label>
+      <label class="check"><input type="checkbox" id="r0" checked> Remind me the morning of</label>
+      <button type="submit" class="gold">Confirm</button>
+    </form>`;
+  const upd=()=>{$("jPrev").innerHTML=previewHTML($("jRecipe").value)};upd();$("jRecipe").onchange=upd;
+  if($("treatBtn"))$("treatBtn").onclick=async()=>{try{await rpc("mk_toggle_treatment",{p_slug:SLUG,p_family_token:TOKEN,p_date:SEL});await load();toast("Treatment day updated")}catch(e){toast(errMsg(e))}};
+  $("joinForm").onsubmit=async e=>{e.preventDefault();const sel=$("jRecipe"),opt=sel.options[sel.selectedIndex];
+    const n=$("jName").value.trim(),ph=$("jPhone").value.trim(),em=$("jEmail").value.trim();
+    if(!sel.value){toast("Choose a recipe first.");return}if(!n){toast(ERR.missing_name);return}
+    const rem=[...($("r2").checked?["2 days before"]:[]),...($("r0").checked?["Morning of"]:[]),...(em?["Email too"]:[])];
+    const btn=e.target.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="Saving…";
+    try{const r=await rpc("mk_join_meal",{p_slug:SLUG,p_code:CODE,p_date:SEL,p_course:opt.dataset.course,p_recipe:sel.value,p_name:n,p_phone:ph||null,p_email:em||null,p_reminders:rem,p_family_token:TOKEN});
+      Object.assign(ME,{name:n,phone:ph,email:em});store.set("mk_me",ME);
+      MINE.push({id:r.id,token:r.claim_token,date:SEL,recipe:sel.value,drop:r.drop_off_note||""});store.set("mk_mine_"+SLUG,MINE);
+      toast(`Thank you, ${n.split(" ")[0]}! You're bringing ${sel.value}.`);SEL=null;await load();$("mine").scrollIntoView({behavior:"smooth",block:"center"});
+    }catch(err){toast(errMsg(err));btn.disabled=false;btn.textContent="Confirm"}};
+}
+function renderMine(){
+  const live=MINE.filter(m=>m.date>=todayISO&&(P.meals||[]).some(x=>x.id===m.id));
+  const box=$("mine");if(!live.length){box.hidden=true;return}box.hidden=false;
+  box.innerHTML=`<div class="eyebrow">Your turns</div>${live.sort((a,b)=>a.date.localeCompare(b.date)).map(m=>`<div class="meal"><div><strong>${esc(longDate(m.date))}</strong><div class="small">${esc(m.recipe)}${P.drop_off_window?" · drop off "+esc(P.drop_off_window):""}</div>${m.drop?`<div class="small muted">${esc(m.drop)}</div>`:""}</div><button class="sm ghost" type="button" data-cancel="${m.id}">Can't make it</button></div>`).join("")}
+    <p class="small muted" style="margin-top:8px">We'll text or email you before each turn.</p>`;
+}
+$("mine").addEventListener("click",async e=>{const b=e.target.closest("[data-cancel]");if(!b)return;const m=MINE.find(x=>x.id===b.dataset.cancel);
+  try{await rpc("mk_release_slot",{p_slug:SLUG,p_item:m.id,p_claim_token:m.token});MINE.splice(MINE.indexOf(m),1);store.set("mk_mine_"+SLUG,MINE);toast("Cancelled. Reminders stopped.");load()}catch(err){toast(errMsg(err))}});
+function renderMenu(){
+  const menu=P.menu||[];
+  $("menuList").innerHTML=menu.length?COURSES.map(([c,l])=>{const items=menu.filter(m=>m.course===c);if(!items.length)return"";
+    return `<div class="course"><h3>${l}</h3>${items.map(m=>{const r=RECIPE[m.name];return `<details class="rec"><summary>${esc(m.name)}</summary>${r?`<p>${esc(r.why)} · ${esc(r.time||"")}</p><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px;font-size:.9rem">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol>`:""}</details>`}).join("")}</div>`}).join("")
+    :`<p class="muted" style="margin-top:10px">${P.is_family?"No recipes yet. Open the MealKind app, choose recipes and send them to the Care Circle.":"The family hasn't added recipes yet. Check back soon."}</p>`;
+}
+
+/* family tools */
+$("blurbBtn").onclick=()=>{const f=$("blurbForm");f.hidden=!f.hidden;if(!f.hidden){$("bName").value=P.recipient_name||"";$("bText").value=P.story||""}};
+$("blurbForm").onsubmit=async e=>{e.preventDefault();try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:TOKEN,p:{recipient_name:$("bName").value.trim(),story:$("bText").value.trim()}});$("blurbForm").hidden=true;toast("Saved");load()}catch(err){toast(errMsg(err))}};
+$("copyBtn").onclick=async()=>{const pw=$("sharePw").value;const t=`Join ${name()}'s Care Circle on MealKind to sign up for a meal: ${$("shareLink").value}${pw?`\nPassword: ${pw}`:""}`;
+  try{await navigator.clipboard.writeText(t);toast("Copied. Paste it into a text or WhatsApp.")}catch{toast(t)}};
+$("pwBtn").onclick=async()=>{const c=$("newPw").value.trim();if(!/^\d{4,8}$/.test(c)){toast(ERR.bad_code_format);return}
+  try{await rpc("mk_set_passcode",{p_slug:SLUG,p_family_token:TOKEN,p_code:c});store.set("mk_pw_"+SLUG,c);CODE=c;store.set("mk_code_"+SLUG,c);$("newPw").value="";toast("Password saved. Send the new one to your friends.");load()}catch(err){toast(errMsg(err))}};
+
+if(SLUG)load();
 </script>
-
 </body></html>
