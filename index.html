@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MealKind — Food and support, before, during and after care</title>
+<meta name="description" content="MealKind is a patient navigation tool for food and support. Menus written for each condition, and a Care Circle so family and friends know exactly how to help, before, during and after care.">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+/* Layout: three steps on one page — Welcome (who/what/how), Privacy (plain-language consent), Choose (create or join a Care Circle) */
+:root{
+  --forest:#1F3D2B; --forest-2:#3A6B4A; --gold:#E8A33D; --gold-soft:#FBF1DE;
+  --cream:#FDFBF7; --card:#FFFFFF; --ink:#2B2B28; --soft:#6C675E; --line:#EFE7D8;
+  --display:"Cormorant Garamond", Georgia, serif; --body:"Jost", "Helvetica Neue", Arial, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--cream);color:var(--ink);font-family:var(--body);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--forest-2)}
+button{font-family:var(--body);cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.step[hidden]{display:none!important}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+.eyebrow{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600}
+h1,h2,h3{font-family:var(--display);color:var(--forest);line-height:1.1;text-wrap:balance;font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:14px 28px;font-weight:600;font-size:.95rem;border:2px solid var(--forest);background:var(--forest);color:var(--cream);text-decoration:none}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#2A1E08}
+.btn.ghost{background:transparent;color:var(--forest)}
+.btn:disabled{opacity:.4;cursor:default}
+.lang{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;display:flex;border:1px solid rgba(253,251,247,.35);border-radius:999px;overflow:hidden}
+.lang button{background:none;border:none;color:var(--cream);font-size:.72rem;letter-spacing:.08em;padding:6px 11px}
+.lang button[aria-pressed=true]{background:var(--cream);color:var(--forest);font-weight:600}
+.logo{display:flex;align-items:center;gap:10px}
+.logo b{font-family:var(--display);font-size:1.7rem;color:var(--cream);font-weight:700}
+
+/* hero */
+.hero{background:var(--forest);color:var(--cream);position:relative;padding:calc(20px + env(safe-area-inset-top,0px)) 0 56px;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-120px;bottom:-160px;width:420px;height:420px;border-radius:50%;border:56px solid rgba(232,163,61,.12)}
+.hero .wrap{position:relative;z-index:1}
+.hero h1{color:var(--cream);font-size:clamp(2.6rem,8vw,4.4rem);margin:10px 0 16px;font-weight:600}
+.hero h1 em{color:var(--gold);font-style:italic}
+.hero p{max-width:34em;font-size:1.08rem;color:rgba(253,251,247,.86)}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.hero .btn.ghost{color:var(--cream);border-color:rgba(253,251,247,.5)}
+.invite{background:var(--gold-soft);color:var(--forest);border-radius:14px;padding:12px 16px;margin-top:24px;max-width:34em;font-size:.95rem}
+
+section.block{padding:52px 0;border-bottom:1px solid var(--line)}
+section.block h2{font-size:clamp(1.9rem,5vw,2.5rem);margin:6px 0 14px}
+.lead{font-size:1.04rem;color:var(--soft);max-width:36em}
+.what{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:26px}
+.what div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.what svg{width:34px;height:34px;color:var(--forest-2);margin-bottom:10px}
+.what h3{font-size:1.4rem;margin-bottom:6px}
+.what p{font-size:.92rem;color:var(--soft)}
+.paths{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:26px}
+.path{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:12px}
+.path.sup{background:var(--forest);color:var(--cream);border-color:var(--forest)}
+.path .lbl{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--gold)}
+.path h3{font-size:1.8rem}
+.path.sup h3{color:var(--cream)}
+.path ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+.path li{display:grid;grid-template-columns:18px 1fr;gap:10px;font-size:.94rem}
+.path li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold);margin-top:.55em}
+.path .btn{margin-top:auto;align-self:flex-start}
+.path.sup .btn{background:var(--gold);border-color:var(--gold);color:#2A1E08}
+.how{list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:16px;margin-top:22px}
+.how li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start}
+.how li::before{content:counter(s);font-family:var(--display);font-size:1.6rem;font-weight:700;color:var(--forest);width:44px;height:44px;border-radius:50%;background:var(--gold-soft);display:grid;place-items:center}
+.how b{display:block;color:var(--forest);font-size:1.02rem}
+.how span{color:var(--soft);font-size:.93rem}
+.who{display:grid;grid-template-columns:1fr;gap:10px}
+.who blockquote{font-family:var(--display);font-size:1.5rem;line-height:1.3;color:var(--forest);border-left:3px solid var(--gold);padding-left:16px;margin:10px 0 6px}
+.who-for{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.who-for span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:.88rem;color:var(--forest)}
+.phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:28px}
+.phases div{border-top:3px solid var(--gold);padding-top:12px}
+.phases b{font-family:var(--display);font-size:1.4rem;color:var(--forest);display:block}
+.phases p{font-size:.92rem;color:var(--soft)}
+.hero .tag{display:inline-block;margin-top:52px;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.closing{padding:52px 0 72px;text-align:center}
+.closing h2{font-size:clamp(1.9rem,5vw,2.4rem);margin-bottom:18px}
+footer{font-size:.75rem;color:#9A958B;text-align:center;padding:0 20px 32px}
+
+/* privacy + choose (card steps) */
+.stepbg{min-height:100vh;background:var(--forest);padding:calc(28px + env(safe-area-inset-top,0px)) 16px 40px;display:flex;justify-content:center}
+.panel{background:var(--cream);border-radius:22px;max-width:560px;width:100%;padding:32px 26px;box-shadow:0 24px 60px rgba(0,0,0,.25);align-self:flex-start}
+.panel .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.panel .top b{font-family:var(--display);font-size:1.5rem;color:var(--forest)}
+.back{background:none;border:none;color:var(--soft);font-size:.85rem}
+.panel h1{font-size:2rem;margin:6px 0 10px}
+.panel .intro{color:var(--soft);font-size:.95rem;margin-bottom:18px}
+.policy{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.policy div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.policy h3{font-family:var(--body);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--forest-2);font-weight:600;margin-bottom:4px}
+.policy p{font-size:.9rem;color:var(--ink)}
+.check{display:flex;gap:12px;align-items:flex-start;margin:4px 0 22px;font-size:.93rem;cursor:pointer}
+.check input{width:20px;height:20px;margin-top:2px;accent-color:var(--forest);flex:none}
+.panel .btn{width:100%}
+.choices{display:flex;flex-direction:column;gap:14px}
+.choice{text-align:left;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:20px;display:grid;grid-template-columns:48px 1fr;gap:14px;align-items:center;color:var(--ink);width:100%}
+.choice:hover{border-color:var(--gold)}
+.choice .ic{width:48px;height:48px;border-radius:14px;background:var(--gold-soft);display:grid;place-items:center;color:var(--forest)}
+.choice .ic svg{width:26px;height:26px}
+.choice b{font-family:var(--display);font-size:1.45rem;color:var(--forest);display:block;line-height:1.1}
+.choice span{font-size:.88rem;color:var(--soft)}
+.joinbox{display:flex;flex-direction:column;gap:10px;margin-top:6px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.joinbox label{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);font-weight:600}
+.joinbox input{font:inherit;width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+.msg{font-size:.88rem;min-height:1.2em}
+.msg.err{color:#B5471F}
+@media (prefers-reduced-motion:no-preference){.step{animation:fade .3s ease}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="logo" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#E8A33D" opacity=".0"/><path d="M14 34h36a2 2 0 0 1 2 2c0 8-8 14-20 14S12 44 12 36a2 2 0 0 1 2-2Z" fill="#FDFBF7"/><path d="M10 33c-3-6 2-12 8-11M54 33c3-6-2-12-8-11" stroke="#E8A33D" stroke-width="4.5" stroke-linecap="round" fill="none"/><path d="M32 27c-4-3-4-7 0-9 4 2 4 6 0 9Z" fill="#E8A33D"/></symbol>
+  <symbol id="i-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="15" r="2.2"/><circle cx="19" cy="15" r="2.2"/><path d="M9.8 6.2 6.4 13M14.2 6.2l3.4 6.8M7.2 16.6h9.6"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h18a8 8 0 0 1-8 7h-2a8 8 0 0 1-8-7Z"/><path d="M8 9c0-2 2-2 2-4M12 9c0-2 2-2 2-4M16 9c0-2 2-2 2-4"/></symbol>
+  <symbol id="i-basket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18l-2 10H5L3 10ZM8 10l4-6 4 6M9 14v3M15 14v3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-join" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10Z"/></symbol>
+</defs></svg>
+
+<!-- STEP 1: WELCOME -->
+<div class="step" id="s-welcome">
+  <header class="hero">
+    <div class="wrap">
+      <div class="logo"><svg width="44" height="44"><use href="#logo"/></svg><b>MealKind</b></div>
+      <div class="lang" role="group" aria-label="Language"><button data-lang="en">EN</button><button data-lang="es">ES</button></div>
+      <div class="tag" data-t="hero_tag">Patient navigation for food &amp; support</div>
+      <h1 data-t="hero_title">Food is how we <em>show up.</em></h1>
+      <p data-t="hero_sub">MealKind makes life easier before, during and after care. We take the worry out of "what should we eat?" with menus written for your condition, and give the people who love you a clear, simple way to help.</p>
+      <div class="invite" id="inviteNote" hidden></div>
+      <div class="ctas">
+        <button class="btn gold" data-go="privacy" id="startBtn" data-t="cta_start">Get started</button>
+        <a class="btn ghost" href="#what" data-t="cta_more">See how it works</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="block" id="what"><div class="wrap">
+      <div class="eyebrow" data-t="what_eyebrow">Two ways to use MealKind</div>
+      <h2 data-t="what_title">Less guessing. Better support.</h2>
+      <div class="paths">
+        <div class="path">
+          <div class="lbl" data-t="pp_lbl">Patient experience</div>
+          <h3 data-t="pp_t">For patients &amp; families</h3>
+          <ul>
+            <li><span data-t="pp1">Menus and recipes written for the condition and screened for allergies and foods to avoid.</span></li>
+            <li><span data-t="pp2">A weekly meal plan with a shopping list that skips what's already in the fridge.</span></li>
+            <li><span data-t="pp3">One page that shows who's bringing dinner, driving to appointments or helping at home.</span></li>
+            <li><span data-t="pp4">Messages and photos from the people who care, with private notes for the family.</span></li>
+          </ul>
+          <button class="btn" data-go="privacy" data-path="create" data-t="pp_cta">Create a Care Circle</button>
+        </div>
+        <div class="path sup">
+          <div class="lbl" data-t="sp_lbl">Support experience</div>
+          <h3 data-t="sp_t">For supporters</h3>
+          <ul>
+            <li><span data-t="sp1">See exactly what's needed and pick a date: a meal, a ride, a school pickup, the lawn or the dogs.</span></li>
+            <li><span data-t="sp2">Know what to cook: allergies, foods to avoid and what's already planned are right there.</span></li>
+            <li><span data-t="sp3">Get a text reminder before your turn, with drop-off details.</span></li>
+            <li><span data-t="sp4">Send a message, or help from afar with groceries or a cleaning fund.</span></li>
+          </ul>
+          <button class="btn" data-go="privacy" data-path="join" data-t="sp_cta">Join a Care Circle</button>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="block"><div class="wrap">
+      <div class="eyebrow" data-t="care_eyebrow">Every stage of care</div>
+      <h2 data-t="care_title">Here for the whole journey.</h2>
+      <div class="phases">
+        <div><b data-t="ph1_t">Before</b><p data-t="ph1_p">Plan ahead for a surgery, a new diagnosis or a new baby. Stock the freezer and line up help before you need it.</p></div>
+        <div><b data-t="ph2_t">During</b><p data-t="ph2_p">Menus that match how they're feeling that week, and a Care Circle that covers meals, rides and the everyday jobs.</p></div>
+        <div><b data-t="ph3_t">After</b><p data-t="ph3_p">Meals that support recovery and the return to everyday routines, for as long as it takes.</p></div>
+      </div>
+      <p class="lead" style="margin-top:34px" data-t="for_lead">Menus and recipes are written for people living with or recovering from:</p>
+      <div class="who-for">
+        <span data-t="w1">Cancer</span><span data-t="w2">Kidney disease &amp; dialysis</span><span data-t="w3">Heart conditions</span><span data-t="w4">Stroke</span><span data-t="w5">Digestive &amp; GI conditions</span><span data-t="w6">Surgery &amp; orthopedic recovery</span><span data-t="w7">Parkinson's</span><span data-t="w8">ALS</span><span data-t="w9">Brain injury</span><span data-t="w10">Alzheimer's &amp; dementia</span><span data-t="w11">Depression</span><span data-t="w12">Postpartum recovery</span>
+      </div>
+    </div></section>
+
+    <section class="block"><div class="wrap">
+      <div class="eyebrow" data-t="how_eyebrow">How it works</div>
+      <h2 data-t="how_title">Set up in a few minutes.</h2>
+      <ol class="how">
+        <li><div><b data-t="h1_t">Create a Care Circle</b><span data-t="h1_p">Tell us who you're cooking for, what they're facing, their allergies and what they enjoy.</span></div></li>
+        <li><div><b data-t="h2_t">Share one link</b><span data-t="h2_p">Send it to family, friends, church or neighbors by text or WhatsApp.</span></div></li>
+        <li><div><b data-t="h3_t">People sign up</b><span data-t="h3_p">Everyone picks a date and a job. The page shows what's covered and what's still needed.</span></div></li>
+      </ol>
+    </div></section>
+
+    <section class="block"><div class="wrap who">
+      <div class="eyebrow" data-t="who_eyebrow">Who we are</div>
+      <h2 data-t="who_title">About MealKind</h2>
+      <p class="lead" data-t="who_p">MealKind was born from personal experience of how hard it is to care for someone you love, and how much the right help at the right time can mean. We built it to pass that support forward to our community. Based in San Antonio, Texas, MealKind is a patient navigation platform for food and support. We combine condition-specific menus with practical care coordination, so patients eat well before, during and after care, and the families, friends and communities around them can offer support that is organized, consistent and useful. MealKind is available in English and Spanish.</p>
+    </div></section>
+
+    <section class="closing"><div class="wrap">
+      <h2 data-t="close_title">Ready to start a Care Circle, or join one?</h2>
+      <button class="btn" data-go="privacy" data-t="cta_start">Get started</button>
+    </div></section>
+  </main>
+  <footer data-t="footer">© 2026 MealKind · San Antonio, Texas · hello@mealkind.com</footer>
+  <p style="text-align:center;font-size:.7rem;color:#9A958B;padding-bottom:20px">Version 10 · 8 Oct 2026</p>
+</div>
+
+<!-- STEP 2: PRIVACY -->
+<div class="step stepbg" id="s-privacy" hidden>
+  <div class="panel">
+    <div class="top"><b>MealKind</b><button class="back" data-go="welcome" data-t="back">← Back</button></div>
+    <div class="eyebrow" data-t="p_eyebrow">Before you start</div>
+    <h1 data-t="p_title">Your privacy, in plain words.</h1>
+    <p class="intro" data-t="p_intro">MealKind handles personal moments. Here's exactly what we keep and who can see it.</p>
+    <div class="policy">
+      <div><h3 data-t="p1_t">What we keep</h3><p data-t="p1_p">Names you enter, the circle's food notes (allergies, likes, drop-off details), the dates people sign up for, and messages or photos you post. If you ask for reminders, your mobile number or email.</p></div>
+      <div><h3 data-t="p2_t">Who sees it</h3><p data-t="p2_p">Anyone with the circle's link sees names, dates and what's being brought. Phone numbers and emails are never shown to other members. The drop-off address only appears after someone signs up. Private notes go only to the family.</p></div>
+      <div><h3 data-t="p3_t">What we never do</h3><p data-t="p3_p">We don't sell your information or use it for advertising. We only use it to run your Care Circle and send the reminders you asked for.</p></div>
+      <div><h3 data-t="p4_t">Health and food</h3><p data-t="p4_p">MealKind isn't a medical service. Menus and recipes are general guidance; follow your care team's advice. Only share what you're comfortable sharing.</p></div>
+      <div><h3 data-t="p5_t">Your choices</h3><p data-t="p5_p">Reply STOP to any text to stop reminders. Email hello@mealkind.com any time to have a circle or your details deleted.</p></div>
+    </div>
+    <label class="check"><input type="checkbox" id="agree"><span data-t="p_agree">I've read this and agree to how MealKind uses my information.</span></label>
+    <button class="btn" id="agreeBtn" disabled data-t="p_continue">Continue</button>
+  </div>
+</div>
+
+<!-- STEP 3: CHOOSE -->
+<div class="step stepbg" id="s-choose" hidden>
+  <div class="panel">
+    <div class="top"><b>MealKind</b><button class="back" data-go="privacy" data-t="back">← Back</button></div>
+    <div class="eyebrow" data-t="c_eyebrow">Welcome</div>
+    <h1 data-t="c_title">Who are you?</h1>
+    <p class="intro" data-t="c_intro">Choose the experience that fits. You can switch any time.</p>
+    <div class="choices">
+      <button class="choice" id="createBtn"><span class="ic"><svg><use href="#i-plus"/></svg></span><span><b data-t="c1_t">Patient &amp; family</b><span data-t="c1_p">Create a Care Circle for yourself or someone you care for. Get menus that fit and organize help.</span></span></button>
+      <button class="choice" id="joinOpen"><span class="ic"><svg><use href="#i-join"/></svg></span><span><b data-t="c2_t">Supporter</b><span data-t="c2_p">Join a Care Circle someone shared with you and sign up to help.</span></span></button>
+      <form class="joinbox" id="joinBox" hidden>
+        <label for="joinInput" data-t="j_label">Invite link or circle code</label>
+        <input id="joinInput" autocomplete="off" placeholder="mealkind.com/?circle=…">
+        <div class="msg" id="joinMsg" role="status"></div>
+        <button class="btn" type="submit" data-t="j_go">Join circle</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const PRIVACY_KEY="mk_privacy_v1";
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const Q=new URLSearchParams(location.search);
+const CIRCLE=(Q.get("circle")||"").trim();
+const NEXT=Q.get("next")==="app"?"app":"care-circle";   // supporters following an invite go straight to the Care Circle page
+const target=slug=>slug?(NEXT==="care-circle"?"care-circle.html":"app.html")+"?circle="+encodeURIComponent(slug):"app.html";
+
+// Already agreed and following an invite link: go straight in
+if(CIRCLE&&ls.get(PRIVACY_KEY))location.replace(target(CIRCLE));
+
+const T={
+ es:{
+  hero_tag:'Navegación para pacientes: comida y apoyo',
+  hero_title:'La comida es nuestra forma de <em>estar presentes.</em>',
+  hero_sub:'MealKind hace la vida más fácil antes, durante y después del cuidado médico. Quitamos la preocupación de "¿qué vamos a comer?" con menús escritos para tu condición, y damos a quienes te quieren una forma clara y sencilla de ayudar.',
+  cta_start:'Comenzar', cta_more:'Ver cómo funciona',
+  what_eyebrow:'Dos formas de usar MealKind', what_title:'Menos dudas. Mejor apoyo.',
+  pp_lbl:'Experiencia del paciente', pp_t:'Para pacientes y familias',
+  pp1:'Menús y recetas escritos para la condición y revisados según alergias y alimentos a evitar.',
+  pp2:'Un plan semanal de comidas con lista de compras que omite lo que ya hay en el refrigerador.',
+  pp3:'Una página que muestra quién lleva la cena, quién maneja a las citas o quién ayuda en casa.',
+  pp4:'Mensajes y fotos de quienes te quieren, con notas privadas para la familia.',
+  pp_cta:'Crear un Care Circle',
+  sp_lbl:'Experiencia de apoyo', sp_t:'Para quienes apoyan',
+  sp1:'Ve exactamente qué se necesita y elige una fecha: una comida, un viaje, recoger a los niños, el jardín o los perros.',
+  sp2:'Sabe qué cocinar: alergias, alimentos a evitar y lo que ya está planeado, todo a la vista.',
+  sp3:'Recibe un mensaje recordatorio antes de tu turno, con los detalles de entrega.',
+  sp4:'Envía un mensaje o ayuda a distancia con compras o un fondo para limpieza.',
+  sp_cta:'Unirme a un Care Circle',
+  f1_t:'Care Circle', f1_p:'Una página privada para la familia. Amigos se apuntan para comidas, viajes, recoger a los niños y tareas, y todos ven quién hace qué. Se envían recordatorios antes de cada turno.',
+  f2_t:'Menús escritos para cada condición', f2_p:'Recetas y menús semanales creados para cada diagnóstico y revisados según alergias, para que siempre sepas qué conviene: un día de tratamiento, una semana sin apetito o la vuelta a la normalidad.',
+  care_eyebrow:'Cada etapa del cuidado', care_title:'Contigo en todo el camino.',
+  ph1_t:'Antes', ph1_p:'Prepárate para una cirugía, un nuevo diagnóstico o un bebé. Llena el congelador y organiza la ayuda antes de necesitarla.',
+  ph2_t:'Durante', ph2_p:'Menús que se ajustan a cómo se siente esa semana, y un Care Circle que cubre comidas, viajes y las tareas de cada día.',
+  ph3_t:'Después', ph3_p:'Comidas que apoyan la recuperación y el regreso a la rutina, el tiempo que haga falta.',
+  for_lead:'Los menús y recetas están escritos para personas que viven con o se recuperan de:',
+  w1:'Cáncer', w2:'Enfermedad renal y diálisis', w3:'Enfermedades del corazón', w4:'Derrame cerebral', w5:'Condiciones digestivas', w6:'Cirugía y recuperación ortopédica', w7:'Parkinson', w8:'ELA', w9:'Lesión cerebral', w10:'Alzheimer y demencia', w11:'Depresión', w12:'Recuperación posparto',
+  f3_t:'Compras sencillas', f3_p:'Planea la semana, revisa lo que ya hay en el refrigerador y envía la lista a H-E-B, Instacart o Walmart.',
+  how_eyebrow:'Cómo funciona', how_title:'Listo en unos minutos.',
+  h1_t:'Crea un Care Circle', h1_p:'Cuéntanos para quién cocinas, qué está enfrentando, sus alergias y lo que disfruta.',
+  h2_t:'Comparte un enlace', h2_p:'Envíalo a familia, amigos, iglesia o vecinos por mensaje o WhatsApp.',
+  h3_t:'La gente se apunta', h3_p:'Cada quien elige una fecha y una tarea. La página muestra lo cubierto y lo que falta.',
+  who_eyebrow:'Quiénes somos', who_title:'Acerca de MealKind',
+  who_p:'MealKind nació de la experiencia personal de lo difícil que es cuidar a alguien que amas, y de lo mucho que significa la ayuda adecuada en el momento justo. Lo creamos para pasar ese apoyo a nuestra comunidad. Con sede en San Antonio, Texas, MealKind es una plataforma de navegación para pacientes enfocada en la comida y el apoyo. Combinamos menús específicos para cada condición con una coordinación práctica del cuidado, para que los pacientes coman bien antes, durante y después del cuidado médico, y sus familias, amigos y comunidades puedan ofrecer un apoyo organizado, constante y útil. MealKind está disponible en inglés y español.',
+  close_title:'¿Listo para crear un Care Circle o unirte a uno?',
+  footer:'© 2026 MealKind · San Antonio, Texas · hello@mealkind.com',
+  back:'← Atrás', p_eyebrow:'Antes de empezar', p_title:'Tu privacidad, en palabras claras.',
+  p_intro:'MealKind maneja momentos personales. Esto es exactamente lo que guardamos y quién lo puede ver.',
+  p1_t:'Lo que guardamos', p1_p:'Los nombres que escribes, las notas de comida del círculo (alergias, gustos, detalles de entrega), las fechas en que la gente se apunta y los mensajes o fotos que publicas. Si pides recordatorios, tu celular o correo.',
+  p2_t:'Quién lo ve', p2_p:'Cualquiera con el enlace del círculo ve nombres, fechas y lo que se va a llevar. Los teléfonos y correos nunca se muestran a otros miembros. La dirección de entrega solo aparece después de apuntarse. Las notas privadas solo llegan a la familia.',
+  p3_t:'Lo que nunca hacemos', p3_p:'No vendemos tu información ni la usamos para publicidad. Solo la usamos para tu Care Circle y para enviar los recordatorios que pediste.',
+  p4_t:'Salud y comida', p4_p:'MealKind no es un servicio médico. Los menús y recetas son orientación general; sigue los consejos de tu equipo médico. Comparte solo lo que te haga sentir cómodo.',
+  p5_t:'Tus opciones', p5_p:'Responde STOP a cualquier mensaje para dejar de recibir recordatorios. Escribe a hello@mealkind.com cuando quieras para borrar un círculo o tus datos.',
+  p_agree:'Leí esto y acepto cómo MealKind usa mi información.', p_continue:'Continuar',
+  c_eyebrow:'Bienvenido', c_title:'¿Quién eres?', c_intro:'Elige la experiencia que te corresponde. Puedes cambiar cuando quieras.',
+  c1_t:'Paciente y familia', c1_p:'Crea un Care Circle para ti o para alguien que cuidas. Recibe menús adecuados y organiza la ayuda.',
+  c2_t:'Quien apoya', c2_p:'Únete a un Care Circle que alguien compartió contigo y apúntate para ayudar.',
+  j_label:'Enlace de invitación o código del círculo', j_go:'Unirme',
+  invite:'Te invitaron a unirte al Care Circle de {n}.', invite_generic:'Te invitaron a unirte a un Care Circle.', cta_join:'Unirme al círculo',
+  j_checking:'Buscando el círculo…', j_notfound:'No encontramos ese círculo. Revisa el enlace o pide uno nuevo.', j_found:'Encontrado: {n}. Entrando…', j_empty:'Pega el enlace o escribe el código.'
+ },
+ en:{invite:"You've been invited to join {n}'s Care Circle.",invite_generic:"You've been invited to join a Care Circle.",cta_join:"Join the circle",
+  j_checking:"Looking for that circle…",j_notfound:"We couldn't find that circle. Check the link or ask for a new one.",j_found:"Found: {n}. Taking you in…",j_empty:"Paste the link or type the code."}
+};
+const EN={};document.querySelectorAll("[data-t]").forEach(el=>EN[el.dataset.t]=el.innerHTML);
+let LANG=ls.get("mk_lang")==="es"?"es":"en";
+const tr=(k,v={})=>{let s=(T[LANG]&&T[LANG][k])||T.en[k]||EN[k]||k;Object.entries(v).forEach(([a,b])=>s=s.replace("{"+a+"}",b));return s};
+function applyLang(l){LANG=l;ls.set("mk_lang",l);document.documentElement.lang=l;
+  document.querySelectorAll("[data-t]").forEach(el=>{const k=el.dataset.t;el.innerHTML=(l==="es"&&T.es[k])?T.es[k]:EN[k]});
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===l));
+  renderInvite()}
+document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>applyLang(b.dataset.lang));
+
+function go(step){["welcome","privacy","choose"].forEach(s=>document.getElementById("s-"+s).hidden=s!==step);window.scrollTo(0,0)}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(!b)return;
+  const s=b.dataset.go;PATH=b.dataset.path||"";
+  if(s==="privacy"&&ls.get(PRIVACY_KEY)){afterPrivacy();return}
+  go(s)});
+
+const agree=document.getElementById("agree"),agreeBtn=document.getElementById("agreeBtn");
+agree.onchange=()=>agreeBtn.disabled=!agree.checked;
+agreeBtn.onclick=()=>{if(!agree.checked)return;ls.set(PRIVACY_KEY,new Date().toISOString());afterPrivacy()};
+let PATH="";
+function afterPrivacy(){if(CIRCLE){location.href=target(CIRCLE);return}
+  if(PATH==="create"){location.href="app.html";return}
+  go("choose");if(PATH==="join"){const b=document.getElementById("joinBox");b.hidden=false;document.getElementById("joinInput").focus()}}
+
+document.getElementById("createBtn").onclick=()=>location.href="app.html";
+document.getElementById("joinOpen").onclick=()=>{const b=document.getElementById("joinBox");b.hidden=!b.hidden;if(!b.hidden)document.getElementById("joinInput").focus()};
+
+const sb=window.supabase?supabase.createClient("https://cyxwfacrfrievhdgaoku.supabase.co","sb_publishable_WHoTJ70SNONQhLgDUsnOlw_p56uKC-i"):null;
+function parseCode(v){v=v.trim();if(!v)return"";try{const u=new URL(v.includes("://")?v:"https://"+v);const c=u.searchParams.get("circle")||u.searchParams.get("f");if(c)return c.trim()}catch(e){}
+  return /^[A-Za-z0-9_-]{3,64}$/.test(v)?v:""}
+document.getElementById("joinBox").onsubmit=async e=>{e.preventDefault();const m=document.getElementById("joinMsg");m.className="msg";
+  const code=parseCode(document.getElementById("joinInput").value);
+  if(!code){m.className="msg err";m.textContent=tr("j_empty");return}
+  m.textContent=tr("j_checking");
+  try{const {data,error}=await sb.rpc("mk_get_family",{p_slug:code});if(error)throw error;
+    if(!data){m.className="msg err";m.textContent=tr("j_notfound");return}
+    m.textContent=tr("j_found",{n:data.display_name||code});location.href=target(code)}
+  catch(err){m.className="msg err";m.textContent=tr("j_notfound")}};
+
+let inviteName="";
+function renderInvite(){if(!CIRCLE)return;const n=document.getElementById("inviteNote");n.hidden=false;
+  n.textContent=inviteName?tr("invite",{n:inviteName}):tr("invite_generic");
+  document.getElementById("startBtn").textContent=tr("cta_join")}
+if(CIRCLE&&sb){sb.rpc("mk_get_family",{p_slug:CIRCLE}).then(({data})=>{if(data&&data.display_name){inviteName=data.display_name;renderInvite()}})}
+applyLang(LANG);
+go("welcome");
+</script>
+</body>
+</html>

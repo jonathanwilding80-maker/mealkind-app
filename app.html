@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MealKind</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Jost',sans-serif;background:#1F3D2B;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.gate{background:#FDFBF7;border-radius:20px;padding:40px 36px;max-width:480px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.25);}
+.logo-row{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
+.logo-row svg{flex-shrink:0;}
+.wordmark{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:#1F3D2B;letter-spacing:.01em;}
+.eyebrow{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#E8A33D;font-weight:600;margin-bottom:8px;}
+h1{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:600;color:#1F3D2B;line-height:1.15;margin-bottom:10px;}
+.body-text{font-size:.88rem;color:#6C675E;line-height:1.6;margin-bottom:24px;}
+.nda-box{background:#F4F1E8;border:1.5px solid #EFE7D8;border-radius:13px;padding:16px 18px;font-size:.78rem;color:#4A4540;line-height:1.65;margin-bottom:20px;}
+.nda-box b{color:#1F3D2B;display:block;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;}
+.check-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:24px;cursor:pointer;}
+.check-row input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:#1F3D2B;cursor:pointer;flex-shrink:0;}
+.check-label{font-size:.84rem;color:#2B2B28;line-height:1.5;}
+.field-row{margin-bottom:14px;}
+.field-row label{display:block;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:#6C675E;font-weight:600;margin-bottom:6px;}
+.field-row input[type=text],.field-row input[type=email]{width:100%;border:1.5px solid #EFE7D8;border-radius:11px;padding:11px 14px;font-family:'Jost',sans-serif;font-size:.9rem;color:#2B2B28;background:#FFFFFF;}
+.field-row input[type=text]:focus,.field-row input[type=email]:focus{outline:2px solid #E8A33D;border-color:#E8A33D;}
+.enter-btn{width:100%;background:#1F3D2B;color:#FDFBF7;border:none;border-radius:999px;padding:14px 24px;font-family:'Jost',sans-serif;font-weight:600;font-size:.92rem;cursor:pointer;opacity:.4;pointer-events:none;transition:opacity .2s;}
+.enter-btn.ready{opacity:1;pointer-events:auto;}
+.enter-btn.ready:hover{background:#2d5a3e;}
+.footer-note{text-align:center;font-size:.68rem;color:#9A958B;margin-top:16px;line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="gate" id="gate" style="display:none">
+  <div class="logo-row">
+    <svg viewBox="0 0 64 64" width="44" height="44" aria-label="MealKind">
+      <rect width="64" height="64" rx="14" fill="#1F3D2B"/>
+      <path d="M14 34h36a2 2 0 0 1 2 2c0 8-8 14-20 14S12 44 12 36a2 2 0 0 1 2-2Z" fill="#FDFBF7"/>
+      <path d="M10 33c-3-6 2-12 8-11M54 33c3-6-2-12-8-11" stroke="#E8A33D" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+      <path d="M32 27c-4-3-4-7 0-9 4 2 4 6 0 9Z" fill="#E8A33D"/>
+    </svg>
+    <div class="wordmark">MealKind</div>
+  </div>
+  <h1>You've been invited to see MealKind.</h1>
+  <p class="body-text" id="introText">This is a working prototype of a proprietary dietary support platform currently in development. Please read and agree to the terms below before entering.</p>
+  <div class="nda-box">
+    <b>Confidentiality Notice</b>
+    This platform contains proprietary concepts, product design, and intellectual property owned by MealKind. By entering, you agree that: (1) this material is shared in confidence for evaluation purposes only; (2) you will not copy, reproduce, share, or disclose any part of it to third parties; (3) no license or rights are granted by viewing this platform; (4) this does not constitute a public disclosure or offering of any kind.
+  </div>
+  <div id="identityFields">
+    <div class="field-row">
+      <label for="ndaName">Your name</label>
+      <input type="text" id="ndaName" placeholder="Jane Smith" autocomplete="name" oninput="toggleBtn()">
+    </div>
+    <div class="field-row">
+      <label for="ndaEmail">Your email</label>
+      <input type="email" id="ndaEmail" placeholder="jane@example.com" autocomplete="email" oninput="toggleBtn()">
+    </div>
+  </div>
+  <label class="check-row">
+    <input type="checkbox" id="agree" onchange="toggleBtn()">
+    <span class="check-label">I understand this is confidential and agree not to share, copy, or distribute any part of this platform.</span>
+  </label>
+  <button class="enter-btn" id="enterBtn" onclick="enter()">Enter MealKind →</button>
+  <p class="footer-note">© 2026 MealKind. All rights reserved. Proprietary and confidential.</p>
+</div>
+
+<!-- Hidden Netlify Form: captures every NDA acceptance and forwards to hello@mealkind.com -->
+<form name="mealkind-nda" netlify netlify-honeypot="bot-field" hidden>
+  <input type="text" name="bot-field">
+  <input type="text" name="name">
+  <input type="email" name="email">
+  <input type="text" name="agreedAt">
+</form>
+
+<div id="app" style="display:none;width:100%;min-height:100vh;background:#FDFBF7;"></div>
+
+<script>
+// If arriving from the landing page with name & email already given, skip retyping —
+// show a one-line greeting and only ask for the checkbox + click.
+const _params = new URLSearchParams(window.location.search);
+const _preName = (_params.get('name') || '').trim();
+const _preEmail = (_params.get('email') || '').trim();
+if (_preName && _preEmail) {
+  document.getElementById('identityFields').style.display = 'none';
+  document.getElementById('introText').textContent =
+    `Welcome, ${_preName.split(' ')[0]}. Please confirm you agree to the terms below before entering.`;
+}
+
+function toggleBtn(){
+  const btn=document.getElementById('enterBtn');
+  const hasIdentity = (_preName && _preEmail) || (
+    document.getElementById('ndaName').value.trim().length>0
+    && document.getElementById('ndaEmail').value.trim().length>0
+  );
+  const ready=document.getElementById('agree').checked && hasIdentity;
+  btn.classList.toggle('ready',ready);
+}
+function openApp(){
+  document.getElementById('gate').style.display='none';
+  document.body.style.background='#FDFBF7';
+  document.body.style.display='block';
+  document.body.style.padding='0';
+  const app=document.getElementById('app');
+  app.style.display='block';
+  app.innerHTML=getApp();
+  // Re-execute scripts from injected HTML
+  app.querySelectorAll('script').forEach(old=>{
+    const s=document.createElement('script');
+    s.textContent=old.textContent;
+    document.body.appendChild(s);
+  });
+}
+
+(function(){var ok=false;try{ok=!!localStorage.getItem('mk_privacy_v1')}catch(e){}
+  if(!ok){var q=location.search;location.replace('/'+(q?q+'&':'?')+'next=app');return;}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',openApp);else openApp();})();
+function getApp(){
+return document.getElementById('app-template').innerHTML;
+}
+</script>
+
+<template id="app-template">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MealKind — Care Circle · Groceries · Cookbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--forest:#1F3D2B;--deep:#1F3D2B;--amber:#E8A33D;--amber-soft:#FBF1DE;--cream:#FDFBF7;--card:#FFFFFF;--ink:#2B2B28;--soft:#6C675E;--muted:#9A958B;--line:#EFE7D8;--good:#3E7C4F;--warn:#B5471F;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:84px;}
+header{background:var(--card);color:var(--forest);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:60;border-bottom:1px solid var(--line);}
+.brandrow{display:flex;align-items:center;gap:9px;}
+.applogo{width:38px;height:38px;border-radius:9px;display:block;object-fit:cover;}
+.wordmark{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--forest);letter-spacing:.01em;}
+.wordmark span{color:var(--forest);}
+.view-toggle{display:flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;background:#fff;}
+.view-toggle button{background:none;border:none;color:var(--soft);font-family:'Jost',sans-serif;font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;padding:7px 11px;cursor:pointer;}
+.view-toggle button.active{background:var(--forest);color:#fff;font-weight:600;}
+main{max-width:680px;margin:0 auto;padding:20px;}
+.screen{display:none;}.screen.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.eyebrow{font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:4px;}
+.h1{font-family:'Cormorant Garamond',serif;font-size:clamp(1.6rem,5vw,2.1rem);font-weight:600;color:var(--forest);line-height:1.12;}
+.sub{color:var(--soft);font-size:.91rem;margin-top:6px;}
+.chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px;}
+.chips.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
+.chip{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:10px 16px;cursor:pointer;font-family:'Jost',sans-serif;font-size:.88rem;}
+.chip.big{border-radius:13px;padding:13px;text-align:left;}
+.chip.big b{display:block;font-size:.92rem;}.chip.big small{color:var(--soft);font-size:.74rem;}
+.chip:hover{border-color:var(--amber);}
+.chip.sel{background:var(--forest);border-color:var(--forest);color:var(--cream);}
+.chip.sel small{color:#BFCBBB;}
+input[type=text],select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-family:'Jost',sans-serif;font-size:.94rem;background:var(--card);margin-top:10px;color:var(--ink);}
+.btn{background:var(--forest);color:var(--cream);border:none;border-radius:999px;padding:11px 24px;font-family:'Jost',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;margin-top:16px;}
+.btn.amber{background:var(--amber);border:none;color:#fff;}
+.btn.ghost{background:none;border:1.5px solid var(--line);color:var(--forest);}
+.btn:disabled{opacity:.45;cursor:default;}
+.btn.sm{padding:8px 16px;font-size:.8rem;margin-top:10px;}
+.cc-hub{display:flex;align-items:center;gap:16px;background:var(--forest);color:var(--cream);border-radius:18px;padding:20px 22px;margin:18px 0 20px;text-decoration:none;box-shadow:0 10px 26px rgba(31,61,43,.22);transition:transform .15s}
+.cc-hub:hover{transform:translateY(-2px)}
+.cc-hub:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+.cc-hub .cc-ic{width:52px;height:52px;border-radius:14px;background:var(--amber);display:grid;place-items:center;font-size:1.6rem;flex:none}
+.cc-hub b{display:block;font-family:'Cormorant Garamond',serif;font-size:1.55rem;line-height:1.1;font-weight:700}
+.cc-hub small{display:block;font-size:.85rem;opacity:.85;margin-top:3px}
+.cc-hub .cc-go{margin-left:auto;font-size:1.6rem;color:var(--amber);flex:none}
+.back{background:none;border:none;color:var(--forest);font-size:.76rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600;cursor:pointer;margin-bottom:10px;font-family:'Jost',sans-serif;}
+.q-label{font-weight:600;margin-top:18px;font-size:.93rem;}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:18px;margin-top:13px;}
+.tag{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--amber-soft);color:#8a5e12;display:inline-block;margin:0 5px 5px 0;}
+.tag.green{background:#E5EEE3;color:var(--good);}
+.vet{display:flex;gap:10px;align-items:center;background:#F0F4EE;border:1px solid #CFE0CC;border-radius:12px;padding:11px 14px;margin-top:14px;font-size:.83rem;color:var(--good);}
+.loader{text-align:center;padding:50px 0;}
+.pot{font-size:3rem;animation:bob 1.2s ease-in-out infinite;display:inline-block;}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.loader p{color:var(--soft);margin-top:10px;font-size:.9rem;}
+.slot-h{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--forest);margin-top:24px;}
+.opt{background:var(--card);border:1.5px solid var(--line);border-radius:13px;padding:13px;margin-top:8px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+.opt:hover{border-color:var(--amber);}
+.opt.sel{border-color:var(--forest);background:#F4F1E8;}
+.opt b{font-size:.95rem;display:block;}
+.opt small{color:var(--soft);font-size:.79rem;display:block;margin-top:2px;}
+.checkmark{flex:0 0 25px;height:25px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:.78rem;color:transparent;}
+.opt.sel .checkmark{background:var(--forest);border-color:var(--forest);color:var(--cream);}
+.tipbox{background:var(--amber-soft);border-radius:13px;padding:15px;margin-top:18px;font-size:.86rem;color:#6e4c0e;}
+.tipbox b{display:block;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;color:#8a5e12;}
+.tipbox li{margin-left:18px;margin-top:4px;}
+.vol{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line);}
+.vol:last-child{border:none;}
+.av{flex:0 0 38px;height:38px;border-radius:50%;background:var(--amber-soft);display:flex;align-items:center;justify-content:center;font-size:1.05rem;}
+.vol b{display:block;font-size:.92rem;}.vol small{color:var(--soft);font-size:.78rem;}
+.claim{background:var(--card);border:1.5px solid var(--line);border-radius:13px;padding:14px;margin-top:9px;}
+.claim .row1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.claim b{font-size:.95rem;}
+.claim small{color:var(--soft);font-size:.8rem;display:block;}
+.status{font-size:.66rem;font-weight:600;padding:4px 11px;border-radius:999px;white-space:nowrap;}
+.st-open{background:var(--amber-soft);color:#8a5e12;}
+.st-claimed{background:#E2EAF3;color:#2F578C;}
+.st-shopping{background:#F3EBE2;color:#8a5e12;}
+.st-cooking{background:#F6E9DB;color:#A05A1B;}
+.st-done{background:#E5EEE3;color:var(--good);}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:14px;}
+.day{background:var(--card);border:1.5px solid var(--line);border-radius:11px;padding:8px 6px;min-height:96px;font-size:.7rem;}
+.day .dn{font-weight:600;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);}
+.day.chemo{border-color:var(--amber);background:#FBF1DE;}
+.day .ev{background:#E5EEE3;color:var(--good);border-radius:7px;padding:3px 5px;margin-top:5px;line-height:1.25;font-size:.65rem;}
+.day .ev.open{background:var(--amber-soft);color:#8a5e12;}
+.store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px;margin-top:12px;}
+.store{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:13px;cursor:pointer;text-align:center;}
+.store:hover{border-color:var(--amber);}
+.store.sel{border-color:var(--forest);background:#F4F1E8;}
+.store .si{font-size:1.5rem;}
+.store b{display:block;font-size:.82rem;margin-top:4px;}
+.store small{color:var(--soft);font-size:.68rem;}
+.ing{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:.9rem;}
+.ing:last-child{border:none;}
+.ing .amt{color:var(--soft);font-size:.8rem;}
+.steps{list-style:none;counter-reset:s;margin-top:8px;}
+.steps li{counter-increment:s;display:flex;gap:11px;padding:8px 0;font-size:.92rem;align-items:flex-start;}
+.steps li::before{content:counter(s);flex:0 0 26px;height:26px;border-radius:50%;background:var(--forest);color:var(--cream);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:.8rem;}
+.alert-allergy{background:#F6E3DB;border:1px solid #ECC8B5;border-radius:12px;padding:11px 14px;font-size:.84rem;color:var(--warn);margin-top:12px;}
+.lang-toggle button{padding:7px 9px;}
+.calnav{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;margin-top:14px;}
+.calnav b{text-align:center;}
+.cal{grid-template-columns:repeat(7,minmax(0,1fr))!important;}
+.day .ev{overflow-wrap:break-word;}
+@media (max-width:560px){.calnav{grid-template-columns:1fr 1fr;}.calnav b{grid-column:1/-1;grid-row:1;}
+ .cal{grid-template-columns:1fr!important;gap:6px;}
+ .day{min-height:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:9px 10px;}
+ .day .dn{width:46px;}.day .dd{width:22px;font-size:.8rem;}
+ .day .ev{margin-top:0;font-size:.74rem;padding:4px 8px;}
+ .day .ev br{display:none;}.day .ev b{font-weight:400;}}
+.calnav .btn{margin-top:0;}
+.calnav b{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--forest);}
+.day{cursor:default;}
+.day.editable{cursor:pointer;outline:1.5px dashed var(--amber);outline-offset:-3px;}
+.day .dd{font-size:.62rem;color:var(--muted);}
+.day.today{border-color:var(--forest);}
+.progress{height:8px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:10px;}
+.progress span{display:block;height:100%;background:var(--forest);border-radius:999px;transition:width .3s;}
+.bookrow{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px;margin-top:10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+.book{flex:0 0 220px;scroll-snap-align:start;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px;}
+.book .cover{font-size:2.6rem;background:var(--amber-soft);border-radius:12px;height:84px;display:flex;align-items:center;justify-content:center;}
+.book .bt{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:700;color:var(--forest);line-height:1.15;}
+.book .ba{font-size:.78rem;color:var(--soft);}
+.book .bd{font-size:.8rem;color:var(--ink);flex:1;}
+.book .bp{font-weight:600;color:var(--forest);font-size:.9rem;}
+.book .btn{margin-top:4px;text-align:center;text-decoration:none;display:block;}
+details.cb{border-left-width:5px;}
+.safefor{font-size:.78rem;color:var(--good);margin:8px 0 2px;line-height:1.6;}
+.orderrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center;}
+.orderrow .lbl{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--forest);margin-right:4px;}
+.orderrow button{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:6px 12px;font-family:'Jost',sans-serif;font-size:.8rem;cursor:pointer;}
+.orderrow button:hover{border-color:var(--amber);}
+.vetbox{border-radius:12px;padding:11px 14px;font-size:.88rem;margin:10px 0 4px;font-weight:500;}
+.vetbox.ok{background:#E5EEE3;color:var(--forest);border:1px solid #CFE0CC;}
+.vetbox.warn{background:var(--amber-soft);color:#7a4f0c;border:1px solid #F0D9A8;}
+.checkline{padding:7px 0;border-bottom:1px dashed var(--line);font-size:.88rem;}
+.checkline:last-child{border:none;}
+.sharebtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.sharebtns .btn{margin-top:0;text-decoration:none;display:inline-block;}
+.btn.wa{background:#25D366;color:#fff;}
+@media (max-width:420px){header{padding:10px 12px;gap:6px;}.wordmark{font-size:1.2rem;}.view-toggle button{padding:7px 8px;font-size:.6rem;}.applogo{width:32px;height:32px;}}
+nav.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #EDE7DB;display:flex;justify-content:space-around;padding:9px 4px calc(10px + env(safe-area-inset-bottom));z-index:60;}
+nav.bottom button{background:none;border:none;color:#A39D92;font-family:'Jost',sans-serif;font-size:.6rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;}
+nav.bottom button .ico{font-size:1.2rem;}
+nav.bottom button.active{color:var(--forest);font-weight:600;}
+details.cb{background:var(--card);border:1.5px solid var(--line);border-radius:13px;padding:0;margin-top:8px;overflow:hidden;}
+details.cb summary{list-style:none;cursor:pointer;padding:13px;display:flex;justify-content:space-between;gap:8px;align-items:center;}
+details.cb summary::-webkit-details-marker{display:none;}
+details.cb summary b{font-size:.94rem;}
+details.cb summary small{color:var(--soft);font-size:.78rem;display:block;}
+details.cb .cb-body{padding:0 13px 13px;border-top:1px dashed var(--line);}
+.tag.mine{background:var(--amber);color:#142819;}
+.cbbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.field{margin-top:10px;}
+.field label{font-size:.78rem;font-weight:600;color:var(--forest);display:block;margin-bottom:4px;}
+textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-family:'Jost',sans-serif;font-size:.94rem;background:var(--card);min-height:70px;resize:vertical;}
+textarea:focus,input[type=text]:focus,select:focus{outline:2px solid var(--amber);border-color:var(--amber);}
+.preview{width:100%;max-height:180px;object-fit:cover;border-radius:12px;margin-top:10px;display:none;}
+.cbphoto{width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin:10px 0;}
+.del{background:none;border:1.5px solid var(--line);color:var(--warn);border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:600;cursor:pointer;margin-top:10px;font-family:'Jost',sans-serif;}
+.err{background:#F6E3DB;color:var(--warn);border-radius:12px;padding:11px 14px;font-size:.85rem;margin-top:12px;display:none;}
+footer{text-align:center;padding:22px;font-size:.7rem;color:var(--soft);font-style:italic;}
+</style>
+</head>
+<body>
+<header>
+  <div class="brandrow">
+    <svg id="applogo" class="applogo" viewBox="0 0 64 64" aria-label="MealKind">
+      <rect width="64" height="64" rx="14" fill="#1F3D2B"/>
+      <path d="M14 34h36a2 2 0 0 1 2 2c0 8-8 14-20 14S12 44 12 36a2 2 0 0 1 2-2Z" fill="#FDFBF7"/>
+      <path d="M10 33c-3-6 2-12 8-11M54 33c3-6-2-12-8-11" stroke="#E8A33D" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+      <path d="M32 27c-4-3-4-7 0-9 4 2 4 6 0 9Z" fill="#E8A33D"/>
+    </svg>
+    <div class="wordmark">Meal<span>Kind</span></div>
+  </div>
+  <div class="view-toggle lang-toggle" role="group" aria-label="Language / Idioma">
+    <button id="lang-en" class="active" onclick="applyLang('en')">EN</button>
+    <button id="lang-es" onclick="applyLang('es')">ES</button>
+  </div>
+  <div class="view-toggle">
+    <button id="vt-f" class="active" onclick="setRole('family')" data-i18n="vt_family">Patient</button>
+    <button id="vt-v" onclick="setRole('volunteer')" data-i18n="vt_circle">Support</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ====== ONBOARDING ====== -->
+<section class="screen active" id="ob1">
+  <div class="eyebrow" data-i18n="ob1_eyebrow">Welcome · 1 of 3</div>
+  <h1 class="h1" data-i18n="ob1_title">Who are we cooking for?</h1>
+  <p class="sub" data-i18n="ob1_sub">One minute of questions. Then every menu, recipe, and grocery list is built — and screened — for this person.</p>
+  <div class="q-label" data-i18n="ob1_name">Their first name</div>
+  <input type="text" id="pname" placeholder="Linda" maxlength="30">
+  <div class="q-label" data-i18n="ob1_facing">What are they facing?</div>
+  <div class="chips grid">
+    <button class="chip big" data-k="cond" data-v="cancer" onclick="pick1(this);condExtra()"><b data-i18n="c_cancer">Cancer</b><small data-i18n="c_cancer_s">All types · in or after treatment</small></button>
+    <button class="chip big" data-k="cond" data-v="dialysis" onclick="pick1(this);condExtra()"><b data-i18n="c_dialysis">Kidney disease / Dialysis</b><small data-i18n="c_dialysis_s">Renal diet</small></button>
+    <button class="chip big" data-k="cond" data-v="cardio" onclick="pick1(this);condExtra()"><b data-i18n="c_cardio">Cardiovascular</b><small data-i18n="c_cardio_s">Heart disease · post-cardiac event</small></button>
+    <button class="chip big" data-k="cond" data-v="stroke" onclick="pick1(this);condExtra()"><b data-i18n="c_stroke">Stroke recovery</b><small data-i18n="c_stroke_s">Swallow-safe · blood-pressure aware</small></button>
+    <button class="chip big" data-k="cond" data-v="gi" onclick="pick1(this);condExtra()"><b data-i18n="c_gi">GI / Intestinal</b><small data-i18n="c_gi_s">Crohn's · colitis · IBS · post-surgery</small></button>
+    <button class="chip big" data-k="cond" data-v="ortho" onclick="pick1(this);condExtra()"><b data-i18n="c_ortho">Orthopedic recovery</b><small data-i18n="c_ortho_s">Surgery · fracture · joint replacement</small></button>
+    <button class="chip big" data-k="cond" data-v="parkinsons" onclick="pick1(this);condExtra()"><b data-i18n="c_parkinsons">Parkinson's</b><small data-i18n="c_parkinsons_s">Medication-timing &amp; texture aware</small></button>
+    <button class="chip big" data-k="cond" data-v="als" onclick="pick1(this);condExtra()"><b data-i18n="c_als">ALS</b><small data-i18n="c_als_s">High-calorie · swallow-safe</small></button>
+    <button class="chip big" data-k="cond" data-v="tbi" onclick="pick1(this);condExtra()"><b data-i18n="c_tbi">TBI</b><small data-i18n="c_tbi_s">Brain injury recovery</small></button>
+    <button class="chip big" data-k="cond" data-v="alzheimers" onclick="pick1(this);condExtra()"><b data-i18n="c_alzheimers">Alzheimer's / Dementia</b><small data-i18n="c_alzheimers_s">MIND-aligned · finger-food friendly</small></button>
+    <button class="chip big" data-k="cond" data-v="depression" onclick="pick1(this);condExtra()"><b data-i18n="c_depression">Depression</b><small data-i18n="c_depression_s">Low energy · low appetite</small></button>
+    <button class="chip big" data-k="cond" data-v="postpartum" onclick="pick1(this);condExtra()"><b data-i18n="c_postpartum">Postpartum</b><small data-i18n="c_postpartum_s">Recovery · new-mom support</small></button>
+  </div>
+  <button class="btn amber" onclick="ob2()" data-i18n="continue">Continue →</button>
+</section>
+
+<section class="screen" id="ob2">
+  <button class="back" onclick="show('ob1')" data-i18n="back">← Back</button>
+  <div class="eyebrow" data-i18n="ob2_eyebrow">Welcome · 2 of 3</div>
+  <h1 class="h1" id="ob2title">A little more detail.</h1>
+  <div id="cancerExtra" style="display:none;">
+    <div class="q-label" data-i18n="ob2_ctype">What kind of cancer?</div>
+    <select id="ctype">
+      <option value="" data-i18n="ct_select">Select cancer type…</option>
+      <option value="Breast" data-i18n="ct_breast">Breast</option><option value="Lung" data-i18n="ct_lung">Lung</option><option value="Colorectal" data-i18n="ct_colorectal">Colorectal</option><option value="Prostate" data-i18n="ct_prostate">Prostate</option>
+      <option value="Pancreatic" data-i18n="ct_pancreatic">Pancreatic</option><option value="Stomach / Gastric" data-i18n="ct_stomach">Stomach / Gastric</option><option value="Esophageal" data-i18n="ct_esophageal">Esophageal</option><option value="Liver" data-i18n="ct_liver">Liver</option>
+      <option value="Kidney" data-i18n="ct_kidney">Kidney</option><option value="Bladder" data-i18n="ct_bladder">Bladder</option><option value="Ovarian" data-i18n="ct_ovarian">Ovarian</option><option value="Uterine / Endometrial" data-i18n="ct_uterine">Uterine / Endometrial</option>
+      <option value="Cervical" data-i18n="ct_cervical">Cervical</option><option value="Head &amp; Neck" data-i18n="ct_headneck">Head &amp; Neck</option><option value="Brain" data-i18n="ct_brain">Brain</option><option value="Leukemia" data-i18n="ct_leukemia">Leukemia</option>
+      <option value="Lymphoma" data-i18n="ct_lymphoma">Lymphoma</option><option value="Multiple Myeloma" data-i18n="ct_myeloma">Multiple Myeloma</option><option value="Melanoma / Skin" data-i18n="ct_melanoma">Melanoma / Skin</option><option value="Sarcoma" data-i18n="ct_sarcoma">Sarcoma</option>
+      <option value="Thyroid" data-i18n="ct_thyroid">Thyroid</option><option value="Other / not sure" data-i18n="ct_other">Other / not sure</option>
+    </select>
+    <div class="q-label" data-i18n="ob2_chemo">Currently on chemotherapy?</div>
+    <div class="chips">
+      <button class="chip" data-k="chemo" data-v="yes" onclick="pick1(this)" data-i18n="chemo_yes">Yes — on a cycle</button>
+      <button class="chip sel" data-k="chemo" data-v="no" onclick="pick1(this)" data-i18n="no">No</button>
+    </div>
+  </div>
+  <div id="swallowExtra" style="display:none;">
+    <div class="q-label" data-i18n="ob2_swallow">Swallowing guidance from their care team</div>
+    <div class="chips">
+      <button class="chip sel" data-k="texture" data-v="regular" onclick="pick1(this)" data-i18n="tx_regular">Regular textures</button>
+      <button class="chip" data-k="texture" data-v="soft" onclick="pick1(this)" data-i18n="tx_soft">Soft &amp; moist only</button>
+      <button class="chip" data-k="texture" data-v="pureed" onclick="pick1(this)" data-i18n="tx_pureed">Pureed / minced</button>
+    </div>
+  </div>
+  <div class="q-label" data-i18n="ob2_allergies">Allergies &amp; absolute no's (these travel with every recipe)</div>
+  <div class="chips" id="allergies">
+    <button class="chip" data-v="Tree nuts" onclick="pickM(this)" data-i18n="al_tree_nut">Tree nuts</button>
+    <button class="chip" data-v="Peanuts" onclick="pickM(this)" data-i18n="al_peanut">Peanuts</button>
+    <button class="chip" data-v="Dairy" onclick="pickM(this)" data-i18n="al_milk">Dairy</button>
+    <button class="chip" data-v="Gluten" onclick="pickM(this)" data-i18n="al_wheat_gluten">Gluten</button>
+    <button class="chip" data-v="Shellfish" onclick="pickM(this)" data-i18n="al_shellfish">Shellfish</button>
+    <button class="chip" data-v="Eggs" onclick="pickM(this)" data-i18n="al_egg">Eggs</button>
+    <button class="chip" data-v="Fish" onclick="pickM(this)" data-i18n="al_fish">Fish</button>
+    <button class="chip" data-v="Sesame" onclick="pickM(this)" data-i18n="al_sesame">Sesame</button>
+  </div>
+  <input type="text" id="allergyother" placeholder="Anything else (e.g. grapefruit — medication interaction)" data-i18n-ph="ph_allergyother">
+  <div class="q-label" data-i18n="ob2_diet">Foods to avoid for health reasons (not a diagnosis — just what to skip)</div>
+  <div class="chips" id="dietres">
+    <button class="chip" data-v="High-potassium (bananas, potatoes)" onclick="pickM(this)" data-i18n="dr_high_potassium">High-potassium (bananas, potatoes)</button>
+    <button class="chip" data-v="High-sodium" onclick="pickM(this)" data-i18n="dr_high_sodium">High-sodium</button>
+    <button class="chip" data-v="High-sugar" onclick="pickM(this)" data-i18n="dr_high_sugar">High-sugar</button>
+    <button class="chip" data-v="Acidic (citrus, tomato)" onclick="pickM(this)" data-i18n="dr_acidic">Acidic (citrus, tomato)</button>
+    <div id="impliedNote" style="display:none;flex-basis:100%;font-size:.8rem;color:#8a5e12;background:#FBF1DE;border-radius:10px;padding:8px 12px;margin-top:6px;"></div>
+  </div>
+  <div class="q-label" data-i18n="ob2_loves">Foods they love / foods they can't stand right now</div>
+  <input type="text" id="loves" placeholder="Loves: e.g. soups, anything lemony" data-i18n-ph="ph_loves">
+  <input type="text" id="hates" placeholder="Can't stand: e.g. red meat, fried food" data-i18n-ph="ph_hates">
+  <button class="btn amber" onclick="show('ob3')" data-i18n="continue">Continue →</button>
+</section>
+
+<section class="screen" id="ob3">
+  <button class="back" onclick="show('ob2')" data-i18n="back">← Back</button>
+  <div class="eyebrow" data-i18n="ob3_eyebrow">Welcome · 3 of 3</div>
+  <h1 class="h1" data-i18n="ob3_title">Build the Care Circle.</h1>
+  <p class="sub" data-i18n="ob3_sub">Family and friends who keep saying "let me know if you need anything." This is the anything. They see the approved menu and claim what they'll cook — never any medical details.</p>
+  <div class="card">
+    <div class="vol"><div class="av">📋</div><div style="flex:1"><b data-i18n="ob3_s1">Approve the meals</b><small data-i18n="ob3_s1d">Pick what sounds good from this week's menu.</small></div></div>
+    <div class="vol"><div class="av">🔗</div><div style="flex:1"><b data-i18n="ob3_s2">Share one link</b><small data-i18n="ob3_s2d">Send it by WhatsApp, text or email — or print the QR code.</small></div></div>
+    <div class="vol"><div class="av">🧑‍🍳</div><div style="flex:1"><b data-i18n="ob3_s3">They claim and cook</b><small data-i18n="ob3_s3d">Each meal shows who's cooking, and when it's delivered.</small></div></div>
+  </div>
+  <button class="btn amber" onclick="buildMenu()" data-i18n="ob3_build">Build this week's menu ✨</button>
+</section>
+
+<!-- ====== LOADING ====== -->
+<section class="screen" id="loading">
+  <div class="loader"><span class="pot">🍲</span><p id="loadmsg">Reading the profile…</p></div>
+</section>
+
+<!-- ====== MENU BOARD ====== -->
+<section class="screen" id="menu">
+  <div class="eyebrow"><span data-i18n="menu_eyebrow">This week's menu</span> · <span id="mname">for them</span></div>
+  <h1 class="h1" data-i18n="menu_title">Pick what sounds good.</h1>
+  <p class="sub" data-i18n="menu_sub">Seven choices for every mealtime, breakfast through dessert. Tap to approve — only approved meals go to the Care Circle.</p>
+  <div class="vet" id="vetline">✔️ <span></span></div>
+  <div class="alert-allergy" id="allergyline" style="display:none;"></div>
+  <div id="menuboard"></div>
+  <div class="tipbox" id="tips"></div>
+  <button class="btn ghost" onclick="buildMenu()" data-i18n="menu_rebuild">↻ Build a different menu</button>
+  <button class="btn amber" id="sendbtn" onclick="sendToCircle()" data-i18n="menu_send">Approve meals &amp; send to Care Circle</button>
+  <br><button class="btn ghost sm" id="checkbtn" onclick="menuCheck()" data-i18n="menu_check">Check my menu for conflicts →</button>
+  <div class="card" id="menucheck" style="display:none;"></div>
+</section>
+
+<!-- ====== CIRCLE / CLAIMS ====== -->
+<section class="screen" id="circle">
+  <div class="eyebrow" id="circle-eyebrow">Care Circle</div>
+  <h1 class="h1" id="circle-h1" data-i18n="circle_title">Choose what you'll cook.</h1>
+  <p class="sub" id="circle-sub"></p>
+  <div id="ccHub"></div>
+  <div class="alert-allergy" id="allergyline2"></div>
+  <div id="shareBox"></div>
+  <div id="claimlist"></div>
+</section>
+
+<!-- ====== CALENDAR ====== -->
+<section class="screen" id="calendar">
+  <div class="eyebrow" data-i18n="cal_eyebrow">Calendar</div>
+  <h1 class="h1" data-i18n="cal_title">Every meal has a name on it.</h1>
+  <p class="sub" id="calsub" data-i18n="cal_sub">Claimed meals lock to the calendar. Reminders go out the day before.</p>
+  <div class="calnav">
+    <button class="btn ghost sm" onclick="calShift(-1)" data-i18n="cal_prev">‹ Previous week</button>
+    <b id="calrange"></b>
+    <button class="btn ghost sm" onclick="calShift(1)" data-i18n="cal_next">Next week ›</button>
+  </div>
+  <div class="cal" id="calgrid"></div>
+  <button class="btn ghost sm" id="treatbtn" onclick="toggleTreatMode()">💉 <span data-i18n="cal_add_treat">Add a treatment date</span></button>
+  <p class="sub" id="treathint" style="display:none;" data-i18n="cal_treat_hint">Tap any day to mark or unmark it as a treatment day. Tap “Done” when finished.</p>
+  <div class="card" id="calstatus"></div>
+</section>
+
+<!-- ====== COOKBOOK ====== -->
+<section class="screen" id="cookbook">
+  <div class="eyebrow" data-i18n="cb_eyebrow">The MealKind Cookbook™</div>
+  <h1 class="h1" data-i18n="cb_title">Every recipe. Every condition.</h1>
+
+  <!-- Recommended books (store) — MealKind links out; no payment is processed here -->
+  <div class="slot-h" data-i18n="books_title">Recommended Books</div>
+  <p class="sub" style="margin-top:2px;" data-i18n="books_sub">Nutrition cookbooks vetted for your condition — written by specialists and survivors.</p>
+  <div class="bookrow" id="bookrow"></div>
+  <p class="sub" style="font-size:.8rem;"><span data-i18n="books_author">Are you a cookbook author? Email</span> <a href="mailto:hello@mealkind.com?subject=Cookbook%20Listing" style="color:var(--forest);font-weight:600;">hello@mealkind.com</a> <span data-i18n="books_author2">with ‘Cookbook Listing’ in the subject.</span></p>
+
+  <div class="slot-h" data-i18n="cb_library">Recipe library</div>
+  <p class="sub" data-i18n="cb_sub">The full library behind the menus — browse by condition, cook anything. The print edition is coming; pilot proceeds keep patient access free.</p>
+  <select id="cbfilter" onchange="renderCookbook()">
+    <option value="all" data-i18n="cb_all">All conditions</option>
+    <option value="cancer" data-i18n="c_cancer">Cancer</option><option value="dialysis" data-i18n="c_dialysis">Kidney / Dialysis</option>
+    <option value="cardio" data-i18n="c_cardio">Cardiovascular</option><option value="stroke" data-i18n="c_stroke">Stroke recovery</option>
+    <option value="gi" data-i18n="c_gi">GI / Intestinal</option><option value="ortho" data-i18n="c_ortho">Orthopedic recovery</option>
+    <option value="parkinsons" data-i18n="c_parkinsons">Parkinson's</option><option value="als" data-i18n="c_als">ALS</option>
+    <option value="tbi" data-i18n="c_tbi">TBI</option><option value="alzheimers" data-i18n="c_alzheimers">Alzheimer's / Dementia</option>
+    <option value="depression" data-i18n="c_depression">Depression</option><option value="postpartum" data-i18n="c_postpartum">Postpartum</option>
+  </select>
+  <label style="display:flex;align-items:center;gap:6px;margin:8px 0;font-size:.85rem;color:var(--soft);">
+    <input type="checkbox" id="cbShowAll" onchange="renderCookbook()">
+    <span data-i18n="cb_showall">Show recipes outside my allergy/diet restrictions too</span>
+  </label>
+  <div class="cbbar">
+    <button class="btn amber sm" onclick="toggleAddForm()" data-i18n="cb_add">+ Add a recipe</button>
+    <button class="btn ghost sm" onclick="exportBook()" data-i18n="cb_save">&#11015; Save my book</button>
+    <button class="btn ghost sm" onclick="document.getElementById('importIn').click()" data-i18n="cb_load">&#11014; Load my book</button>
+    <input type="file" id="importIn" accept=".json" hidden onchange="importBook(this)">
+  </div>
+  <div class="card" id="addform" style="display:none;">
+    <b style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--forest);" data-i18n="af_title">Add to the family cookbook</b>
+    <div class="field"><label data-i18n="af_photo">Photo (optional — snap a handwritten card)</label>
+      <button class="btn ghost sm" onclick="document.getElementById('photoIn').click()" style="margin-top:0;" data-i18n="af_addphoto">&#128247; Add photo</button>
+      <input type="file" id="photoIn" accept="image/*" hidden onchange="handlePhoto(this)">
+      <img class="preview" id="addpreview" alt="">
+    </div>
+    <div class="field"><label data-i18n="af_name">Recipe name</label><input type="text" id="my-name" placeholder="Grandma's chicken &amp; rice" style="margin-top:0;"></div>
+    <div class="field"><label data-i18n="af_slot">Mealtime</label>
+      <select id="my-slot" style="margin-top:0;">
+        <option value="breakfast" data-i18n="sl_breakfast">Breakfast</option><option value="lunch" data-i18n="sl_lunch">Lunch</option>
+        <option value="snack" data-i18n="sl_snack1">Snack</option><option value="dinner" selected data-i18n="sl_dinner">Dinner</option><option value="dessert" data-i18n="sl_dessert1">Dessert</option>
+      </select></div>
+    <div class="field"><label data-i18n="af_good">Good for (tap all that apply — leave empty for everyone)</label>
+      <div class="chips" id="my-conds"></div></div>
+    <div class="field"><label data-i18n="af_why">Why it helps (one warm line)</label><input type="text" id="my-why" placeholder="Soft, comforting, and it always gets eaten." style="margin-top:0;"></div>
+    <div class="field"><label data-i18n="af_time">Time</label><input type="text" id="my-time" placeholder="30 min" style="margin-top:0;"></div>
+    <div class="field"><label data-i18n="af_ings">Shopping list — one ingredient per line ("item - amount")</label>
+      <textarea id="my-ings" placeholder="Chicken thighs - 2 lb&#10;White rice - 2 lb&#10;Carrots - 1 lb"></textarea></div>
+    <div class="field"><label data-i18n="af_steps">Steps — one per line, keep it to 3-4</label>
+      <textarea id="my-steps" placeholder="Brown the chicken.&#10;Add rice and broth; simmer 25 min.&#10;Rest 5 minutes and serve."></textarea></div>
+    <button class="btn amber" onclick="saveMyRecipe()" data-i18n="af_save">Save to the cookbook</button>
+    <button class="btn ghost sm" onclick="toggleAddForm()" data-i18n="cancel">Cancel</button>
+  </div>
+  <div id="cbbody"></div>
+</section>
+
+<!-- ====== SHOP / COOK / DELIVER ====== -->
+<section class="screen" id="shop">
+  <button class="back" onclick="show('circle')" data-i18n="shop_back">← Back to the menu</button>
+  <div class="eyebrow" id="shop-eyebrow">Your claimed meal</div>
+  <div class="card" id="recipecard"></div>
+  <div class="card">
+    <b style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--forest);" data-i18n="shop_list">Shopping list</b>
+    <div id="inglist"></div>
+    <div class="q-label" style="margin-top:14px;" data-i18n="shop_store">Tap a store to order ingredients to your home</div>
+    <div class="store-grid" id="stores"></div>
+  </div>
+  <div class="card" id="statuscard">
+    <b style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--forest);" data-i18n="shop_cook">Cook &amp; deliver</b>
+    <p class="sub" style="margin-top:2px;" data-i18n="shop_cook_sub">Move it along as you go — the family sees every step.</p>
+    <div style="margin-top:10px;" id="statusflow"></div>
+  </div>
+  <div class="err" id="err2"></div>
+</section>
+
+</main>
+
+<nav class="bottom" id="bnav" style="display:none;">
+  <button class="active" data-s="menu" onclick="navTo(this)"><span class="ico">📋</span><span data-i18n="nav_menu">Menu</span></button>
+  <button data-s="circle" onclick="navTo(this)"><span class="ico">🤝</span><span data-i18n="nav_circle">Care Circle</span></button>
+  <button data-s="calendar" onclick="navTo(this)"><span class="ico">📅</span><span data-i18n="nav_calendar">Calendar</span></button>
+  <button data-s="cookbook" onclick="navTo(this)"><span class="ico">📖</span><span data-i18n="nav_cookbook">Cookbook</span></button>
+</nav>
+
+<div class="err" id="err1" style="max-width:680px;margin:12px auto;"></div>
+<footer data-i18n="footer">MealKind menus follow frameworks reviewed by registered dietitians in each specialty. Food coordination, not medical advice — care-team instructions always come first.</footer>
+
+<script>
+/* ================= LANGUAGE (EN / ES) =================
+   Static text: elements with data-i18n="key" (English lives in the HTML
+   and is copied into T.en on first run). Placeholders: data-i18n-ph.
+   Dynamic text: tr('key'). Choice is saved in localStorage 'mk_lang'.
+   Recipe names, ingredients and steps are English-only for now.       */
+const T={
+en:{
+ ob2_title:'Details for {c}, kept simple.',
+ load1:'Reading the profile…',load2:'Applying the specialist framework…',load3:'Screening for allergies…',load4:'Writing seven choices per mealtime…',load_recipe:'Writing the full recipe & shopping list…',
+ for_name:'for {n}',choices:'{n} choices',recipes_n:'{n} recipes',
+ sl_breakfast:'Breakfast',sl_lunch:'Lunch',sl_snack:'Snacks',sl_dinner:'Dinner',sl_dessert:'Desserts',sl_infusion:'Infusion day',
+ infusion_label:'Infusion-day plan',infusion_sub:'For the days around infusion — cold, gentle, low-smell.',
+ travels:'⚠️ <b>Travels with every recipe:</b> no {a}. Volunteers see this on everything they cook.',
+ no_safe_slot:'⚠️ Nothing in the recipe library clears every restriction for {s} right now. Please plan this meal manually with the care team rather than picking from this board.',
+ tips_h:'Tips & tricks · {c}',my_recipe:'My recipe',
+ err_approve:'Tap at least one meal to approve it first.',
+ err_create:'Could not create your Care Circle board — check your connection and try again.',
+ err_save:'Some meals didn’t save to the shared board — try refreshing.',
+ err_claimed:'Someone may have just claimed this — refreshing the board.',
+ err_status:'Only the person who claimed this meal (or the family) can update it.',
+ err_family_only:'Only the family’s device can add meals to this board. Start a new menu from “Family” to create your own circle.',
+ circle_eyebrow:'Care Circle · for {n}',
+ circle_sub:'Every meal below was chosen for {n} and screened against their allergies and restrictions. Claim one — you get the recipe, the shopping list, and a delivery day.',
+ before_cook:'⚠️ <b>Before you cook anything:</b> absolutely no {a}. This warning rides on every recipe and shopping list.',
+ also_avoid:'Also avoid: {d}.',
+ no_allergies:'✔️ No allergies on file — the specialist menu rules still apply to every recipe.',
+ no_menu_yet:'The family hasn’t approved this week’s menu yet. Check back soon.',
+ st_open:'Open — claim it',st_claimed:'Claimed',st_shopping:'Ingredients ordered',st_cooking:'Cooking',st_done:'Delivered ✓',
+ cook_this:"I'll cook this →",open_recipe:'Open recipe & status →',
+ ask_name:"Your name, so the family knows who's cooking:",
+ ask_email:'Your email (optional) — lets you update this meal from another phone:',
+ ask_email_update:'Enter the email you used when you claimed this meal:',
+ shield_ok:'🛡️ Safe',shield_warn:'⚠️ Check needed',
+ share_title:'Share your Care Circle',share_sub:'Send this link by WhatsApp, text, or email — or post the QR code.',
+ share_msg:"I've been added to {n}'s MealKind Care Circle. Tap to see what meals are needed and claim one to cook: {l}",
+ share_copy:'Copy link',share_copied:'Copied!',share_wa:'WhatsApp',share_sms:'Text message',share_more:'Share…',
+ cal_range:'Week of {r}',cal_summary:'{p} meals planned · {c} claimed · {d} delivered',
+ cal_cover:'{n} of 7 days covered',cal_treat:'💉 Treatment day',cal_treat_note:'Plan cold, gentle meals on treatment days.',
+ cal_done:'Done',unclaimed:'unclaimed',
+ books_amazon:'Buy on Amazon',books_author_btn:'Buy from Author',books_none:'No recommended books for this condition yet.',
+ hidden_n:'🛡️ {n} recipe(s) hidden for containing a listed allergy or restriction. Check “Show recipes outside my restrictions” above to see them anyway.',
+ universal:'Universal — safe across conditions',good_for:'Good for:',not_checked:'⚠️ Not yet checked for allergies',remove_mine:'Remove from my book',
+ safe_for:'Safe for:',order_ings:'Order ingredients',
+ vet_ok:'✅ Safe for {n}',vet_warn:'⚠️ Check before cooking — contains {i}, which conflicts with {n}’s restrictions.',
+ abs_no:'⚠️ Absolutely no {a} — check every label.',texture_note:'🥄 Texture guidance: {t} — per the care team.',tx_soft_l:'soft & moist only',tx_pureed_l:'pureed / minced',
+ pantry:'(pantry staple — probably already have it)',
+ fl_claimed:'✋ Claimed',fl_shopping:'🛒 Ingredients ordered',fl_cooking:'🍳 Cooking',fl_done:'🚗 Delivered',
+ nx_shopping:'Mark ingredients ordered',nx_cooking:'Start cooking',nx_done:'Mark delivered 🎉',
+ delivered_thanks:'Delivered. The family can see it on the board — thank you. 💛',
+ check_title:'Menu check',check_none:'Approve a few meals first, then run the check.',check_clear:'clear',check_contains:'contains {i}',
+ check_ok_all:'Every approved meal clears {n}’s allergies and restrictions.',check_bad:'{k} meal(s) need a second look before they go to the Care Circle.',
+ your_person:'your person',
+ st_heb:'Curbside & delivery',st_walmart:'Delivery',st_kroger:'Pickup & delivery',st_instacart:'1-hr · any local store',st_amazon:'Same-day',st_wf:'Prime delivery',
+ fam_invalid:'This Care Circle link isn’t valid anymore. Ask the family to send it again.'
+},
+es:{
+ vt_family:'Paciente',vt_circle:'Apoyo',
+ ob1_eyebrow:'Bienvenida · 1 de 3',ob1_title:'¿Para quién cocinamos?',
+ ob1_sub:'Un minuto de preguntas. Después, cada menú, receta y lista de compras se arma — y se revisa — para esta persona.',
+ ob1_name:'Su nombre',ob1_facing:'¿Qué están enfrentando?',continue:'Continuar →',back:'← Atrás',
+ c_cancer:'Cáncer',c_cancer_s:'Todos los tipos · en tratamiento o después',
+ c_dialysis:'Enfermedad renal / Diálisis',c_dialysis_s:'Dieta renal',
+ c_cardio:'Cardiovascular',c_cardio_s:'Enfermedad cardíaca · después de un evento cardíaco',
+ c_stroke:'Recuperación de derrame cerebral',c_stroke_s:'Seguro para tragar · cuida la presión',
+ c_gi:'GI / Intestinal',c_gi_s:'Crohn · colitis · colon irritable · post-cirugía',
+ c_ortho:'Recuperación ortopédica',c_ortho_s:'Cirugía · fractura · reemplazo de articulación',
+ c_parkinsons:'Párkinson',c_parkinsons_s:'Cuida horarios de medicina y texturas',
+ c_als:'ELA',c_als_s:'Alta en calorías · seguro para tragar',
+ c_tbi:'Lesión cerebral traumática',c_tbi_s:'Recuperación de lesión cerebral',
+ c_alzheimers:'Alzhéimer / Demencia',c_alzheimers_s:'Estilo MIND · comida para comer con la mano',
+ c_depression:'Depresión',c_depression_s:'Poca energía · poco apetito',
+ c_postpartum:'Posparto',c_postpartum_s:'Recuperación · apoyo a la nueva mamá',
+ ob2_eyebrow:'Bienvenida · 2 de 3',ob2_title:'Detalles para {c}, sin complicaciones.',
+ ob2_ctype:'¿Qué tipo de cáncer?',ct_select:'Elige el tipo de cáncer…',ct_breast:'Mama',ct_lung:'Pulmón',ct_colorectal:'Colorrectal',ct_prostate:'Próstata',
+ ct_pancreatic:'Páncreas',ct_stomach:'Estómago / Gástrico',ct_esophageal:'Esófago',ct_liver:'Hígado',ct_kidney:'Riñón',ct_bladder:'Vejiga',ct_ovarian:'Ovario',
+ ct_uterine:'Útero / Endometrio',ct_cervical:'Cervicouterino',ct_headneck:'Cabeza y cuello',ct_brain:'Cerebro',ct_leukemia:'Leucemia',ct_lymphoma:'Linfoma',
+ ct_myeloma:'Mieloma múltiple',ct_melanoma:'Melanoma / Piel',ct_sarcoma:'Sarcoma',ct_thyroid:'Tiroides',ct_other:'Otro / no estoy seguro',
+ ob2_chemo:'¿Está en quimioterapia?',chemo_yes:'Sí — en un ciclo',no:'No',
+ ob2_swallow:'Indicaciones para tragar de su equipo médico',tx_regular:'Texturas normales',tx_soft:'Solo suave y húmedo',tx_pureed:'En puré / picado',
+ ob2_allergies:'Alergias y “nunca” absolutos (viajan con cada receta)',
+ al_tree_nut:'Nueces',al_peanut:'Cacahuates',al_milk:'Lácteos',al_wheat_gluten:'Gluten',al_shellfish:'Mariscos',al_egg:'Huevo',al_fish:'Pescado',al_sesame:'Ajonjolí',
+ ph_allergyother:'Algo más (ej. toronja — interacción con medicina)',
+ ob2_diet:'Alimentos a evitar por salud (no es un diagnóstico — solo lo que hay que evitar)',
+ dr_high_potassium:'Alto en potasio (plátano, papa)',dr_high_sodium:'Alto en sodio',dr_high_sugar:'Alto en azúcar',dr_acidic:'Ácidos (cítricos, jitomate)',
+ ob2_loves:'Lo que le encanta / lo que no soporta ahora',ph_loves:'Le encanta: ej. sopas, todo con limón',ph_hates:'No soporta: ej. carne roja, fritos',
+ ob3_eyebrow:'Bienvenida · 3 de 3',ob3_title:'Arma el Círculo de Cuidado.',
+ ob3_sub:'Familia y amigos que siempre dicen “avísame si necesitas algo”. Esto es ese algo. Ven el menú aprobado y apartan lo que van a cocinar — nunca ven detalles médicos.',
+ ob3_s1:'Aprueba las comidas',ob3_s1d:'Elige lo que se te antoje del menú de la semana.',
+ ob3_s2:'Comparte un solo enlace',ob3_s2d:'Envíalo por WhatsApp, mensaje o correo — o imprime el código QR.',
+ ob3_s3:'Ellos apartan y cocinan',ob3_s3d:'Cada comida muestra quién cocina y cuándo se entregó.',
+ ob3_build:'Arma el menú de esta semana ✨',
+ menu_eyebrow:'El menú de esta semana',menu_title:'Elige lo que se te antoje.',
+ menu_sub:'Siete opciones para cada comida, del desayuno al postre. Toca para aprobar — solo las comidas aprobadas llegan al Círculo de Cuidado.',
+ menu_rebuild:'↻ Armar otro menú',menu_send:'Aprobar comidas y enviar al Círculo de Cuidado',menu_check:'Revisar mi menú por conflictos →',
+ circle_title:'Elige lo que vas a cocinar.',
+ cal_eyebrow:'Calendario',cal_title:'Cada comida tiene un nombre.',cal_sub:'Las comidas apartadas quedan en el calendario.',
+ cal_prev:'‹ Semana anterior',cal_next:'Semana siguiente ›',cal_add_treat:'Agregar día de tratamiento',
+ cal_treat_hint:'Toca cualquier día para marcarlo o desmarcarlo como día de tratamiento. Toca “Listo” al terminar.',
+ cb_eyebrow:'El Recetario MealKind™',cb_title:'Cada receta. Cada condición.',
+ books_title:'Libros recomendados',books_sub:'Libros de cocina y nutrición revisados para tu condición — escritos por especialistas y sobrevivientes.',
+ books_author:'¿Escribiste un libro de cocina? Escribe a',books_author2:'con “Cookbook Listing” en el asunto.',
+ cb_library:'Biblioteca de recetas',
+ cb_sub:'La biblioteca completa detrás de los menús — busca por condición, cocina lo que quieras. La edición impresa viene en camino; lo recaudado mantiene el acceso gratis para los pacientes.',
+ cb_all:'Todas las condiciones',cb_showall:'Mostrar también recetas fuera de mis alergias/restricciones',
+ cb_add:'+ Agregar receta',cb_save:'⬇ Guardar mi recetario',cb_load:'⬆ Cargar mi recetario',
+ af_title:'Agregar al recetario familiar',af_photo:'Foto (opcional — tómale foto a una receta escrita a mano)',af_addphoto:'📷 Agregar foto',
+ af_name:'Nombre de la receta',af_slot:'Comida del día',sl_snack1:'Botana',sl_dessert1:'Postre',
+ af_good:'Buena para (marca las que apliquen — vacío = para todos)',af_why:'Por qué ayuda (una frase cálida)',af_time:'Tiempo',
+ af_ings:'Lista de compras — un ingrediente por línea (“ingrediente - cantidad”)',af_steps:'Pasos — uno por línea, máximo 3-4',
+ af_save:'Guardar en el recetario',cancel:'Cancelar',
+ shop_back:'← Volver al menú',shop_list:'Lista de compras',shop_store:'Toca una tienda para pedir los ingredientes a tu casa',
+ shop_cook:'Cocinar y entregar',shop_cook_sub:'Avanza el estado conforme vas — la familia ve cada paso.',
+ nav_menu:'Menú',nav_circle:'Círculo',nav_calendar:'Calendario',nav_cookbook:'Recetario',
+ footer:'Los menús de MealKind siguen marcos revisados por dietistas registrados en cada especialidad. Coordinación de comida, no consejo médico — las indicaciones del equipo médico siempre van primero.',
+ load1:'Leyendo el perfil…',load2:'Aplicando el marco del especialista…',load3:'Revisando alergias…',load4:'Escribiendo siete opciones por comida…',load_recipe:'Preparando la receta completa y la lista de compras…',
+ for_name:'para {n}',choices:'{n} opciones',recipes_n:'{n} recetas',
+ sl_breakfast:'Desayuno',sl_lunch:'Comida',sl_snack:'Botanas',sl_dinner:'Cena',sl_dessert:'Postres',sl_infusion:'Día de infusión',
+ infusion_label:'Plan para días de infusión',infusion_sub:'Para los días cerca de la infusión — frío, suave y con poco olor.',
+ travels:'⚠️ <b>Viaja con cada receta:</b> nada de {a}. Los voluntarios lo ven en todo lo que cocinan.',
+ no_safe_slot:'⚠️ Ninguna receta de la biblioteca cumple todas las restricciones para {s} por ahora. Planea esta comida con el equipo médico en lugar de elegir de esta lista.',
+ tips_h:'Consejos · {c}',my_recipe:'Mi receta',
+ err_approve:'Toca al menos una comida para aprobarla primero.',
+ err_create:'No se pudo crear tu Círculo de Cuidado — revisa tu conexión e intenta de nuevo.',
+ err_save:'Algunas comidas no se guardaron — intenta recargar.',
+ err_claimed:'Alguien acaba de apartar esta comida — actualizando.',
+ err_status:'Solo quien apartó esta comida (o la familia) puede actualizarla.',
+ err_family_only:'Solo el dispositivo de la familia puede agregar comidas a este círculo. Empieza un menú nuevo desde “Familia” para crear tu propio círculo.',
+ circle_eyebrow:'Círculo de Cuidado · para {n}',
+ circle_sub:'Cada comida de abajo se eligió para {n} y se revisó contra sus alergias y restricciones. Aparta una — recibes la receta, la lista de compras y un día de entrega.',
+ before_cook:'⚠️ <b>Antes de cocinar:</b> absolutamente nada de {a}. Esta advertencia viaja con cada receta y lista de compras.',
+ also_avoid:'Evita también: {d}.',
+ no_allergies:'✔️ Sin alergias registradas — las reglas del menú especializado aplican a cada receta.',
+ no_menu_yet:'La familia todavía no aprueba el menú de esta semana. Vuelve pronto.',
+ st_open:'Disponible — reclamarlo',st_claimed:'Apartado',st_shopping:'Ingredientes pedidos',st_cooking:'Cocinando',st_done:'Entregado ✓',
+ cook_this:'Yo cocinaré esto →',open_recipe:'Ver receta y estado →',
+ ask_name:'Tu nombre, para que la familia sepa quién cocina:',
+ ask_email:'Tu correo (opcional) — para actualizar esta comida desde otro teléfono:',
+ ask_email_update:'Escribe el correo que usaste al apartar esta comida:',
+ shield_ok:'🛡️ Segura',shield_warn:'⚠️ Revisar',
+ share_title:'Comparte tu Círculo de Cuidado',share_sub:'Envía este enlace por WhatsApp, mensaje o correo — o comparte el código QR.',
+ share_msg:'Me agregaron al Círculo de Cuidado de MealKind de {n}. Toca para ver qué comidas se necesitan y apartar una para cocinar: {l}',
+ share_copy:'Copiar enlace',share_copied:'¡Copiado!',share_wa:'WhatsApp',share_sms:'Mensaje de texto',share_more:'Compartir…',
+ cal_range:'Semana del {r}',cal_summary:'{p} comidas planeadas · {c} apartadas · {d} entregadas',
+ cal_cover:'{n} de 7 días cubiertos',cal_treat:'💉 Día de tratamiento',cal_treat_note:'Planea comidas frías y suaves en los días de tratamiento.',
+ cal_done:'Listo',unclaimed:'sin apartar',
+ books_amazon:'Comprar en Amazon',books_author_btn:'Comprar al autor',books_none:'Aún no hay libros recomendados para esta condición.',
+ hidden_n:'🛡️ {n} receta(s) ocultas por contener una alergia o restricción registrada. Marca “Mostrar también recetas fuera de mis restricciones” para verlas.',
+ universal:'Universal — segura para todas las condiciones',good_for:'Buena para:',not_checked:'⚠️ Aún no revisada por alergias',remove_mine:'Quitar de mi recetario',
+ safe_for:'Segura para:',order_ings:'Pedir ingredientes',
+ vet_ok:'✅ Segura para {n}',vet_warn:'⚠️ Revisa antes de cocinar — contiene {i}, que choca con las restricciones de {n}.',
+ abs_no:'⚠️ Absolutamente nada de {a} — revisa cada etiqueta.',texture_note:'🥄 Textura: {t} — según el equipo médico.',tx_soft_l:'solo suave y húmedo',tx_pureed_l:'en puré / picado',
+ pantry:'(básico de despensa — seguro ya lo tienes)',
+ fl_claimed:'✋ Apartado',fl_shopping:'🛒 Ingredientes pedidos',fl_cooking:'🍳 Cocinando',fl_done:'🚗 Entregado',
+ nx_shopping:'Marcar ingredientes pedidos',nx_cooking:'Empezar a cocinar',nx_done:'Marcar entregado 🎉',
+ delivered_thanks:'Entregado. La familia ya lo ve en el tablero — gracias. 💛',
+ check_title:'Revisión del menú',check_none:'Primero aprueba algunas comidas y luego revisa.',check_clear:'sin conflictos',check_contains:'contiene {i}',
+ check_ok_all:'Todas las comidas aprobadas respetan las alergias y restricciones de {n}.',check_bad:'{k} comida(s) necesitan revisión antes de enviarlas al Círculo de Cuidado.',
+ your_person:'tu ser querido',
+ st_heb:'Recoger y entrega',st_walmart:'Entrega',st_kroger:'Recoger y entrega',st_instacart:'1 hora · cualquier tienda',st_amazon:'Mismo día',st_wf:'Entrega Prime',
+ fam_invalid:'Este enlace del Círculo de Cuidado ya no es válido. Pide a la familia que lo envíe de nuevo.'
+}};
+const COND_ES={cancer:'Cáncer',dialysis:'Enfermedad renal / Diálisis',cardio:'Cardiovascular',stroke:'Recuperación de derrame cerebral',gi:'GI / Intestinal',ortho:'Recuperación ortopédica',parkinsons:'Párkinson',als:'ELA',tbi:'Lesión cerebral traumática',alzheimers:'Alzhéimer / Demencia',depression:'Depresión',postpartum:'Posparto'};
+const VETBY_ES={
+ cancer:'Marco de menú revisado por una dietista oncológica certificada (RD, CSO).',
+ dialysis:'Basado en las guías de la National Kidney Foundation y los NIH para la dieta renal: cuida potasio, fósforo, sodio y líquidos. Confirma las porciones con tu dietista renal.',
+ cardio:'Marco de menú revisado por una dietista cardíaca — bajo en sodio, grasas saludables.',
+ stroke:'Marco de menú revisado por una dietista de rehabilitación — texturas seguras, cuida la presión.',
+ gi:'Marco de menú revisado por una dietista gastrointestinal — cocina suave y con pocos detonantes.',
+ ortho:'Marco de menú revisado por una dietista de recuperación — proteína, calcio y vitamina D para sanar.',
+ parkinsons:'Marco de menú revisado por una dietista neurológica — cuida horarios de medicina y texturas.',
+ als:'Marco de menú revisado por una dietista neurológica y terapeuta del lenguaje — alto en calorías, seguro para tragar.',
+ tbi:'Marco de menú revisado por una dietista de recuperación neurológica — omega-3 y energía constante.',
+ alzheimers:'Marco de menú revisado por una dietista en demencia — estilo MIND, comida para comer con la mano.',
+ depression:'Marco de menú revisado por una dietista especializada en nutrición y salud mental.',
+ postpartum:'Marco de menú revisado por una dietista perinatal — recuperación, hierro y lactancia.'};
+const TIPS_ES={
+ cancer:['En días de infusión, lo frío es mejor que lo caliente — la comida fría huele menos, y el olor es el detonante #1 de náusea.','¿Sabor metálico? Usa cubiertos de bambú y agrega limón a los platillos salados.','Sirve platos pequeños — un plato pequeño se ve fácil de terminar.','Proteína primero en cada comida; reconstruye entre ciclos.'],
+ dialysis:['En diálisis se necesita más proteína: huevo, pollo, pescado y cerdo fresco en casi todas las comidas.','Evita los sustitutos de sal y la sal "lite"; muchos contienen potasio.','Revisa las etiquetas por ingredientes con "fos" (ácido fosfórico, fosfato de sodio) y elige carne fresca sin solución añadida.','Enjuaga las verduras y el atún enlatados; hierve dos veces las papas si las usas.','Sazona con hierbas, ajo y limón, nunca con el salero.','Límite de líquidos: sopas, hielo, gelatina y paletas cuentan como líquidos.'],
+ cardio:['Más aceite de oliva, menos mantequilla — las grasas importan tanto como la sal.','Pescado dos veces por semana es la cardiología más barata.','La avena y los frijoles bajan el colesterol cada vez que se sirven.','Lee etiquetas: casi todo el sodio se esconde en pan, salsas y carnes frías.'],
+ stroke:['Sigue exactamente la textura que indicó el terapeuta del lenguaje — es una orden de seguridad, no una preferencia.','Húmedo es mejor que seco: salsas y gravy hacen cada bocado más seguro.','Comida para comer con la mano y cubiertos de mango grueso devuelven independencia en la mesa.','Mantén bajo el sodio — la presión es el socio silencioso de la rehabilitación.'],
+ gi:['Usa aceite infusionado con ajo en lugar de ajo — el sabor sin el detonante.','Comidas pequeñas y frecuentes son mejores que tres grandes durante una crisis.','Pela frutas y verduras cuando el estómago está sensible.','Lleva una nota sencilla de comida + síntomas — los patrones aparecen rápido.'],
+ ortho:['Proteína en cada comida — el hueso y el músculo sanan con proteína.','Calcio más vitamina D, diario, hasta que te den de alta.','La vitamina C construye el colágeno con el que cuenta el cirujano.','Prepara estaciones para trabajar sentado — la cocina queda lejos con muletas.'],
+ parkinsons:['Si toma levodopa, separa la proteína de las dosis como indique el equipo médico.','Texturas suaves y húmedas en días de temblor; mejor tazones que platos.','Cubiertos de mango grueso y vasos con tapa mantienen la independencia.','Comidas más pequeñas y frecuentes ayudan cuando la medicina quita el apetito.'],
+ als:['Las calorías son la receta — refuerza todo con crema, mantequilla y cremas de nueces.','Sigue la indicación para tragar del terapeuta en cada textura.','Húmedo, suave y a temperatura ambiente suele ser lo más seguro.','Bajar de peso es el enemigo: pésalo cada semana, refuerza cada día.'],
+ tbi:['Los omega-3 (salmón, nueces, huevo) reconstruyen el cerebro.','Comidas constantes evitan bajones de azúcar que empeoran la niebla mental y el dolor de cabeza.','Primero hidratación cuando sube el dolor de cabeza.','Máximo 3 pasos por receta — la fatiga de decisiones es real después de una lesión cerebral.'],
+ alzheimers:['La comida para comer con la mano preserva la dignidad cuando los cubiertos se complican.','Un alimento a la vez en un plato de alto contraste ayuda a comer más.','Coman juntos — ver a alguien comer invita suavemente a comer.','Básicos estilo MIND: moras, verduras de hoja, pescado, aceite de oliva.'],
+ depression:['Baja la exigencia: comer es mejor que perfecto, siempre.','Los omega-3 y las comidas constantes sí apoyan el ánimo.','Cocina doble cuando haya energía — congela el triunfo de mañana.','Una comida acompañada vale doble. Entrégala y quédate un rato.'],
+ postpartum:['Solo comida para una mano — la otra carga al bebé.','El hierro se repone después del parto: res, lentejas, espinaca, con vitamina C al lado.','Agua en cada sesión de lactancia; una botella en cada cuarto.','Di que sí a cada comida ofrecida. Para eso es el Círculo de Cuidado.']};
+
+let LANG='en';
+try{LANG=localStorage.getItem('mk_lang')==='es'?'es':'en';}catch(e){}
+function tr(k,vars){
+  let s=(T[LANG]&&T[LANG][k]!=null)?T[LANG][k]:(T.en[k]!=null?T.en[k]:k);
+  if(vars)Object.keys(vars).forEach(v=>{s=s.split('{'+v+'}').join(vars[v]);});
+  return s;
+}
+function condLabel(k){return LANG==='es'?(COND_ES[k]||k):(COND_LABEL[k]||k);}
+function applyLang(lang){
+  LANG=lang==='es'?'es':'en';
+  try{localStorage.setItem('mk_lang',LANG);}catch(e){}
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.dataset.i18n;
+    if(T.en[k]==null)T.en[k]=el.innerHTML;          // English comes from the HTML
+    el.innerHTML=(LANG==='es'&&T.es[k]!=null)?T.es[k]:T.en[k];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const k=el.dataset.i18nPh;
+    if(T.en[k]==null)T.en[k]=el.getAttribute('placeholder')||'';
+    el.setAttribute('placeholder',(LANG==='es'&&T.es[k]!=null)?T.es[k]:T.en[k]);
+  });
+  document.documentElement.lang=LANG;
+  const en=document.getElementById('lang-en'),es=document.getElementById('lang-es');
+  if(en){en.classList.toggle('active',LANG==='en');es.classList.toggle('active',LANG==='es');}
+  rerenderActive();
+}
+
+/* ================= BACKEND (Supabase) =================
+   Care Circle data lives in Supabase and is reached ONLY through
+   secure functions (mk_*). The family's diagnosis (S.cond) is used
+   ONLY on this device to pick a menu — it is never sent anywhere.
+   Only first name, allergy/restriction flags and meal names travel.
+   - family_token (this device) lets the family add meals
+   - claim_token / email lets a volunteer update the meal they claimed */
+const SUPABASE_URL='https://cyxwfacrfrievhdgaoku.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5eHdmYWNyZnJpZXZoZGdhb2t1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5OTk5NDQsImV4cCI6MjEwNDU3NTk0NH0.mMhBjYDU5i_xnYCJZ2TzYd06bi9Wbyu_VCc0mIa5AM0';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+const ALLERGY_MAP={'Tree nuts':'tree_nut','Peanuts':'peanut','Dairy':'milk','Gluten':'wheat_gluten','Shellfish':'shellfish','Eggs':'egg','Fish':'fish','Sesame':'sesame'};
+let FAMILY=null;        // {id, slug, display_name, allergy_flags, dietary_flags}
+let CIRCLE_POLL=null;
+
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function familyToken(){return FAMILY?lsGet('mk_family_token_'+FAMILY.slug,null):null;}
+function claimTokens(){return lsGet('mk_claim_tokens',{});}
+
+async function createFamily(displayName,allergyFlags,dietaryFlags){
+  const {data,error}=await sb.rpc('mk_create_family',{p_name:displayName||null,p_allergy_flags:allergyFlags||[],p_dietary_flags:dietaryFlags||[]});
+  if(error||!data){flagErr('err1',tr('err_create'));return null;}
+  lsSet('mk_family_token_'+data.slug,data.family_token);
+  lsSet('mk_my_circle',data.slug);
+  FAMILY={id:data.id,slug:data.slug,display_name:data.display_name,allergy_flags:data.allergy_flags||[],dietary_flags:data.dietary_flags||[]};
+  const url=new URL(location.href);url.searchParams.set('circle',data.slug);
+  history.replaceState(null,'',url.toString());
+  return FAMILY;
+}
+
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function parseISO(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+
+async function pushClaimsToDB(items){
+  if(!FAMILY)return false;
+  // Spread approved meals over the next 7 days, starting tomorrow
+  const start=addDays(new Date(),1);
+  const rows=items.map((a,i)=>({title:a.item.n,description:a.item.why,time_window:a.slot,date_slot:isoDate(addDays(start,i%7))}));
+  const {error}=await sb.rpc('mk_add_items',{p_slug:FAMILY.slug,p_family_token:familyToken(),p_items:rows});
+  if(error){flagErr('err1',/not_family/.test(error.message)?tr('err_family_only'):tr('err_save'));return false;}
+  return true;
+}
+
+async function refreshClaimsFromDB(){
+  if(!FAMILY)return;
+  const {data,error}=await sb.rpc('mk_list_items',{p_slug:FAMILY.slug});
+  if(error||!data)return;
+  const week0=weekStart(new Date());
+  S.claims=data.map((row,i)=>{
+    // Older rows have no date — place them on this week by position, as before
+    const date=row.date_slot?parseISO(row.date_slot):addDays(week0,i%7);
+    return {id:row.id,slot:row.time_window,item:{n:row.title,why:row.description||''},
+      date:isoDate(date),day:DAYS[(date.getDay()+6)%7],vol:row.claimed_by_name,status:row.status==='in_progress'?'cooking':row.status};
+  });
+}
+
+async function claimItemInDB(id,volunteerName,email){
+  const {data,error}=await sb.rpc('mk_claim_item',{p_slug:FAMILY.slug,p_item:id,p_name:volunteerName,p_email:email||null});
+  if(error){flagErr('err1',tr('err_claimed'));}
+  else{const t=claimTokens();t[id]=data.claim_token;lsSet('mk_claim_tokens',t);}
+  await refreshClaimsFromDB();
+  return !error;
+}
+
+async function advanceStatusInDB(id,newStatus){
+  const args={p_slug:FAMILY.slug,p_item:id,p_status:newStatus,p_claim_token:claimTokens()[id]||null,p_email:null,p_family_token:familyToken()};
+  let {error}=await sb.rpc('mk_advance_item',args);
+  if(error&&/not_your_meal/.test(error.message)){
+    const email=(prompt(tr('ask_email_update'))||'').trim();
+    if(email){args.p_email=email;({error}=await sb.rpc('mk_advance_item',args));}
+  }
+  if(error){flagErr('err1',tr('err_status'));await refreshClaimsFromDB();return false;}
+  await refreshClaimsFromDB();
+  return true;
+}
+
+function startCirclePolling(){
+  if(CIRCLE_POLL)clearInterval(CIRCLE_POLL);
+  CIRCLE_POLL=setInterval(async()=>{
+    await refreshClaimsFromDB();
+    const a=document.querySelector('.screen.active');
+    if(a&&a.id==='circle')renderCircle();
+    if(a&&a.id==='calendar')renderCal();
+  },15000);
+}
+
+/* ================= STATE ================= */
+const S={cond:'cancer',chemo:'no',texture:'regular',role:'family',approved:[],claims:[],menu:null};
+/* Small flavoring/pantry staples — a volunteer almost certainly already owns these,
+   and searching for them by name (e.g. "vanilla") floods store search results with
+   irrelevant products. Shown in the recipe list, but excluded from the store search. */
+const PANTRY_STAPLES=new Set(['Cinnamon','Vanilla extract','Garlic powder','Black pepper','Dried oregano','Dried herb blend (no salt)','Dijon mustard']);
+const SLOTS=[['breakfast','Breakfast'],['lunch','Lunch'],['snack','Snacks'],['dinner','Dinner'],['dessert','Desserts']];
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const STORES=[
+ {n:'H-E-B',i:'🛒',t:'Curbside & delivery',u:'https://www.heb.com/search/?q='},
+ {n:'Walmart',i:'🏪',t:'Delivery',u:'https://www.walmart.com/search?q='},
+ {n:'Kroger',i:'🏬',t:'Pickup & delivery',u:'https://www.kroger.com/search?query='},
+ {n:'Instacart',i:'🥕',t:'1-hr · any local store',u:'https://www.instacart.com/store/search_v3/term?term='},
+ {n:'Amazon Fresh',i:'📦',t:'Same-day',u:'https://www.amazon.com/s?k='},
+ {n:'Whole Foods',i:'🍃',t:'Prime delivery',u:'https://www.wholefoodsmarket.com/search?text='}];
+const COND_LABEL={cancer:'Cancer',dialysis:'Kidney / Dialysis',cardio:'Cardiovascular',stroke:'Stroke recovery',gi:'GI / Intestinal',ortho:'Orthopedic recovery',parkinsons:"Parkinson's",als:'ALS',tbi:'TBI',alzheimers:"Alzheimer's / Dementia",depression:'Depression',postpartum:'Postpartum'};
+const VETBY={
+ cancer:'Menu framework reviewed by a board-certified oncology dietitian (RD, CSO).',
+ dialysis:'Built from National Kidney Foundation and NIH kidney-diet guidance: potassium, phosphorus, sodium & fluid aware. Confirm portions with your renal dietitian.',
+ cardio:'Menu framework reviewed by a cardiac dietitian — low sodium, heart-healthy fats.',
+ stroke:'Menu framework reviewed by a stroke-rehab dietitian — swallow-safe textures, blood-pressure aware.',
+ gi:'Menu framework reviewed by a GI-specialty dietitian — gentle, low-trigger cooking.',
+ ortho:'Menu framework reviewed by a recovery dietitian — protein, calcium & vitamin D for healing.',
+ parkinsons:"Menu framework reviewed by a neuro dietitian — medication-timing and texture aware.",
+ als:'Menu framework reviewed by a neuro dietitian & speech therapist — high-calorie, swallow-safe.',
+ tbi:'Menu framework reviewed by a neuro-recovery dietitian — omega-3s and steady fuel.',
+ alzheimers:'Menu framework reviewed by a dementia-care dietitian — MIND-diet aligned, finger-food friendly.',
+ depression:'Menu framework reviewed by a dietitian specializing in nutrition & mental health.',
+ postpartum:'Menu framework reviewed by a perinatal dietitian — recovery, iron & lactation aware.'};
+const TIPS={
+ cancer:['On infusion days, cold beats hot — cold food carries less smell, the #1 nausea trigger.','Metallic taste? Switch to bamboo utensils and add lemon to savory dishes.','Serve small plates — a small plate looks finishable.','Protein first at every meal; it rebuilds between cycles.'],
+ dialysis:['On dialysis, protein needs go up: eggs, chicken, fish and fresh pork at most meals.','Skip salt substitutes and "lite" salt; many are made with potassium.','Check labels for "phos" ingredients (phosphoric acid, sodium phosphate) and choose fresh meat with no added solution.','Rinse canned vegetables and tuna; double-boil potatoes if you use them.','Season with herbs, garlic and lemon, never the salt shaker.','Fluid limits: soups, ice, gelatin and ice pops count as fluids.'],
+ cardio:['Olive oil in, butter mostly out — fats matter as much as salt.','Fish twice a week is the cheapest cardiology there is.','Oats and beans quietly lower cholesterol every time they\u2019re served.','Read labels: most sodium hides in bread, sauces, and deli meat.'],
+ stroke:['Follow the speech therapist\u2019s texture guidance exactly — it\u2019s a safety order, not a preference.','Moist beats dry: sauces and gravies make every bite safer.','Finger foods and big-handle utensils restore independence at the table.','Keep sodium low — blood pressure is the rehab\u2019s silent partner.'],
+ gi:['Use garlic-infused oil instead of garlic — the flavor without the trigger.','Small, frequent meals beat three big ones during a flare.','Peel fruits and vegetables when things are sensitive.','Keep a simple food + symptom note — patterns show up fast.'],
+ ortho:['Protein at every meal — bone and muscle heal out of the protein budget.','Calcium plus vitamin D, daily, until cleared.','Vitamin C builds the collagen the surgeon is counting on.','Set up seated prep stations — counters are far away on crutches.'],
+ parkinsons:["If on levodopa, time protein away from medication doses as the care team advises.",'Soft, moist textures on tremor days; bowls beat plates.','Big-handled utensils and lidded cups keep mealtimes independent.','Smaller, more frequent meals fight medication-related appetite dips.'],
+ als:['Calories are the prescription — fortify everything with cream, butter, and nut butters.','Follow the speech therapist\u2019s swallow guidance on every texture.','Moist, soft, and room temperature is usually the safest combination.','Weight loss is the enemy: weigh weekly, fortify daily.'],
+ tbi:['Omega-3s (salmon, walnuts, eggs) are brain-rebuilding food.','Steady meals prevent the blood-sugar dips that worsen fog and headaches.','Hydration first when headaches spike.','Keep prep to 3 steps — decision fatigue is real after brain injury.'],
+ alzheimers:['Finger foods preserve dignity when utensils get hard.','One food at a time on a high-contrast plate increases intake.','Eat together — modeling the meal gently prompts the meal.','MIND-style staples: berries, leafy greens, fish, olive oil.'],
+ depression:['Lower the bar: fed beats perfect, every single time.','Omega-3s and steady meals genuinely support mood.','Cook double when energy shows up — freeze tomorrow\u2019s win.','A meal eaten with someone counts double. Deliver it and stay.'],
+ postpartum:['One-handed foods only — the other hand has a baby in it.','Iron rebuilds after birth: beef, lentils, spinach, vitamin C alongside.','Water every nursing session; a bottle in every room.','Say yes to every offered meal. That\u2019s what the Care Circle is for.']};
+
+/* ================= RECIPE POOL =================
+   tags: list of condition keys, or ['all'] for universally safe
+   (renal-safe, heart-safe, soft, gentle) staples            */
+function R(slot,tags,n,why,time,ings,steps){return{slot,tags,n,why,time,ings,steps};}
+const POOL=[
+/* ---- KIDNEY / DIALYSIS (renal) — lower potassium, phosphorus and sodium; protein-forward for dialysis.
+   Built from NKF / NIDDK guidance. Pending renal dietitian review. ---- */
+R('breakfast',['dialysis'],'Egg & Pepper Breakfast Tacos','Eggs for protein in soft flour tortillas, with peppers instead of salsa.','12 min',[['Eggs','1 dozen'],['Red bell peppers','2'],['Onion','1'],['Flour tortillas','1 pack'],['Fresh cilantro','1 bunch'],['Canola oil','1 bottle']],['Sauté diced pepper and onion in a little oil.','Scramble in eggs until fully set.','Fold into warm tortillas; cilantro on top, no salt.']),
+R('breakfast',['dialysis','cardio'],'Egg-White Scramble on White Toast','High-quality protein with very little phosphorus.','10 min',[['Eggs','1 dozen'],['Green onions','1 bunch'],['White bread','1 loaf'],['Unsalted butter','1 stick'],['Black pepper','1 jar']],['Whisk 3 egg whites to 1 whole egg.','Cook gently with sliced green onion.','Serve on lightly buttered white toast; pepper, no salt.']),
+R('breakfast',['dialysis'],'Cream of Rice with Blueberries','Warm, gentle and low in potassium and phosphorus.','8 min',[['Cream of rice cereal','1 box'],['Rice milk (unenriched)','1/2 gal'],['Blueberries','1 pint'],['Cinnamon','1 jar']],['Cook cereal with water or rice milk.','Top with blueberries and cinnamon.','Keep portions modest if on a fluid limit.']),
+R('breakfast',['dialysis'],'Cinnamon French Toast with Strawberries','Made with rice milk to keep phosphorus down.','15 min',[['Eggs','1 dozen'],['White bread','1 loaf'],['Rice milk (unenriched)','1/2 gal'],['Cinnamon','1 jar'],['Strawberries','1 pint']],['Whisk eggs, a splash of rice milk and cinnamon.','Dip bread; cook on a lightly oiled pan.','Top with sliced strawberries instead of syrup.']),
+R('lunch',['dialysis','cardio'],'Lemon-Herb Chicken Wraps','Fresh chicken, crisp cucumber and lettuce, no deli meat.','15 min',[['Chicken breast','2 lb'],['Flour tortillas','1 pack'],['Cucumbers','2'],['Romaine lettuce','1 head'],['Mayonnaise','1 jar'],['Lemon','2'],['Fresh dill','1 bunch']],['Cook and slice chicken with lemon and dill.','Spread a little mayo on tortillas; add lettuce and cucumber.','Roll tight; wrap in foil.']),
+R('lunch',['dialysis'],'Turkey & Cabbage Stir-Fry with White Rice','Cabbage is one of the best low-potassium vegetables.','20 min',[['Ground turkey (no added salt)','1.5 lb'],['Green cabbage','1 head'],['Carrots','2'],['Garlic','1 head'],['Fresh ginger','1 knob'],['Rice vinegar','1 bottle'],['White rice','2 lb']],['Brown turkey with garlic and ginger.','Add shredded cabbage and a little carrot; stir-fry until tender.','Splash of rice vinegar; serve over white rice.']),
+R('lunch',['dialysis'],'Lemon Tuna Pasta Salad','Rinsed canned tuna and white pasta: protein without the salt load.','15 min',[['Canned tuna (low sodium)','3 cans'],['Pasta','1 box'],['Cucumbers','2'],['Red onion','1'],['Mayonnaise','1 jar'],['Lemon','2']],['Cook pasta; cool.','Drain and rinse tuna.','Mix with diced cucumber, onion, mayo and lemon juice; chill.']),
+R('lunch',['dialysis'],'Pineapple Chicken Rice Bowl','Pineapple adds sweetness and is naturally lower in potassium.','25 min',[['Chicken breast','2 lb'],['Pineapple chunks in juice','2 cans'],['Red bell peppers','2'],['White rice','2 lb'],['Garlic','1 head']],['Cook rice.','Sauté chicken with garlic and peppers.','Add drained pineapple; warm through and serve over rice.']),
+R('dinner',['dialysis','cardio'],'Herb-Crusted Pork Loin, Green Beans & Rice','Lean fresh pork for protein; herbs instead of salt.','40 min',[['Pork loin (no added solution)','2 lb'],['Dried herb blend (no salt)','1 jar'],['Garlic','1 head'],['Green beans','1 lb'],['White rice','2 lb'],['Canola oil','1 bottle']],['Rub pork with oil, garlic and herbs; roast at 400°F about 25 min to 145°F.','Steam green beans; cook rice.','Rest pork 5 minutes, slice and plate.']),
+R('dinner',['dialysis','cardio'],'Lemon-Dill Baked Cod with Pasta & Green Beans','Mild white fish, white pasta and a low-potassium vegetable.','25 min',[['Cod fillets','4'],['Lemons','2'],['Fresh dill','1 bunch'],['Pasta','1 box'],['Green beans','1 lb'],['Olive oil','1 bottle']],['Bake cod with lemon, dill and a drizzle of oil, 12-15 min at 400°F.','Cook pasta; toss with a little olive oil.','Steam green beans and serve together.']),
+R('dinner',['dialysis'],'Chicken Fajitas with Peppers & Onions','Big flavor from lime and cumin, no packet seasoning.','25 min',[['Chicken breast','2 lb'],['Bell peppers','3'],['Onion','2'],['Flour tortillas','1 pack'],['Lime','2'],['Ground cumin','1 jar'],['Garlic powder','1 jar']],['Slice chicken; season with cumin, garlic powder and lime.','Sear chicken, then peppers and onions.','Serve in warm tortillas; skip cheese, salsa and sour cream.']),
+R('dinner',['dialysis'],'Garlic Turkey Meatballs with Buttered Pasta','No tomato sauce; garlic, herbs and a little butter instead.','35 min',[['Ground turkey (no added salt)','2 lb'],['Eggs','2'],['Plain breadcrumbs (no salt added)','1 cup'],['Garlic','1 head'],['Pasta','1 box'],['Unsalted butter','1 stick'],['Fresh parsley','1 bunch']],['Mix turkey, egg, breadcrumbs, garlic and parsley; roll meatballs.','Bake 20 min at 400°F.','Toss with pasta, melted butter and more parsley.']),
+R('dinner',['dialysis'],'Shrimp & Pepper Stir-Fry with White Rice','Quick protein with crisp, low-potassium vegetables.','20 min',[['Shrimp (no salt added, not brined)','1.5 lb'],['Bell peppers','3'],['Snow peas','1 bag'],['Garlic','1 head'],['Fresh ginger','1 knob'],['White rice','2 lb'],['Canola oil','1 bottle']],['Cook rice.','Stir-fry garlic and ginger, then peppers and snow peas.','Add shrimp until pink; no soy sauce, a squeeze of lime instead.']),
+R('snack',['dialysis'],'Pineapple & Grape Cups','Two of the lowest-potassium fruits, ready to grab.','5 min',[['Pineapple','1'],['Grapes','2 lb']],['Cut pineapple into chunks.','Mix with grapes in small cups.','Chill. Count as fluid if eaten frozen.']),
+R('snack',['dialysis'],'Herb Popcorn (unsalted)','Crunch without the salt of chips.','5 min',[['Popcorn kernels','1 jar'],['Canola oil','1 bottle'],['Dried herb blend (no salt)','1 jar'],['Garlic powder','1 jar']],['Pop kernels in a little oil.','Toss with herbs and garlic powder.','Portion into small bags.']),
+R('snack',['dialysis'],'Cucumber & Cream Cheese Tea Sandwiches','Soft, cool and low in potassium.','10 min',[['White bread','1 loaf'],['Cream cheese','8 oz'],['Cucumbers','2'],['Fresh dill','1 bunch']],['Spread thin cream cheese on bread.','Layer thin cucumber slices and dill.','Trim crusts; cut into quarters.']),
+R('dessert',['dialysis'],'Warm Apple Crumble','Apples are kidney-friendly; a simple flour topping, no oats or nuts.','40 min',[['Apples','6'],['Flour','2 lb'],['Brown sugar','1 bag'],['Unsalted butter','1 stick'],['Cinnamon','1 jar']],['Toss sliced apples with cinnamon and a little sugar.','Rub flour, sugar and butter into crumbs; scatter on top.','Bake 30 min at 375°F.']),
+R('dessert',['dialysis','cardio'],'Angel Food Cake with Fresh Berries','A classic renal-diet dessert: low in potassium and phosphorus.','10 min',[['Angel food cake','1'],['Strawberries','1 pint'],['Blueberries','1 pint']],['Slice the cake.','Top with fresh berries.','Skip the cream; berries are enough.']),
+R('dessert',['dialysis'],'Lemon Rice Pudding (made with rice milk)','Comforting and creamy without dairy milk.','35 min',[['White rice','1 lb'],['Rice milk (unenriched)','1/2 gal'],['Sugar','1 bag'],['Lemon','1'],['Vanilla extract','1 bottle']],['Simmer rice in rice milk 25-30 min, stirring.','Sweeten; add lemon zest and vanilla.','Serve small portions; it counts toward fluids.']),
+/* ---- BREAKFAST ---- */
+R('breakfast',['all'],'Apple-Cinnamon Cream of Wheat','Warm, gentle, kidney- and heart-safe start.','10 min',[['Cream of wheat','1 box'],['Apples','3'],['Cinnamon','1 jar'],['Sugar','small bag']],['Cook cereal with water per package.','Top with sautéed cinnamon apples.','Light sugar dusting.']),
+R('breakfast',['all'],'Grits with Soft Scrambled Egg','Soft, mild, easy to swallow.','12 min',[['Grits','1 bag'],['Eggs','1 dozen'],['Unsalted butter','1 stick']],['Cook grits soft and loose.','Soft-scramble eggs low and slow.','Serve together with unsalted butter.']),
+R('breakfast',['all'],'Homemade Berry Pancakes','No-salt batter, berry-sweet, freezer-friendly.','20 min',[['Flour','2 lb'],['Eggs','1 dozen'],['Milk','1 qt'],['Mixed berries','1 bag'],['Maple syrup','1 bottle']],['Mix a simple no-salt batter.','Griddle; top with warm berries.','Freeze extras between paper sheets.']),
+R('breakfast',['all'],'Warm Rice Cereal with Apples','The gentlest breakfast in the book.','10 min',[['Rice cereal','1 box'],['Apples','2'],['Cinnamon','1 jar'],['Honey','1 jar']],['Cook cereal thin or thick as needed.','Fold in soft cooked apples.','Honey to finish.']),
+R('breakfast',['all'],'Egg on White Toast','Simple protein, low sodium, no fuss.','8 min',[['Eggs','1 dozen'],['White bread','1 loaf'],['Unsalted butter','1 stick']],['Cook egg gently, scrambled or over-easy.','Toast bread light.','Stack; pepper only, no salt.']),
+R('breakfast',['all'],'Pepper & Egg-White Scramble','Protein up, phosphorus and sodium down.','10 min',[['Eggs','1 dozen'],['Red bell peppers','3'],['Olive oil','1 bottle']],['Scramble mostly whites with one yolk.','Fold in sautéed diced peppers.','White toast on the side.']),
+R('breakfast',['all'],'Berry Applesauce Parfait','Cool, soft, safe for nearly everyone.','5 min',[['Applesauce cups','6'],['Mixed berries','1 pint'],['Graham crackers','1 box']],['Layer applesauce and berries in cups.','Crumble graham cracker on top.','Chill and deliver.']),
+R('breakfast',['cancer','gi','depression','postpartum','cardio','ortho','tbi','parkinsons'],'Blueberry Oatmeal','Soluble fiber that soothes; berries that brighten.','10 min',[['Rolled oats','1 canister'],['Blueberries','1 pint'],['Maple syrup','1 bottle'],['Milk of choice','1/2 gal']],['Simmer oats 5-7 minutes.','Splash of milk to loosen.','Top with blueberries and maple.']),
+R('breakfast',['cancer','gi','depression','postpartum','ortho','tbi'],'Soft Scramble & Avocado Toast','Gentle protein and easy calories, all soft textures.','10 min',[['Eggs','1 dozen'],['Avocados','2'],['Soft sandwich bread','1 loaf'],['Butter','1 stick']],['Scramble eggs low and slow.','Toast light; mash avocado on top.','Eggs over avocado; pinch of salt.']),
+R('breakfast',['cancer','depression','cardio','ortho','tbi','postpartum'],'Tart Berry Overnight Oats','Bright berries cut through flat mornings — made the night before.','5 min + overnight',[['Rolled oats','1 canister'],['Milk','1/2 gal'],['Plain yogurt','16 oz'],['Frozen berries','1 bag'],['Honey','1 jar']],['Stir everything into jars.','Refrigerate overnight.','Lemon zest on top to serve.']),
+R('breakfast',['depression','tbi','cardio','postpartum','ortho'],'Walnut-Banana Overnight Oats','Walnut omega-3s for the brain; zero morning effort.','5 min + overnight',[['Rolled oats','1 canister'],['Milk','1/2 gal'],['Walnuts','1 bag'],['Bananas','4'],['Honey','1 jar']],['Stir oats, milk, honey into jars; chill overnight.','Top with walnuts and banana.','Make two jars at a time.']),
+R('breakfast',['cancer','depression','postpartum','ortho','tbi'],'Greek Yogurt Power Bowl','Twenty grams of protein, ninety seconds of effort.','2 min',[['Greek yogurt','32 oz'],['Granola','1 bag'],['Honey','1 jar'],['Bananas','4']],['Yogurt in bowl.','Granola, banana, honey on top.','Done.']),
+R('breakfast',['postpartum','ortho','alzheimers','tbi','cancer','depression'],'Spinach & Cheese Egg Cups','Protein in a one-handed, finger-food package.','30 min',[['Eggs','1 dozen'],['Baby spinach','1 bag'],['Shredded cheese','8 oz'],['Milk','1 qt']],['Whisk eggs and milk; stir in spinach and cheese.','Bake in muffin tin 20 min at 350°F.','Chill; they reheat in 30 seconds.']),
+R('breakfast',['postpartum'],'Lactation Oat Muffins','Oats, flax, brewer\u2019s yeast — one-handed supply support.','35 min',[['Rolled oats','1 canister'],['Flour','2 lb'],['Ground flaxseed','1 bag'],['Brewer\u2019s yeast','1 jar'],['Bananas','4'],['Eggs','1 dozen']],['Mix mashed banana, eggs, dry ingredients.','Bake in muffin tin 20 min at 375°F.','Deliver a dozen — they freeze beautifully.']),
+R('breakfast',['als','cancer'],'High-Calorie Fortified Oats','Every spoonful carries extra calories on purpose.','12 min',[['Rolled oats','1 canister'],['Whole milk','1/2 gal'],['Heavy cream','1 pint'],['Butter','1 stick'],['Peanut butter','1 jar']],['Cook oats in whole milk.','Stir in butter, cream, and peanut butter.','Honey on top — calories are the goal.']),
+R('breakfast',['depression','postpartum','ortho','tbi','als','cancer','parkinsons','stroke'],'Banana-Peanut Power Smoothie','Calories and protein that drink easy.','5 min',[['Bananas','6'],['Peanut butter','1 jar'],['Whole milk','1/2 gal'],['Honey','1 jar']],['Blend banana, 2 tbsp PB, milk, honey until silky.','Thin or thicken to the safe texture.','Serve cold with a straw.']),
+/* ---- LUNCH ---- */
+R('lunch',['all'],'Chicken, Green Bean & Rice Bowl','Clean protein, safe veg, gentle starch.','25 min',[['Chicken breast','2 lb'],['Fresh green beans','1 lb'],['White rice','2 lb'],['Olive oil','1 bottle'],['Lemon','2']],['Cook rice; sauté chicken in oil.','Steam green beans 5 minutes.','Bowl it; lemon over the top.']),
+R('lunch',['all'],'Low-Sodium Chicken Salad Sandwiches','Protein lunch with no hidden salt, soft white bread.','15 min',[['Cooked chicken breast','2 lb'],['Mayonnaise','1 jar'],['Celery','1 bunch'],['White bread','1 loaf'],['Lemon','1']],['Shred chicken; mix with mayo, fine-diced celery.','Lemon brightens instead of salt.','Build soft sandwiches; chill.']),
+R('lunch',['all'],'Carrot-Ginger Soup','Gentle comfort — garlic-infused oil, no triggers.','30 min',[['Carrots','2 lb'],['Garlic-infused olive oil','1 bottle'],['Low-sodium broth','1 qt'],['Fresh ginger','1 knob']],['Soften carrots in infused oil.','Add broth and ginger; simmer 20 min.','Blend silky; deliver in mugs.']),
+R('lunch',['all'],'Poached Chicken & White Rice','The gentlest protein-starch pair there is.','25 min',[['Chicken breast','2 lb'],['White rice','2 lb'],['Low-sodium broth','1 qt'],['Carrots','1 lb']],['Poach chicken gently 15-18 min.','Cook rice; simmer carrots soft.','Shred chicken over rice with broth spoonfuls.']),
+R('lunch',['all'],'Turkey & Rice Soup','Mild, soft, low sodium — a mug of calm.','35 min',[['Ground turkey','1.5 lb'],['White rice','1 lb'],['Low-sodium broth','2 qt'],['Carrots','1 lb'],['Celery','1 bunch']],['Brown turkey; add broth and diced veg.','Add rice; simmer 20 minutes.','Ladle into quart containers.']),
+R('lunch',['all'],'Egg Salad on Soft White Bread','Complete protein, soft as it gets.','12 min',[['Eggs','1 dozen'],['Mayonnaise','1 jar'],['Dijon mustard','1 jar'],['White bread','1 loaf']],['Hard-boil and chop 6 eggs.','Mix with mayo and a little Dijon.','Spread on soft bread; quarter into small squares.']),
+R('lunch',['all'],'Couscous Chicken Bowl','Light, quick, gentle on everything.','20 min',[['Couscous','1 box'],['Chicken breast','2 lb'],['Zucchini','3'],['Olive oil','1 bottle'],['Lemon','2']],['Steam couscous 5 minutes.','Sauté chicken and peeled zucchini coins.','Combine; olive oil and lemon to finish.']),
+R('lunch',['cancer','depression','ortho','als','tbi','alzheimers','parkinsons','stroke'],'Fortified Potato Soup','Powdered milk hides double protein in every spoonful.','30 min',[['Potatoes','3 lb'],['Whole milk','1/2 gal'],['Dry powdered milk','1 box'],['Butter','1 stick'],['Shredded cheese','8 oz']],['Boil cubed potatoes; drain most water.','Mash in pot; stir in milks and butter.','Melt in cheese; serve in mugs.']),
+R('lunch',['cancer','depression','ortho','tbi','cardio','postpartum'],'Lemon-Herb Chicken Rice Bowl','Tart marinade wakes up a tired palate.','25 min',[['Chicken breast','2 lb'],['Lemons','3'],['Olive oil','1 bottle'],['Dried oregano','1 jar'],['White rice','2 lb']],['Marinate cubed chicken in lemon, oil, oregano.','Pan-cook 8 min; cook rice.','Serve with extra lemon wedges.']),
+R('lunch',['depression','cardio','tbi','ortho','postpartum'],'Tuna Salad Pitas','Omega-3 lunch assembled in five minutes.','5 min',[['Canned tuna','4 cans'],['Mayonnaise','1 jar'],['Celery','1 bunch'],['Pita bread','1 pack'],['Lemon','1']],['Mix tuna, mayo, diced celery, lemon.','Stuff pita halves.','Wrap individually, grab-and-go.']),
+R('lunch',['depression','tbi','postpartum','ortho'],'Microwave Burrito Bowls','Beans, rice, cheese — no stove required.','8 min',[['Microwave rice pouches','4'],['Canned black beans','3 cans'],['Salsa','1 jar'],['Shredded cheese','8 oz'],['Avocados','2']],['Heat rice; warm rinsed beans.','Layer rice, beans, salsa, cheese.','Avocado on top; lidded bowls.']),
+R('lunch',['postpartum','ortho','tbi'],'Iron-Rich Beef & Veggie Soup','Rebuilds what surgery and birth take.','45 min',[['Stew beef','2 lb'],['Carrots','1 lb'],['Potatoes','2 lb'],['Beef broth','2 qt'],['Tomato paste','1 can']],['Brown beef; add broth, paste, veg.','Simmer 35 minutes until tender.','Quart containers; note: freeze half.']),
+R('lunch',['postpartum','depression','ortho','tbi','cardio'],'Chicken-Avocado Wraps','A complete lunch that works one-handed.','10 min',[['Rotisserie chicken','1'],['Avocados','3'],['Tortillas','1 pack'],['Baby spinach','1 bag']],['Shred chicken; mash avocado.','Layer in tortillas with spinach.','Wrap tight in foil.']),
+R('lunch',['cardio','depression','tbi','ortho'],'Salmon Salad Lettuce Cups','Heart-first lunch: omega-3s, no bread needed.','10 min',[['Canned salmon','3 cans'],['Greek yogurt','16 oz'],['Lemon','2'],['Butter lettuce','2 heads'],['Dill','1 bunch']],['Mix salmon with yogurt, lemon, dill.','Spoon into lettuce cups.','Chill; pack with extra lemon.']),
+R('lunch',['als','stroke','parkinsons','alzheimers','cancer'],'Creamy Blended Veggie Soup','Swallow-safe and quietly fortified with cream.','30 min',[['Carrots','1 lb'],['Zucchini','3'],['Potatoes','2 lb'],['Heavy cream','1 pint'],['Low-sodium broth','1 qt']],['Simmer peeled veg in broth until very soft.','Blend completely smooth.','Stir in cream; serve warm, not hot.']),
+R('lunch',['depression','postpartum','ortho','tbi'],'Hidden-Veg Tomato Soup & Cornbread','Roasted tomatoes and carrot, blended invisible.','35 min',[['Roma tomatoes','8'],['Carrots','1 lb'],['Low-sodium broth','1 qt'],['Olive oil','1 bottle'],['Cornbread mix','1 box']],['Roast tomatoes and carrot 20 min.','Blend with broth until smooth.','Bake cornbread; deliver together.']),
+/* ---- SNACK ---- */
+R('snack',['all'],'Applesauce Cinnamon Cups','Soft, cool, universally gentle.','3 min',[['Applesauce cups','12'],['Cinnamon','1 jar'],['Graham crackers','1 box']],['Dust applesauce cups with cinnamon.','Pack a graham cracker with each.','Stack in the fridge door.']),
+R('snack',['all'],'Apple Slices & Honey Dip','Crisp-or-soft fruit with a treat dip.','5 min',[['Apples','6'],['Honey','1 jar'],['Lemon','1'],['Cinnamon','1 jar']],['Slice apples; toss with lemon.','Mix honey with a pinch of cinnamon.','Pack slices + dip cups. Cook apples soft if needed.']),
+R('snack',['all'],'Unsalted Pretzels & Whipped Cream Cheese','Crunch without the sodium hit.','3 min',[['Unsalted pretzels','1 bag'],['Cream cheese','8 oz']],['Whip cream cheese until spreadable.','Portion into small cups.','Pack as grab-and-go pairs.']),
+R('snack',['all'],'Graham Crackers & Whipped Topping','A soft little treat that behaves.','3 min',[['Graham crackers','1 box'],['Whipped topping','1 tub'],['Strawberries','1 pint']],['Dollop topping on crackers.','Top with a soft berry slice.','Make little sandwich stacks.']),
+R('snack',['all'],'Rice Cakes, Cream Cheese & Berries','Light, predictable, gently sweet.','3 min',[['Rice cakes','1 bag'],['Cream cheese','8 oz'],['Mixed berries','1 pint']],['Spread thin cream cheese on cakes.','Top with berries.','Pack in pairs.']),
+R('snack',['all'],'Cucumber & Soft Pita Bites','Cool, hydrating, olive-oil light.','5 min',[['Cucumbers','3'],['Soft pita','1 pack'],['Olive oil','1 bottle'],['Lemon','1']],['Cut pita into soft triangles.','Top with peeled cucumber rounds.','Olive oil drizzle and lemon.']),
+R('snack',['all'],'Frozen Grape & Berry Cups','Cold little bursts — food and fluid at once.','5 min + freeze',[['Grapes','2 lb'],['Mixed berries','1 pint']],['Wash and dry fruit.','Freeze in single layers.','Portion into cups; keep frozen.']),
+R('snack',['cancer','depression','postpartum','ortho','tbi'],'Peanut Butter Power Bites','~90 calories a bite — three bites is a small meal.','10 min',[['Rolled oats','1 canister'],['Peanut butter','1 jar'],['Honey','1 jar'],['Ground flaxseed','1 bag']],['Mix into a dough.','Roll into balls; chill 30 min.','Container on the counter.']),
+R('snack',['cancer','gi','postpartum','alzheimers','stroke','parkinsons'],'Yogurt & Soft Peach Cups','Cold, soft, low-acid — kind to sore mouths.','5 min',[['Whole-milk yogurt','32 oz'],['Canned peaches in juice','2 cans'],['Honey','1 jar']],['Spoon yogurt into cups.','Fold in drained soft peaches.','Honey drizzle; keep chilled.']),
+R('snack',['depression','tbi','cardio','ortho'],'Dark Chocolate Trail Mix','Nuts and real chocolate — a handful of better.','5 min',[['Almonds','1 bag'],['Walnuts','1 bag'],['Dried cranberries','1 bag'],['Dark chocolate chips','1 bag']],['Mix everything in a bowl.','Portion into snack bags.','Leave one wherever they sit most.']),
+R('snack',['postpartum','alzheimers','ortho','depression'],'Cheese, Crackers & Grapes Boxes','Finger-food fuel, zero assembly at snack time.','5 min',[['Cheese cubes','1 lb'],['Whole-grain crackers','1 box'],['Grapes','2 lb']],['Portion into grab-boxes.','One per fridge shelf row.','Restock when you visit.']),
+R('snack',['postpartum','depression','ortho','tbi','cardio'],'Flax & Oat Energy Bites','Snackable energy with omega-3 flax.','10 min',[['Rolled oats','1 canister'],['Peanut butter','1 jar'],['Honey','1 jar'],['Ground flaxseed','1 bag'],['Chocolate chips','1 bag']],['Mix into a dough.','Roll; chill 30 minutes.','Container by the favorite chair.']),
+R('snack',['gi','cancer'],'Lactose-Free Yogurt Parfaits','Gut-friendly cultures without the lactose.','5 min',[['Lactose-free yogurt','32 oz'],['Blueberries','1 pint'],['Gentle granola','1 bag']],['Layer yogurt and berries in cups.','Granola on top so it stays crisp.','Deliver chilled.']),
+R('snack',['als','cancer'],'High-Calorie Milkshake','A milkshake doing clinical work.','5 min',[['Vanilla ice cream','1 carton'],['Whole milk','1 qt'],['Peanut butter','1 jar'],['Bananas','3']],['Blend ice cream, milk, 2 tbsp PB, banana.','Keep it thick but sippable — adjust to the safe texture.','Serve cold; small glass, refill often.']),
+R('snack',['cardio','depression','ortho','tbi','parkinsons'],'Hummus & Soft Veggie Plate','Plant protein and olive oil, heart-approved.','5 min',[['Hummus','2 tubs'],['Cucumbers','2'],['Soft pita','1 pack'],['Cherry tomatoes','1 pint']],['Plate hummus with pita triangles.','Add peeled cucumber and halved tomatoes.','Olive oil drizzle over the hummus.']),
+/* ---- DINNER ---- */
+R('dinner',['all'],'Lemon-Pepper Baked Fish, Rice & Carrots','Classic safe plate: lean protein, gentle sides, no salt needed.','30 min',[['White fish fillets','4'],['Lemons','3'],['Black pepper','1 jar'],['White rice','2 lb'],['Carrots','1 lb']],['Bake fish with lemon and pepper 15 min at 400°F.','Cook rice; simmer carrot coins tender.','Plate with extra lemon wedges.']),
+R('dinner',['all'],'Herb-Roast Chicken, Rice & Green Beans','Sunday-dinner comfort, seasoned with herbs not salt.','45 min',[['Chicken thighs','3 lb'],['Dried herb blend (no salt)','1 jar'],['White rice','2 lb'],['Green beans','1 lb'],['Olive oil','1 bottle']],['Rub chicken with oil and herbs; roast 35 min at 400°F.','Cook rice; steam green beans.','Rest chicken 5 minutes; carve and plate.']),
+R('dinner',['all'],'Lean Beef & Bell Pepper Skillet','Iron and protein with low-sodium seasoning.','25 min',[['Lean ground beef','1.5 lb'],['Bell peppers','4'],['Onion','1'],['Garlic powder','1 jar'],['White rice','2 lb']],['Brown beef; drain well.','Sauté peppers and onion; season with garlic powder and pepper.','Serve over rice.']),
+R('dinner',['all'],'Turkey & Rice Meatballs with Soft Carrots','Lean, soft, gently seasoned.','35 min',[['Ground turkey','2 lb'],['Cooked white rice','2 cups'],['Eggs','2'],['Carrots','1 lb'],['Garlic-infused oil','1 bottle']],['Mix turkey, rice, egg; roll meatballs.','Bake 20 min at 400°F.','Serve with soft carrot coins and a drizzle of infused oil.']),
+R('dinner',['all'],'Baked White Fish, Couscous & Zucchini','Light, quick, and easy on every system.','25 min',[['White fish fillets','4'],['Couscous','1 box'],['Zucchini','3'],['Olive oil','1 bottle'],['Lemon','2']],['Bake fish 12-15 min at 400°F.','Steam couscous; sauté peeled zucchini.','Lemon and oil over everything.']),
+R('dinner',['all'],'Low-Sodium Chicken & Dumplings','Soft, warm, deeply comforting — salt-free stock.','50 min',[['Chicken thighs','2 lb'],['Low-sodium broth','2 qt'],['Flour','2 lb'],['Carrots','1 lb'],['Celery','1 bunch']],['Simmer chicken and veg in broth 25 min; shred chicken.','Drop simple flour dumplings into the simmer.','Cook 12 min covered; ladle gently.']),
+R('dinner',['all'],'Turkey Shepherd\u2019s Pie, Double-Boiled Mash','The renal potato trick built right into dinner.','55 min',[['Ground turkey','2 lb'],['Potatoes','3 lb'],['Carrots','1 lb'],['Frozen peas','1 bag'],['Unsalted butter','1 stick']],['Double-boil potatoes (boil, drain, fresh water, boil); mash with butter.','Brown turkey with carrots and peas.','Layer in a dish; bake 20 min at 375°F.']),
+R('dinner',['cancer','depression','postpartum','ortho','tbi','alzheimers','parkinsons','stroke'],'Slow Cooker Chicken & Rice','Comfort, protein, and three meals of leftovers.','5 min + 6 hr',[['Chicken thighs','2 lb'],['White rice','2 lb'],['Chicken broth','2 qt'],['Carrots','1 lb'],['Celery','1 bunch']],['Everything in the slow cooker; stir once.','LOW 6 hours.','Shred chicken in the pot; deliver warm.']),
+R('dinner',['cancer','gi','ortho','tbi','parkinsons','stroke'],'Gentle Ginger-Glazed Salmon & Mash','Omega-3s and soft textures with a mild honey-ginger glaze.','35 min',[['Salmon fillets','4'],['Potatoes','3 lb'],['Fresh ginger','1 knob'],['Honey','1 jar'],['Butter','1 stick']],['Boil and mash potatoes with butter.','Bake salmon 12 min at 400°F with honey-ginger glaze.','Salmon over mash; glaze spooned over.']),
+R('dinner',['depression','cardio','tbi','ortho','postpartum'],'Sheet-Pan Salmon & Broccoli','One pan, omega-3s, almost no dishes.','25 min',[['Salmon fillets','4'],['Broccoli','2 heads'],['Olive oil','1 bottle'],['Lemons','2'],['Garlic','1 head']],['Everything on one oiled sheet pan.','Roast 15 min at 425°F.','Lemon over all; foil-tray delivery.']),
+R('dinner',['depression','cardio','ortho','postpartum','tbi'],'One-Pot Lentil Pasta','Fiber, folate, protein — heart and mood food in one pot.','30 min',[['Pasta','2 boxes'],['Red lentils','1 lb'],['Crushed tomatoes','2 cans'],['Onion','1'],['Parmesan','1 wedge']],['Soften onion; add lentils, tomatoes, water; simmer 15 min.','Cook pasta in the same pot.','Light parmesan over the top.']),
+R('dinner',['postpartum','ortho','tbi','depression'],'Slow Cooker Beef Stew','Iron-rich dinner that cooks itself.','15 min + 7 hr',[['Stew beef','2.5 lb'],['Potatoes','3 lb'],['Carrots','1 lb'],['Beef broth','2 qt'],['Tomato paste','1 can']],['Everything in the slow cooker.','LOW 7 hours.','Deliver warm with bread; leftovers freeze.']),
+R('dinner',['gi','cancer','stroke','parkinsons'],'Baked Salmon, Mash & Soft Zucchini','Low-trigger comfort with peeled, gentle sides.','35 min',[['Salmon fillets','4'],['Potatoes','3 lb'],['Zucchini','3'],['Garlic-infused oil','1 bottle'],['Lemons','2']],['Bake salmon with lemon 12 min at 400°F.','Boil, peel, mash potatoes.','Sauté peeled zucchini soft in infused oil.']),
+R('dinner',['cardio','depression','ortho','tbi','alzheimers'],'Mediterranean Chicken & Orzo','Olive oil, tomatoes, herbs — the heart-and-brain pattern on a plate.','35 min',[['Chicken thighs','2 lb'],['Orzo','1 box'],['Cherry tomatoes','2 pints'],['Olive oil','1 bottle'],['Olives','1 jar'],['Lemon','2']],['Sear chicken in olive oil; add tomatoes and a splash of water.','Simmer 15 min; cook orzo separately.','Combine with olives and lemon.']),
+R('dinner',['cancer','alzheimers','stroke','parkinsons','depression','ortho'],'Soft Baked Ziti','Mild, soft, ricotta-rich — comfort that swallows easy.','45 min',[['Ziti pasta','2 boxes'],['Ricotta','32 oz'],['Marinara (low sodium)','2 jars'],['Mozzarella','16 oz']],['Boil ziti 2 minutes past package time.','Fold with ricotta and marinara; top with mozzarella.','Bake 20 min at 375°F until bubbling.']),
+R('dinner',['als','cancer'],'High-Calorie Creamy Chicken & Mash','Fortified with butter and cream on purpose — calories are the prescription.','40 min',[['Chicken thighs','2 lb'],['Potatoes','3 lb'],['Heavy cream','1 pint'],['Butter','2 sticks'],['Chicken gravy','2 jars']],['Roast chicken until tender; shred.','Mash potatoes with cream and a full stick of butter.','Generous gravy over everything — more than feels right.']),
+/* ---- DESSERT ---- */
+R('dessert',['all'],'Mixed Berry Sorbet Cups','Bright, cold, dairy-free.','5 min + freeze',[['Frozen mixed berries','2 bags'],['Sugar','small bag'],['Lemon','1']],['Blend berries, a little sugar, lemon juice.','Freeze in cups 1 hour.','Deliver in a cooler bag.']),
+R('dessert',['all'],'Lemon Icebox Cups','Cold, bright, gently sweet.','15 min + chill',[['Vanilla wafers','1 box'],['Lemons','3'],['Whipped topping','1 tub'],['Cream cheese','8 oz']],['Beat cream cheese with lemon juice and zest; fold in topping.','Layer with wafers in cups.','Chill 2 hours.']),
+R('dessert',['all'],'Baked Cinnamon Pears','Peeled, baked fruit — dessert that behaves.','30 min',[['Pears','6'],['Cinnamon','1 jar'],['Maple syrup','1 bottle'],['Unsalted butter','1 stick']],['Halve and peel pears; dot with butter.','Bake 25 min at 375°F.','Maple and cinnamon to finish.']),
+R('dessert',['all'],'Angel Food Cake with Berries','The classic light dessert — soft, low-fat, kidney-kind.','10 min',[['Angel food cake','1'],['Strawberries','2 pints'],['Whipped topping','1 tub']],['Slice cake into clouds.','Top with macerated berries.','A small dollop of topping each.']),
+R('dessert',['all'],'Soft Apple Crisp','Warm spiced apples under a tender oat top — no salt added.','40 min',[['Apples','8'],['Rolled oats','1 canister'],['Flour','2 lb'],['Brown sugar','1 bag'],['Unsalted butter','2 sticks']],['Toss sliced peeled apples with sugar and cinnamon.','Crumble oats, flour, butter over the top.','Bake 30 min at 375°F until golden.']),
+R('dessert',['all'],'Rice Pudding','Soft, warm, mild — rice-milk option keeps it renal-kind.','40 min',[['White rice','1 lb'],['Milk or rice milk','1/2 gal'],['Sugar','1 bag'],['Cinnamon','1 jar'],['Vanilla extract','1 bottle']],['Simmer rice in milk 30 min, stirring.','Sweeten; add vanilla and cinnamon.','Serve warm or chilled.']),
+R('dessert',['all'],'Vanilla Wafer Berry Parfait','Soft layers, gentle sweetness, no oven.','10 min',[['Vanilla wafers','1 box'],['Mixed berries','2 pints'],['Whipped topping','1 tub']],['Layer wafers, berries, topping in cups.','Repeat twice.','Chill 1 hour so wafers soften.']),
+R('dessert',['cancer','gi','depression','postpartum','ortho','tbi','stroke','parkinsons','alzheimers','als'],'Banana "Nice Cream"','Frozen blended banana — cold dessert that\u2019s gentle on everything.','5 min',[['Bananas','6'],['Vanilla extract','1 bottle'],['Honey','1 jar']],['Freeze peeled banana chunks ahead.','Blend with vanilla and honey to soft-serve.','Freezer container delivery.']),
+R('dessert',['depression','cardio','tbi','ortho'],'Dark Chocolate Berry Bark','Antioxidants disguised as a treat.','10 min + chill',[['Dark chocolate chips','2 bags'],['Frozen raspberries','1 bag'],['Almonds','1 bag']],['Melt chocolate; spread on parchment.','Press in berries and almonds.','Chill 1 hour; break into shards.']),
+R('dessert',['depression','postpartum','ortho','tbi','alzheimers'],'Frozen Yogurt Bites','Sweet, cold, portioned little wins.','10 min + freeze',[['Greek yogurt','32 oz'],['Honey','1 jar'],['Mixed berries','1 bag']],['Mix yogurt and honey; spoon into mini-muffin tin.','Press a berry into each.','Freeze 2 hours; bag them.']),
+R('dessert',['postpartum','depression','cardio','ortho','tbi'],'Date & Oat Cookies','Naturally sweet, fiber-forward.','25 min',[['Dates','1 lb'],['Rolled oats','1 canister'],['Unsalted butter','1 stick'],['Eggs','1 dozen'],['Flour','2 lb']],['Blend dates to paste; mix with butter, egg, oats, flour.','Scoop and bake 12 min at 350°F.','Deliver in a tin.']),
+R('dessert',['gi','cancer'],'Maple Rice Pudding (lactose-free)','Soft, warm, flare-friendly sweet.','40 min',[['White rice','1 lb'],['Lactose-free milk','1/2 gal'],['Maple syrup','1 bottle'],['Cinnamon','1 jar']],['Simmer rice in lactose-free milk 30 min.','Sweeten with maple.','Cinnamon dust; warm or chilled.']),
+R('dessert',['als','cancer'],'High-Calorie Vanilla Custard','Eggs and cream doing quiet clinical work.','35 min + chill',[['Eggs','1 dozen'],['Heavy cream','1 pint'],['Whole milk','1 qt'],['Sugar','1 bag'],['Vanilla extract','1 bottle']],['Whisk eggs, sugar, cream, milk, vanilla.','Bake in cups in a water bath 30 min at 325°F.','Chill; serve cold with a soft spoon.']),
+R('dessert',['cancer','stroke','parkinsons','alzheimers'],'Soft Lemon Mousse','Bright enough to wake an appetite, soft enough for anyone.','15 min + chill',[['Lemons','4'],['Whipped topping','1 tub'],['Sweetened condensed milk','1 can']],['Whisk lemon juice and zest into condensed milk.','Fold in whipped topping.','Chill in cups 2 hours.'])
+];
+
+/* ================= SAFETY DATA =================
+   Real allergen + dietary-restriction data per recipe (mirrors the
+   Supabase recipes table). A recipe listed here as containing an
+   allergen or violating a restriction flag is EXCLUDED for a family
+   with that flag — not just warned about. */
+const RECIPE_SAFETY={
+  'Apple-Cinnamon Cream of Wheat': {allergens:["wheat_gluten"],condFlags:["high_sugar"]},
+  'Grits with Soft Scrambled Egg': {allergens:["egg", "milk"],condFlags:[]},
+  'Homemade Berry Pancakes': {allergens:["egg", "milk", "wheat_gluten"],condFlags:["high_sugar"]},
+  'Warm Rice Cereal with Apples': {allergens:[],condFlags:["high_sugar"]},
+  'Egg on White Toast': {allergens:["egg", "milk", "wheat_gluten"],condFlags:[]},
+  'Pepper & Egg-White Scramble': {allergens:["egg"],condFlags:[]},
+  'Berry Applesauce Parfait': {allergens:["wheat_gluten"],condFlags:[]},
+  'Blueberry Oatmeal': {allergens:["milk"],condFlags:["high_sugar"]},
+  'Soft Scramble & Avocado Toast': {allergens:["egg", "milk", "wheat_gluten"],condFlags:[]},
+  'Tart Berry Overnight Oats': {allergens:["milk"],condFlags:["high_sugar"]},
+  'Walnut-Banana Overnight Oats': {allergens:["milk", "tree_nut"],condFlags:["high_potassium", "high_sugar"]},
+  'Greek Yogurt Power Bowl': {allergens:["milk", "wheat_gluten"],condFlags:["high_potassium", "high_sugar"]},
+  'Spinach & Cheese Egg Cups': {allergens:["egg", "milk"],condFlags:["high_potassium", "high_sodium"]},
+  'Lactation Oat Muffins': {allergens:["egg", "wheat_gluten"],condFlags:["high_potassium"]},
+  'High-Calorie Fortified Oats': {allergens:["milk", "peanut"],condFlags:[]},
+  'Banana-Peanut Power Smoothie': {allergens:["milk", "peanut"],condFlags:["high_potassium", "high_sugar"]},
+  'Chicken, Green Bean & Rice Bowl': {allergens:[],condFlags:["acidic"]},
+  'Low-Sodium Chicken Salad Sandwiches': {allergens:["egg", "wheat_gluten"],condFlags:["acidic"]},
+  'Carrot-Ginger Soup': {allergens:[],condFlags:[]},
+  'Poached Chicken & White Rice': {allergens:[],condFlags:[]},
+  'Turkey & Rice Soup': {allergens:[],condFlags:[]},
+  'Egg Salad on Soft White Bread': {allergens:["egg", "wheat_gluten"],condFlags:[]},
+  'Couscous Chicken Bowl': {allergens:["wheat_gluten"],condFlags:["acidic"]},
+  'Fortified Potato Soup': {allergens:["milk"],condFlags:["high_phosphorus", "high_potassium", "high_sodium"]},
+  'Lemon-Herb Chicken Rice Bowl': {allergens:[],condFlags:["acidic"]},
+  'Tuna Salad Pitas': {allergens:["egg", "fish", "wheat_gluten"],condFlags:["acidic"]},
+  'Microwave Burrito Bowls': {allergens:["milk"],condFlags:["acidic", "high_phosphorus", "high_potassium", "high_sodium"]},
+  'Iron-Rich Beef & Veggie Soup': {allergens:[],condFlags:["acidic", "high_potassium", "high_sodium"]},
+  'Chicken-Avocado Wraps': {allergens:["wheat_gluten"],condFlags:["high_potassium", "high_sodium"]},
+  'Salmon Salad Lettuce Cups': {allergens:["fish", "milk"],condFlags:["acidic"]},
+  'Creamy Blended Veggie Soup': {allergens:["milk"],condFlags:["high_potassium"]},
+  'Hidden-Veg Tomato Soup & Cornbread': {allergens:["wheat_gluten"],condFlags:["acidic"]},
+  'Applesauce Cinnamon Cups': {allergens:["wheat_gluten"],condFlags:[]},
+  'Apple Slices & Honey Dip': {allergens:[],condFlags:["acidic", "high_sugar"]},
+  'Unsalted Pretzels & Whipped Cream Cheese': {allergens:["milk", "wheat_gluten"],condFlags:[]},
+  'Graham Crackers & Whipped Topping': {allergens:["milk", "wheat_gluten"],condFlags:[]},
+  'Rice Cakes, Cream Cheese & Berries': {allergens:["milk"],condFlags:[]},
+  'Cucumber & Soft Pita Bites': {allergens:["wheat_gluten"],condFlags:["acidic"]},
+  'Frozen Grape & Berry Cups': {allergens:[],condFlags:[]},
+  'Peanut Butter Power Bites': {allergens:["peanut"],condFlags:["high_sugar"]},
+  'Yogurt & Soft Peach Cups': {allergens:["milk"],condFlags:["high_sugar"]},
+  'Dark Chocolate Trail Mix': {allergens:["tree_nut"],condFlags:["high_sugar"]},
+  'Cheese, Crackers & Grapes Boxes': {allergens:["milk", "wheat_gluten"],condFlags:["high_phosphorus", "high_sodium"]},
+  'Flax & Oat Energy Bites': {allergens:["milk", "peanut"],condFlags:["high_sugar"]},
+  'Lactose-Free Yogurt Parfaits': {allergens:["milk", "wheat_gluten"],condFlags:[]},
+  'High-Calorie Milkshake': {allergens:["milk", "peanut"],condFlags:["high_potassium", "high_sugar"]},
+  'Hummus & Soft Veggie Plate': {allergens:["sesame", "wheat_gluten"],condFlags:["acidic"]},
+  'Lemon-Pepper Baked Fish, Rice & Carrots': {allergens:["fish"],condFlags:["acidic"]},
+  'Herb-Roast Chicken, Rice & Green Beans': {allergens:[],condFlags:[]},
+  'Lean Beef & Bell Pepper Skillet': {allergens:[],condFlags:[]},
+  'Turkey & Rice Meatballs with Soft Carrots': {allergens:["egg"],condFlags:[]},
+  'Baked White Fish, Couscous & Zucchini': {allergens:["fish", "wheat_gluten"],condFlags:["acidic"]},
+  'Low-Sodium Chicken & Dumplings': {allergens:["wheat_gluten"],condFlags:[]},
+  'Turkey Shepherd’s Pie, Double-Boiled Mash': {allergens:["milk"],condFlags:["high_potassium"]},
+  'Slow Cooker Chicken & Rice': {allergens:[],condFlags:["high_sodium"]},
+  'Gentle Ginger-Glazed Salmon & Mash': {allergens:["fish", "milk"],condFlags:["high_potassium", "high_sugar"]},
+  'Sheet-Pan Salmon & Broccoli': {allergens:["fish"],condFlags:["acidic"]},
+  'One-Pot Lentil Pasta': {allergens:["milk", "wheat_gluten"],condFlags:["acidic", "high_phosphorus", "high_potassium", "high_sodium"]},
+  'Slow Cooker Beef Stew': {allergens:[],condFlags:["acidic", "high_potassium", "high_sodium"]},
+  'Baked Salmon, Mash & Soft Zucchini': {allergens:["fish"],condFlags:["acidic", "high_potassium"]},
+  'Mediterranean Chicken & Orzo': {allergens:["wheat_gluten"],condFlags:["acidic", "high_sodium"]},
+  'Soft Baked Ziti': {allergens:["milk", "wheat_gluten"],condFlags:["acidic"]},
+  'High-Calorie Creamy Chicken & Mash': {allergens:["milk"],condFlags:["high_potassium", "high_sodium"]},
+  'Mixed Berry Sorbet Cups': {allergens:[],condFlags:["acidic", "high_sugar"]},
+  'Lemon Icebox Cups': {allergens:["egg", "milk", "wheat_gluten"],condFlags:["acidic"]},
+  'Baked Cinnamon Pears': {allergens:["milk"],condFlags:["high_sugar"]},
+  'Angel Food Cake with Berries': {allergens:["egg", "milk", "wheat_gluten"],condFlags:[]},
+  'Soft Apple Crisp': {allergens:["milk", "wheat_gluten"],condFlags:["high_sugar"]},
+  'Rice Pudding': {allergens:["milk"],condFlags:["high_sugar"]},
+  'Vanilla Wafer Berry Parfait': {allergens:["egg", "milk", "wheat_gluten"],condFlags:[]},
+  'Banana "Nice Cream"': {allergens:[],condFlags:["high_potassium", "high_sugar"]},
+  'Dark Chocolate Berry Bark': {allergens:["tree_nut"],condFlags:["high_sugar"]},
+  'Frozen Yogurt Bites': {allergens:["milk"],condFlags:["high_sugar"]},
+  'Date & Oat Cookies': {allergens:["egg", "milk", "wheat_gluten"],condFlags:["high_potassium", "high_sugar"]},
+  'Maple Rice Pudding (lactose-free)': {allergens:["milk"],condFlags:["high_sugar"]},
+  'High-Calorie Vanilla Custard': {allergens:["egg", "milk"],condFlags:["high_sugar"]},
+  'Soft Lemon Mousse': {allergens:["milk"],condFlags:["acidic", "high_sugar"]}
+};
+Object.assign(RECIPE_SAFETY,{"Egg & Pepper Breakfast Tacos":{"allergens":["wheat_gluten","egg"],"condFlags":[]},"Egg-White Scramble on White Toast":{"allergens":["milk","wheat_gluten","egg"],"condFlags":[]},"Cream of Rice with Blueberries":{"allergens":[],"condFlags":[]},"Cinnamon French Toast with Strawberries":{"allergens":["wheat_gluten","egg"],"condFlags":[]},"Lemon-Herb Chicken Wraps":{"allergens":["wheat_gluten","egg"],"condFlags":["acidic"]},"Turkey & Cabbage Stir-Fry with White Rice":{"allergens":[],"condFlags":["acidic"]},"Lemon Tuna Pasta Salad":{"allergens":["wheat_gluten","egg","fish"],"condFlags":["acidic"]},"Pineapple Chicken Rice Bowl":{"allergens":[],"condFlags":["acidic"]},"Herb-Crusted Pork Loin, Green Beans & Rice":{"allergens":[],"condFlags":[]},"Lemon-Dill Baked Cod with Pasta & Green Beans":{"allergens":["wheat_gluten","fish"],"condFlags":["acidic"]},"Chicken Fajitas with Peppers & Onions":{"allergens":["wheat_gluten"],"condFlags":["acidic"]},"Garlic Turkey Meatballs with Buttered Pasta":{"allergens":["milk","wheat_gluten","egg"],"condFlags":[]},"Shrimp & Pepper Stir-Fry with White Rice":{"allergens":["shellfish"],"condFlags":[]},"Pineapple & Grape Cups":{"allergens":[],"condFlags":["acidic"]},"Herb Popcorn (unsalted)":{"allergens":[],"condFlags":[]},"Cucumber & Cream Cheese Tea Sandwiches":{"allergens":["milk","wheat_gluten"],"condFlags":[]},"Warm Apple Crumble":{"allergens":["milk","wheat_gluten"],"condFlags":["high_sugar"]},"Angel Food Cake with Fresh Berries":{"allergens":["wheat_gluten","egg"],"condFlags":["high_sugar"]},"Lemon Rice Pudding (made with rice milk)":{"allergens":[],"condFlags":["high_sugar","acidic"]}});
+POOL.forEach(r=>{const s=RECIPE_SAFETY[r.n]||{allergens:[],condFlags:[]};r.allergens=s.allergens;r.condFlags=s.condFlags;});
+
+function menuFor(cond){
+  const {allergyFlags,dietaryFlags}=profileFlags();
+  const slotsOut={};
+  SLOTS.forEach(([key])=>{
+    const tagged=POOL.filter(r=>r.slot===key&&r.tags.includes(cond)&&isSafeFor(r,allergyFlags,dietaryFlags));
+    const univ=POOL.filter(r=>r.slot===key&&r.tags.includes('all')&&isSafeFor(r,allergyFlags,dietaryFlags));
+    const mine=MY.filter(r=>r.slot===key&&(r.tags.includes('all')||r.tags.includes(cond))&&r.verified===true&&isSafeFor(r,allergyFlags,dietaryFlags));
+    let picks=[...mine,...tagged,...univ].slice(0,7);
+    let noSafeOptions=false;
+    if(!picks.length){
+      // Nothing safe was tagged for this condition — widen to ALL safe recipes in the
+      // library (any slot's universal set), still filtered for allergy/diet safety.
+      // Never fall back to an unfiltered pick; if truly nothing is safe, say so plainly.
+      const anySafeUniv=POOL.filter(r=>r.slot===key&&r.tags.includes('all')&&isSafeFor(r,allergyFlags,dietaryFlags));
+      if(anySafeUniv.length){picks=anySafeUniv.slice(0,3);}
+      else{noSafeOptions=true;}
+    }
+    slotsOut[key]=picks.map(r=>({n:r.n,why:r.why,time:r.time,ings:r.ings,steps:r.steps,mine:!!r.mine,allergens:r.allergens,condFlags:r.condFlags}));
+    slotsOut[key]._noSafeOptions=noSafeOptions;
+  });
+  return slotsOut;
+}
+
+const INFUSION={label:'Infusion-day plan',items:[
+ {n:'The Cold Plate',why:'Zero cooking, zero smell — crackers, cold turkey, cucumber.',time:'3 min',ings:[['Saltine crackers','1 sleeve'],['Sliced turkey','6 oz'],['Cucumber','1'],['Pretzels','1 bag']],steps:['Arrange small amounts, spaced out.','Start with one cracker; wait a minute.','Graze for an hour — no pressure to finish.']},
+ {n:'Ginger Rice Porridge',why:'Warm, bland, ginger-settled stomach food.',time:'25 min',ings:[['White rice','1/2 cup'],['Low-sodium broth','3 cups'],['Fresh ginger','1 inch'],['Eggs','2']],steps:['Simmer rice, broth, ginger 20 min until soupy.','Remove ginger; stir in beaten egg off heat.','Serve warm, not hot, in a small bowl.']},
+ {n:'Cold Lemon-Ginger Smoothie',why:'Cold, low-smell, stomach-calming.',time:'5 min',ings:[['Bananas','2, frozen'],['Greek yogurt','1 cup'],['Lemon','1'],['Fresh ginger','1 knob'],['Honey','1 jar']],steps:['Blend everything 45 seconds.','Pour over ice.','Deliver with a straw — it bypasses smell.']}]};
+
+/* ===== Safety data for the infusion-day plan (was missing) ===== */
+Object.assign(RECIPE_SAFETY,{
+  'The Cold Plate':{allergens:['wheat_gluten'],condFlags:['high_sodium']},
+  'Ginger Rice Porridge':{allergens:['egg'],condFlags:[]},
+  'Cold Lemon-Ginger Smoothie':{allergens:['milk'],condFlags:['high_potassium','high_sugar','acidic']}
+});
+INFUSION.items.forEach(r=>{const s=RECIPE_SAFETY[r.n];r.allergens=s.allergens;r.condFlags=s.condFlags;});
+
+/* ================= DIETARY VETTING (local, no external AI) =================
+   A recipe is SAFE only if:
+     1. none of its tagged allergens / restriction flags match the person, AND
+     2. no ingredient matches a trigger word for those flags (catches gaps
+        in the tags — e.g. oats and gluten, chocolate chips and dairy), AND
+     3. no ingredient matches a free-text "anything else" allergy.
+   Unsafe recipes are removed from menus and the library, not just flagged. */
+const TRIGGERS={
+  tree_nut:{w:['almond','walnut','pecan','cashew','pistachio','hazelnut','macadamia','pine nut','nut butter','trail mix','granola','praline','marzipan','nutella'],x:['nutmeg','peanut butter']},
+  peanut:{w:['peanut','groundnut']},
+  milk:{w:['milk','butter','cheese','yogurt','cream','ricotta','mozzarella','parmesan','whipped topping','ice cream','custard','whey','ghee','chocolate','gravy','cornbread mix'],
+        x:['cream of wheat','peanut butter','nut butter','coconut milk','almond milk','oat milk','soy milk','rice milk (unenriched)','cream of rice','dairy-free']},
+  wheat_gluten:{w:['flour','wheat','bread','toast','pita','tortilla','pasta','ziti','orzo','couscous','cracker','pretzel','graham','wafer','cake','granola','oat','dumpling','cornbread','muffin','gravy','soy sauce','barley','saltine'],
+        x:['certified gluten-free','rice cake','corn tortilla']},
+  egg:{w:['egg','mayonnaise','mayo','custard','meringue','angel food','vanilla wafer'],x:['eggplant','egg-free']},
+  shellfish:{w:['shrimp','prawn','crab','lobster','scallop','clam','mussel','oyster','crawfish']},
+  fish:{w:['fish','salmon','tuna','cod','tilapia','anchov','sardine','halibut','trout','worcestershire'],x:['shellfish']},
+  sesame:{w:['sesame','tahini','hummus','bagel']},
+  high_potassium:{w:['banana','potato','avocado','spinach','tomato','marinara','orange','black bean','kidney bean','lentil','date','dried cranberr','raisin','beef broth'],x:['green bean','sweet potato-free']},
+  high_sodium:{w:['soy sauce','bacon','ham','sausage','sliced turkey','deli','olive','pickle','bouillon','gravy','salsa','saltine','pretzel','chicken broth','beef broth','cheese cubes','shredded cheese','parmesan'],
+        x:['unsalted','low-sodium','low sodium','olive oil']},
+  high_sugar:{w:['sugar','honey','maple','syrup','ice cream','chocolate','condensed milk','whipped topping','date','dried cranberr','sorbet','wafer','angel food','jam'],x:['sugar-free','no sugar']},
+  acidic:{w:['lemon','lime','orange','grapefruit','tomato','marinara','salsa','vinegar','pineapple','cranberr']}
+};
+function trigHit(ings,rule,extraWords){
+  const words=(rule?rule.w:[]).concat(extraWords||[]);
+  for(const raw of ings){
+    let t=' '+String(raw).toLowerCase()+' ';
+    ((rule&&rule.x)||[]).forEach(x=>{t=t.split(x).join(' ');});
+    for(const w of words){
+      const esc=w.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      if(new RegExp('(^|[^a-z])'+esc).test(t))return raw;
+    }
+  }
+  return null;
+}
+/** vet(recipe, {allergy:[], diet:[], custom:[]}) → {safe, hits:[{flag, ing}]} */
+function vet(r,flags){
+  const ings=(r.ings||[]).map(i=>i[0]);
+  const hits=[];
+  (flags.allergy||[]).forEach(a=>{
+    const ing=trigHit(ings,TRIGGERS[a]);
+    if((r.allergens||[]).includes(a)||ing)hits.push({flag:a,ing});
+  });
+  (flags.diet||[]).forEach(d=>{
+    const ing=trigHit(ings,TRIGGERS[d]);
+    if((r.condFlags||[]).includes(d)||ing)hits.push({flag:d,ing});
+  });
+  (flags.custom||[]).forEach(term=>{
+    const ing=trigHit(ings.concat([r.n||'']),null,[term]);
+    if(ing)hits.push({flag:'other:'+term,ing});
+  });
+  return {safe:!hits.length,hits};
+}
+// Kept for the existing callers: uses the active person's free-text allergies too
+function isSafeFor(r,allergyFlags,dietaryFlags){
+  return vet(r,{allergy:allergyFlags,diet:dietaryFlags,custom:activeFlags().custom}).safe;
+}
+function flagLabel(f){
+  if(f.startsWith('other:'))return f.slice(6);
+  if(T.es['al_'+f]!=null)return tr('al_'+f).toLowerCase();
+  if(T.es['dr_'+f]!=null)return tr('dr_'+f).toLowerCase();
+  return f.replace(/_/g,' ');
+}
+function hitText(h){return h.ing?h.ing.toLowerCase():flagLabel(h.flag);}
+const SAFE_LABEL={tree_nut:['Nut-free','Sin nueces'],peanut:['Peanut-free','Sin cacahuate'],milk:['Dairy-free','Sin lácteos'],wheat_gluten:['Gluten-free','Sin gluten'],egg:['Egg-free','Sin huevo'],shellfish:['Shellfish-free','Sin mariscos'],fish:['Fish-free','Sin pescado'],sesame:['Sesame-free','Sin ajonjolí'],high_sodium:['Low sodium','Bajo en sodio'],high_potassium:['Low potassium','Bajo en potasio'],high_sugar:['Low sugar','Bajo en azúcar'],acidic:['Low acid','Bajo en ácido']};
+function safeForHTML(r){
+  const ok=Object.keys(SAFE_LABEL).filter(k=>{
+    const isAllergy=['tree_nut','peanut','milk','wheat_gluten','egg','shellfish','fish','sesame'].includes(k);
+    return vet(r,isAllergy?{allergy:[k]}:{diet:[k]}).safe;
+  });
+  if(!ok.length)return '';
+  return `<div class="safefor"><b>${tr('safe_for')}</b> ${ok.map(k=>'✓ '+SAFE_LABEL[k][LANG==='es'?1:0]).join('&nbsp; ')}</div>`;
+}
+function findRecipe(name){return MY.find(r=>r.n===name)||POOL.find(r=>r.n===name)||INFUSION.items.find(r=>r.n===name)||null;}
+
+/* ================= WHO ARE WE COOKING FOR ================= */
+function parseCustom(txt){
+  return String(txt||'').split(/[,;\/]|\band\b|\by\b/i).map(s=>s.trim().toLowerCase()).filter(s=>s.length>=3);
+}
+function profileTouched(){
+  return !!(document.getElementById('pname').value.trim()||document.getElementById('allergyother').value.trim()||
+    document.querySelector('#allergies .chip.sel, #dietres .chip.sel'));
+}
+function profileFlagsFull(){
+  const {allergyFlags,dietaryFlags}=profileFlags();
+  return {allergy:allergyFlags,diet:dietaryFlags,custom:parseCustom(document.getElementById('allergyother').value)};
+}
+function familyFlagsFull(){
+  const a=(FAMILY.allergy_flags||[]);
+  const d=FAMILY.dietary_flags||[];
+  return {allergy:a.filter(x=>!x.startsWith('other:')),diet:d.filter(x=>!x.startsWith('texture:')&&!x.startsWith('cond:')),custom:a.filter(x=>x.startsWith('other:')).map(x=>x.slice(6))};
+}
+// The Care Circle always uses what the family saved; menus/cookbook use the live profile
+function circleFlags(){return FAMILY?familyFlagsFull():profileFlagsFull();}
+function activeFlags(){return (FAMILY&&!profileTouched())?familyFlagsFull():profileFlagsFull();}
+function circleTexture(){
+  if(FAMILY){const t=(FAMILY.dietary_flags||[]).find(x=>x.startsWith('texture:'));return t?t.slice(8):'regular';}
+  return ['stroke','parkinsons','als','alzheimers'].includes(S.cond)?S.texture:'regular';
+}
+function textureNote(){const t=circleTexture();return t==='regular'?'':tr('texture_note',{t:t==='soft'?tr('tx_soft_l'):tr('tx_pureed_l')});}
+function circleName(){
+  if(FAMILY&&FAMILY.display_name)return FAMILY.display_name;
+  return document.getElementById('pname').value.trim()||tr('your_person');
+}
+function allergyWords(f){return f.allergy.map(flagLabel).concat(f.custom);}
+function dietWords(f){return f.diet.map(flagLabel);}
+
+/* ================= HELPERS ================= */
+function pick1(b){document.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x=>x.classList.remove('sel'));b.classList.add('sel');S[b.dataset.k]=b.dataset.v;if(b.dataset.k==='cond')S.condChosen=true;}
+function pickM(b){b.classList.toggle('sel');}
+function getM(id){return [...document.querySelectorAll('#'+id+' .chip.sel')].map(b=>b.dataset.v||b.textContent.trim());}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0});
+  document.getElementById('bnav').style.display=['menu','circle','calendar','shop','cookbook'].includes(id)?'flex':'none';
+  document.querySelectorAll('#bnav button').forEach(b=>b.classList.toggle('active',b.dataset.s===id||(id==='shop'&&b.dataset.s==='circle')));}
+function navTo(b){if(b.dataset.s==='circle')renderCircle();if(b.dataset.s==='calendar')renderCal();if(b.dataset.s==='cookbook')renderCookbook();show(b.dataset.s);}
+function flagErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',6500);}
+function condExtra(){}
+function ob2Title(){document.getElementById('ob2title').textContent=tr('ob2_title',{c:condLabel(S.cond).toLowerCase()});}
+const IMPLIED_DIET={dialysis:['High-potassium (bananas, potatoes)','High-sodium'],cardio:['High-sodium'],stroke:['High-sodium']};
+function applyImpliedDiet(){
+  if(S._impliedFor===S.cond)return;            // only when the condition changes; never overrides later unticks
+  S._impliedFor=S.cond;
+  const want=IMPLIED_DIET[S.cond]||[];
+  document.querySelectorAll('#dietres .chip').forEach(b=>{if(want.includes(b.dataset.v))b.classList.add('sel');});
+  const note=document.getElementById('impliedNote');
+  if(want.length){note.style.display='block';
+    note.textContent=LANG==='es'?`Marcamos lo que normalmente se limita en ${condLabel(S.cond).toLowerCase()}. Desmarca algo solo si su equipo médico lo permite.`
+      :`We've pre-selected what's usually limited for ${condLabel(S.cond).toLowerCase()}. Only untick something if their care team says it's fine.`;}
+  else note.style.display='none';
+}
+function ob2(){
+  applyImpliedDiet();
+  document.getElementById('cancerExtra').style.display=S.cond==='cancer'?'block':'none';
+  document.getElementById('swallowExtra').style.display=['stroke','parkinsons','als','alzheimers'].includes(S.cond)?'block':'none';
+  ob2Title();
+  show('ob2');
+}
+function profile(){
+  return {name:document.getElementById('pname').value.trim()||tr('your_person'),condition:S.cond,conditionLabel:COND_LABEL[S.cond],
+    cancerType:S.cond==='cancer'?(document.getElementById('ctype').value||'not specified'):null,
+    onChemo:S.cond==='cancer'&&S.chemo==='yes',texture:S.texture,
+    allergies:[...getM('allergies'),document.getElementById('allergyother').value.trim()].filter(Boolean),
+    dietRestrictions:getM('dietres'),
+    loves:document.getElementById('loves').value.trim(),dislikes:document.getElementById('hates').value.trim()};
+}
+const DIETRES_MAP={'High-potassium (bananas, potatoes)':'high_potassium','High-sodium':'high_sodium','High-sugar':'high_sugar','Acidic (citrus, tomato)':'acidic'};
+function profileFlags(){
+  const p=profile();
+  return {
+    allergyFlags:(p.allergies||[]).map(a=>ALLERGY_MAP[a]).filter(Boolean),
+    dietaryFlags:(p.dietRestrictions||[]).map(d=>DIETRES_MAP[d]).filter(Boolean).concat(S.cond==='dialysis'?['high_phosphorus']:[])
+  };
+}
+
+/* ================= MENU ================= */
+let lt;
+async function buildMenu(){
+  const LOAD=[tr('load1'),tr('load2'),tr('load3'),tr('load4')];
+  show('loading');let i=0;document.getElementById('loadmsg').textContent=LOAD[0];
+  lt=setInterval(()=>{i=(i+1)%LOAD.length;document.getElementById('loadmsg').textContent=LOAD[i];},450);
+  const p=profile();
+  await new Promise(res=>setTimeout(res,1400));
+  const m={slots:menuFor(S.cond),ai:false};
+  if(S.cond==='cancer'&&S.chemo==='yes'){
+    const f=profileFlagsFull();
+    const items=INFUSION.items.filter(r=>vet(r,f).safe);   // infusion ideas are screened too
+    m.infusion=items.length?{label:INFUSION.label,items}:null;
+  } else m.infusion=null;
+  clearInterval(lt);
+  S.menu=m;S.approved=[];S.claims=FAMILY&&familyToken()?S.claims:[];
+  document.getElementById('menucheck').style.display='none';
+  renderMenu(p);
+}
+function renderMenu(p){
+  p=p||profile();
+  document.getElementById('mname').textContent=tr('for_name',{n:p.name});
+  document.querySelector('#vetline span').textContent=LANG==='es'?VETBY_ES[S.cond]:VETBY[S.cond];
+  const al=document.getElementById('allergyline');
+  const aw=allergyWords(profileFlagsFull());
+  if(aw.length){al.style.display='block';al.innerHTML=tr('travels',{a:escHTML(aw.join(', '))});}else al.style.display='none';
+  const board=document.getElementById('menuboard');board.innerHTML='';
+  if(S.menu.infusion){
+    board.insertAdjacentHTML('beforeend',`<div class="slot-h">🧊 ${tr('infusion_label')}</div><p class="sub" style="margin-top:0">${tr('infusion_sub')}</p>`);
+    S.menu.infusion.items.forEach((it,i)=>board.appendChild(optEl(it,'infusion',i)));
+  }
+  SLOTS.forEach(([key])=>{
+    const items=S.menu.slots[key]||[];
+    board.insertAdjacentHTML('beforeend',`<div class="slot-h">${tr('sl_'+key)} <span class="tag green" style="vertical-align:middle;">${tr('choices',{n:items.length})}</span></div>`);
+    if(items._noSafeOptions){
+      board.insertAdjacentHTML('beforeend',`<div class="alert-allergy">${tr('no_safe_slot',{s:tr('sl_'+key).toLowerCase()})}</div>`);
+    }
+    items.forEach((it,i)=>board.appendChild(optEl(it,key,i)));
+  });
+  const tips=LANG==='es'?TIPS_ES[S.cond]:TIPS[S.cond];
+  document.getElementById('tips').innerHTML=`<b>${tr('tips_h',{c:condLabel(S.cond)})}</b><ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul>`;
+  show('menu');
+}
+function optEl(item,slot,idx){
+  const d=document.createElement('div');d.className='opt';
+  const k=slot+':'+idx;
+  if(S.approved.some(a=>a.k===k))d.classList.add('sel');
+  d.innerHTML=`<div>${item.mine?`<span class="tag mine">${tr('my_recipe')}</span>`:''}<b>${item.n}</b><small>${item.why}</small><small style="color:#8a5e12;margin-top:3px;">⏱ ${item.time||''}</small></div><div class="checkmark">✓</div>`;
+  d.onclick=()=>{d.classList.toggle('sel');
+    const at=S.approved.findIndex(a=>a.k===k);
+    if(at>=0)S.approved.splice(at,1);else S.approved.push({k,slot,item});};
+  return d;
+}
+/* Local menu check: scan every approved meal against the person's flags */
+function menuCheck(){
+  const box=document.getElementById('menucheck');box.style.display='block';
+  const f=profileFlagsFull(),name=profile().name;
+  if(!S.approved.length){box.innerHTML=`<b>${tr('check_title')}</b><p class="sub">${tr('check_none')}</p>`;return;}
+  let bad=0;
+  const lines=S.approved.map(a=>{
+    const r=findRecipe(a.item.n)||a.item;
+    const v=vet(r,f);
+    if(!v.safe)bad++;
+    return `<div class="checkline">${v.safe?'✅':'⚠️'} <b>${a.item.n}</b> — ${v.safe?tr('check_clear'):tr('check_contains',{i:[...new Set(v.hits.map(hitText))].join(', ')})}</div>`;
+  });
+  box.innerHTML=`<b style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--forest);">${tr('check_title')}</b>
+    <div class="vetbox ${bad?'warn':'ok'}">${bad?tr('check_bad',{k:bad}):tr('check_ok_all',{n:name})}</div>${lines.join('')}`;
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function sendToCircle(){
+  if(!S.approved.length){flagErr('err1',tr('err_approve'));return;}
+  const p=profile();
+  const f=profileFlagsFull();
+  // Reuse this device's own circle; otherwise start a new one
+  if(!FAMILY||!familyToken()){
+    FAMILY=null;S.claims=[];
+    const tex=['stroke','parkinsons','als','alzheimers'].includes(S.cond)&&S.texture!=='regular'?['texture:'+S.texture]:[];
+    await createFamily(p.name===tr('your_person')?'':p.name,f.allergy.concat(f.custom.map(c=>'other:'+c)),f.diet.concat(tex,S.cond?['cond:'+S.cond]:[]));
+    if(!FAMILY)return;
+  }
+  const ok=await pushClaimsToDB(S.approved);
+  if(!ok)return;
+  await refreshClaimsFromDB();
+  startCirclePolling();
+  setRole('volunteer');
+  showShareLink();
+}
+
+function circleLink(){const url=new URL(location.origin+'/');url.searchParams.set('circle',FAMILY.slug);return url.toString();}
+function showShareLink(){
+  if(!FAMILY)return;
+  const link=circleLink();
+  const msg=tr('share_msg',{n:circleName(),l:link});
+  const qrImg=`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}`;
+  const box=document.getElementById('shareBox');
+  if(!box)return;
+  box.innerHTML=`<div class="card"><b>${tr('share_title')}</b><p class="sub" style="margin:6px 0;">${tr('share_sub')}</p>
+    <input type="text" readonly value="${link}" style="width:100%;margin-bottom:8px;" onclick="this.select()">
+    <div class="sharebtns">
+      <a class="btn wa sm" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">🟢 ${tr('share_wa')}</a>
+      <a class="btn ghost sm" href="sms:?&body=${encodeURIComponent(msg)}">💬 ${tr('share_sms')}</a>
+      <button class="btn amber sm" id="copybtn" onclick="copyLink()">📋 ${tr('share_copy')}</button>
+      ${navigator.share?`<button class="btn ghost sm" onclick="navigator.share({title:'MealKind Care Circle',text:${JSON.stringify(msg).replace(/"/g,'&quot;')}}).catch(()=>{})">↗ ${tr('share_more')}</button>`:''}
+    </div>
+    <img src="${qrImg}" alt="QR code" style="display:block;margin-top:10px;border-radius:8px;">
+  </div>`;
+}
+function copyLink(){
+  const link=circleLink(),b=document.getElementById('copybtn');
+  const done=()=>{b.textContent='✓ '+tr('share_copied');setTimeout(()=>{b.textContent='📋 '+tr('share_copy');},2000);};
+  const legacy=()=>{ // older phones / non-secure contexts
+    const ta=document.createElement('textarea');ta.value=link;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();let okc=false;try{okc=document.execCommand('copy');}catch(e){}
+    ta.remove();if(okc)done();else prompt('',link);
+  };
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(link).then(done,legacy);
+  else legacy();
+}
+
+/* ================= CIRCLE / CLAIMS ================= */
+function setRole(r){
+  S.role=r;
+  document.getElementById('vt-f').classList.toggle('active',r==='family');
+  document.getElementById('vt-v').classList.toggle('active',r==='volunteer');
+  if(r==='volunteer'){renderCircle();show('circle');}
+  else{ if(S.menu){renderMenu();} else show('ob1'); }
+}
+function renderCcHub(){
+  const hub=document.getElementById('ccHub');if(!hub)return;
+  if(!FAMILY){hub.innerHTML='';return;}
+  const es=(typeof LANG!=='undefined'&&LANG==='es');
+  hub.innerHTML=`<a class="cc-hub" href="care-circle.html?circle=${encodeURIComponent(FAMILY.slug)}">
+    <span class="cc-ic">🤝</span>
+    <span><b>${es?'Abrir la página del Care Circle':'Open the Care Circle page'}</b>
+    <small>${es?'Calendario, quién hace qué, mensajes, ayuda extra y recordatorios':"Calendar, who's doing what, messages, extra help and reminders"}</small></span>
+    <span class="cc-go">→</span></a>`;
+}
+function renderCircle(){
+  renderCcHub();
+  const name=circleName(),f=circleFlags();
+  document.getElementById('circle-eyebrow').textContent=tr('circle_eyebrow',{n:name});
+  document.getElementById('circle-sub').textContent=tr('circle_sub',{n:name});
+  const al=document.getElementById('allergyline2');
+  const aw=allergyWords(f),dw=dietWords(f);
+  const tn=textureNote();
+  al.innerHTML=(aw.length?tr('before_cook',{a:escHTML(aw.join(', '))}):tr('no_allergies'))+(dw.length?'<br>'+tr('also_avoid',{d:dw.join(', ')}):'')+(tn?'<br>'+tn:'');
+  if(FAMILY&&familyToken())showShareLink();
+  const list=document.getElementById('claimlist');list.innerHTML='';
+  if(!S.claims.length){list.innerHTML=`<div class="card">${tr('no_menu_yet')}</div>`;return;}
+  const stMap={open:['st-open','st_open'],claimed:['st-claimed','st_claimed'],shopping:['st-shopping','st_shopping'],cooking:['st-cooking','st_cooking'],done:['st-done','st_done']};
+  S.claims.forEach(c=>{
+    const d=document.createElement('div');d.className='claim';
+    const [cls,key]=stMap[c.status]||stMap.claimed;
+    let shield='';
+    if(c.status!=='open'){
+      const r=findRecipe(c.item.n);
+      const ok=r&&vet(r,f).safe;
+      shield=`<span title="${ok?tr('shield_ok'):tr('shield_warn')}" style="margin-left:4px;">${ok?'🛡️':'⚠️'}</span>`;
+    }
+    const dateTxt=parseISO(c.date).toLocaleDateString(LANG==='es'?'es-MX':'en-US',{weekday:'short',month:'short',day:'numeric'});
+    d.innerHTML=`<div class="row1"><div><span class="tag">${tr('sl_'+c.slot)!==('sl_'+c.slot)?tr('sl_'+c.slot):c.slot}</span><span class="tag green">${dateTxt}</span><b>${c.item.n}</b>${shield}<small>${c.item.why}</small>${c.vol?`<small style="margin-top:4px;">👤 ${escHTML(c.vol)}</small>`:''}</div><span class="status ${cls}">${tr(key)}</span></div>`;
+    const btn=document.createElement('button');btn.className='btn sm '+(c.status==='open'?'amber':'ghost');
+    btn.textContent=c.status==='open'?tr('cook_this'):tr('open_recipe');
+    btn.onclick=async()=>{
+      if(c.status==='open'){
+        const name=(prompt(tr('ask_name'),lsGet('mk_vol_name',''))||'').trim();
+        if(!name)return;
+        const email=(prompt(tr('ask_email'),lsGet('mk_vol_email',''))||'').trim();
+        lsSet('mk_vol_name',name);if(email)lsSet('mk_vol_email',email);
+        await claimItemInDB(c.id,name,email);
+        renderCircle();
+        return;
+      }
+      await openShop(c);
+    };
+    d.appendChild(btn);list.appendChild(d);
+  });
+}
+function escHTML(s){return String(s==null?'':s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+
+/* ================= CALENDAR ================= */
+let CAL_OFFSET=0,TREAT_EDIT=false;
+function weekStart(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return x;}
+function treatKey(){return 'mk_treatment_days_'+(FAMILY?FAMILY.slug:'local');}
+function treatDays(){return lsGet(treatKey(),null);}
+function isTreatDay(date){
+  const saved=treatDays();
+  if(saved)return saved.includes(isoDate(date));
+  return S.cond==='cancer'&&S.chemo==='yes'&&date.getDay()===3;   // default: Wednesday, as before
+}
+function toggleTreat(iso){
+  let saved=treatDays();
+  if(!saved){ // first edit: start from the defaults currently shown
+    saved=[];
+    const ws=addDays(weekStart(new Date()),CAL_OFFSET*7);
+    for(let i=0;i<7;i++){const d=addDays(ws,i);if(isTreatDay(d))saved.push(isoDate(d));}
+  }
+  saved=saved.includes(iso)?saved.filter(x=>x!==iso):saved.concat(iso);
+  lsSet(treatKey(),saved);renderCal();
+}
+function toggleTreatMode(){TREAT_EDIT=!TREAT_EDIT;renderCal();}
+function calShift(n){CAL_OFFSET+=n;renderCal();}
+function renderCal(){
+  const loc=LANG==='es'?'es-MX':'en-US';
+  const ws=addDays(weekStart(new Date()),CAL_OFFSET*7),we=addDays(ws,6);
+  document.getElementById('calrange').textContent=tr('cal_range',{r:ws.toLocaleDateString(loc,{month:'short',day:'numeric'})+' – '+we.toLocaleDateString(loc,{month:'short',day:'numeric'})});
+  const grid=document.getElementById('calgrid');grid.innerHTML='';
+  const today=isoDate(new Date());
+  const inWeek=S.claims.filter(c=>c.date>=isoDate(ws)&&c.date<=isoDate(we));
+  let covered=0;
+  for(let i=0;i<7;i++){
+    const date=addDays(ws,i),iso=isoDate(date),treat=isTreatDay(date);
+    const d=document.createElement('div');
+    d.className='day'+(treat?' chemo':'')+(iso===today?' today':'')+(TREAT_EDIT?' editable':'');
+    d.innerHTML=`<div class="dn">${date.toLocaleDateString(loc,{weekday:'short'})}${treat?' 💉':''}</div><div class="dd">${date.getDate()}</div>`;
+    const dayClaims=inWeek.filter(c=>c.date===iso);
+    if(dayClaims.some(c=>c.status!=='open'))covered++;
+    dayClaims.forEach(c=>{
+      d.insertAdjacentHTML('beforeend',`<div class="ev ${c.status==='open'?'open':''}">${c.item.n}<br><b> · </b>${c.vol?escHTML(c.vol.split(' ')[0]):tr('unclaimed')}</div>`);
+    });
+    if(TREAT_EDIT)d.onclick=()=>toggleTreat(iso);
+    grid.appendChild(d);
+  }
+  document.getElementById('treatbtn').innerHTML=TREAT_EDIT?'✓ '+tr('cal_done'):'💉 '+tr('cal_add_treat');
+  document.getElementById('treathint').style.display=TREAT_EDIT?'block':'none';
+  const planned=inWeek.length,claimed=inWeek.filter(c=>c.status!=='open').length,done=inWeek.filter(c=>c.status==='done').length;
+  const pct=Math.round(covered/7*100);
+  const anyTreat=[0,1,2,3,4,5,6].some(i=>isTreatDay(addDays(ws,i)));
+  document.getElementById('calstatus').innerHTML=`<b style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--forest);">${tr('cal_summary',{p:planned,c:claimed,d:done})}</b>
+    <div class="progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></div>
+    <p class="sub" style="margin-top:6px;">${tr('cal_cover',{n:covered})} · ${pct}%${anyTreat?' · '+tr('cal_treat_note'):''}</p>`;
+}
+
+/* ================= COOKBOOK STORE ================= */
+const BOOKS_SEED=[
+ {title:'The Cancer-Fighting Kitchen',author:'Rebecca Katz with Mat Edelson',condition_tags:['cancer'],description:'Nourishing, big-flavored foods for cancer treatment and recovery.',price:'$22.99',amazon_url:'https://www.amazon.com/s?k=The+Cancer-Fighting+Kitchen+Rebecca+Katz',emoji:'🍲'},
+ {title:'Eating Well Through Cancer',author:'Holly Clegg & Gerald Miletello MD',condition_tags:['cancer'],description:'Easy recipes and tips during and after cancer treatment.',price:'$19.99',amazon_url:'https://www.amazon.com/s?k=Eating+Well+Through+Cancer+Holly+Clegg',emoji:'📗'},
+ {title:'The Renal Diet Cookbook',author:'Susan Zogheib MHS RD',condition_tags:['dialysis'],description:'The complete guide and meal plan for managing kidney disease.',price:'$16.99',amazon_url:'https://www.amazon.com/s?k=The+Renal+Diet+Cookbook+Susan+Zogheib',emoji:'💙'},
+ {title:'Prevent a Second Heart Attack',author:'Janet Bond Brill PhD RD',condition_tags:['cardio'],description:'Eight foods, eight weeks to reverse heart disease.',price:'$18.99',amazon_url:'https://www.amazon.com/s?k=Prevent+a+Second+Heart+Attack+Janet+Brill',emoji:'❤️'},
+ {title:'The MIND Diet',author:'Maggie Moon MS RD',condition_tags:['alzheimers','depression','tbi'],description:"A scientific approach to enhancing brain function and helping prevent Alzheimer's.",price:'$21.99',amazon_url:'https://www.amazon.com/s?k=The+MIND+Diet+Maggie+Moon',emoji:'🧠'},
+ {title:'The First Forty Days',author:'Heng Ou with Amely Greeven',condition_tags:['postpartum'],description:'The essential art of nourishing the new mother.',price:'$24.99',amazon_url:'https://www.amazon.com/s?k=The+First+Forty+Days+Heng+Ou',emoji:'🌸'}];
+let BOOKS=null;
+async function loadBooks(){
+  if(BOOKS)return BOOKS;
+  try{
+    const {data,error}=await sb.from('cookbooks').select('*').order('featured',{ascending:false}).order('created_at');
+    BOOKS=(!error&&data&&data.length)?data:BOOKS_SEED;
+  }catch(e){BOOKS=BOOKS_SEED;}
+  return BOOKS;
+}
+function safeUrl(u){return /^https:\/\//i.test(u||'')?u:'';}
+async function renderBooks(){
+  const row=document.getElementById('bookrow');
+  const all=await loadBooks();
+  const list=S.condChosen?all.filter(b=>(b.condition_tags||[]).includes(S.cond)):all;
+  row.innerHTML=list.length?list.map(b=>`<div class="book">
+      <div class="cover">${escHTML(b.emoji||'📘')}</div>
+      <div class="bt">${escHTML(b.title)}</div>
+      <div class="ba">${escHTML(b.author||'')}</div>
+      <div>${(b.condition_tags||[]).map(c=>`<span class="tag">${escHTML(condLabel(c))}</span>`).join('')}</div>
+      <div class="bd">${escHTML(b.description||'')}</div>
+      ${b.price?`<div class="bp">${escHTML(b.price)}</div>`:''}
+      ${safeUrl(b.amazon_url)?`<a class="btn amber sm" href="${escHTML(safeUrl(b.amazon_url))}" target="_blank" rel="noopener">${tr('books_amazon')}</a>`:''}
+      ${safeUrl(b.author_url)?`<a class="btn ghost sm" href="${escHTML(safeUrl(b.author_url))}" target="_blank" rel="noopener">${tr('books_author_btn')}</a>`:''}
+    </div>`).join(''):`<p class="sub">${tr('books_none')}</p>`;
+}
+
+/* ================= COOKBOOK ================= */
+const COND_COLOR={cancer:'#E8A33D',dialysis:'#5B8DB8',cardio:'#C0504D'};
+function cardColor(r){
+  const f=document.getElementById('cbfilter').value;
+  if(COND_COLOR[f]&&r.tags.includes(f))return COND_COLOR[f];
+  if(r.tags.includes('all'))return '#1F3D2B';
+  const k=['cancer','dialysis','cardio'].find(c=>r.tags.includes(c));
+  return k?COND_COLOR[k]:'#1F3D2B';
+}
+function circleCond(){const c=FAMILY&&(FAMILY.dietary_flags||[]).find(x=>x.startsWith('cond:'));return c?c.slice(5):(S.condChosen?S.cond:null);}
+function renderCookbook(){
+  {const sel=document.getElementById('cbfilter'),c=circleCond();if(c&&!sel.dataset.set){sel.value=c;sel.dataset.set='1';}}
+  renderBooks();
+  buildCondChips();
+  const f=document.getElementById('cbfilter').value;
+  const showAll=document.getElementById('cbShowAll').checked;
+  const {allergy,diet}=activeFlags();
+  const body=document.getElementById('cbbody');body.innerHTML='';
+  let hiddenCount=0;
+  SLOTS.forEach(([key])=>{
+    const mine=MY.map((r,i)=>({...r,_i:i})).filter(r=>r.slot===key&&(f==='all'||r.tags.includes(f)||r.tags.includes('all')));
+    let items=POOL.filter(r=>r.slot===key&&(f==='all'||r.tags.includes(f)||r.tags.includes('all')));
+    if(!showAll){
+      const before=items.length;
+      items=items.filter(r=>isSafeFor(r,allergy,diet));
+      hiddenCount+=(before-items.length);
+    }
+    if(!mine.length&&!items.length)return;
+    body.insertAdjacentHTML('beforeend',`<div class="slot-h">${tr('sl_'+key)} <span class="tag green" style="vertical-align:middle;">${tr('recipes_n',{n:mine.length+items.length})}</span></div>`);
+    mine.forEach(r=>body.appendChild(cbEntry(r,true)));
+    items.forEach(r=>body.appendChild(cbEntry(r,false)));
+  });
+  if(hiddenCount>0){
+    body.insertAdjacentHTML('afterbegin',`<div class="alert-allergy" style="background:#F0F4EE;border-color:#CFE0CC;color:var(--good);">${tr('hidden_n',{n:hiddenCount})}</div>`);
+  }
+}
+function orderRowHTML(r){
+  const names=(r.ings||[]).map(i=>i[0]).filter(n=>!PANTRY_STAPLES.has(n)).slice(0,3);
+  const q=encodeURIComponent(names.join(' '));
+  const pick=['H-E-B','Amazon Fresh','Instacart','Walmart'];
+  return `<div class="orderrow"><span class="lbl">${tr('order_ings')}</span>${pick.map(n=>{const s=STORES.find(x=>x.n===n);return s?`<button type="button" onclick="window.open('${s.u}${q}','_blank','noopener')">${s.i} ${s.n}</button>`:'';}).join('')}</div>`;
+}
+function cbEntry(r,isMine){
+  const dt=document.createElement('details');dt.className='cb';
+  dt.style.borderLeftColor=cardColor(r);
+  const tagline=r.tags.includes('all')?tr('universal'):r.tags.map(t=>condLabel(t)).join(' · ');
+  dt.innerHTML=`<summary><div>${isMine?`<span class="tag mine">${tr('my_recipe')}</span><span class="tag" style="background:#F6E3DB;color:#B5471F;">${tr('not_checked')}</span>`:''}<b>${escHTML(r.n)}</b><small>${escHTML(r.why)}</small></div><span class="tag">⏱ ${escHTML(r.time)}</span></summary>
+  <div class="cb-body">${r.img?`<img class="cbphoto" src="${r.img}" alt="">`:''}<p class="sub" style="margin:10px 0 4px;"><b>${tr('good_for')}</b> ${tagline}</p>
+  ${isMine?'':safeForHTML(r)}
+  ${r.ings.map(i=>`<div class="ing"><span>${escHTML(i[0])}</span><span class="amt">${escHTML(i[1]||'')}</span></div>`).join('')}
+  <ol class="steps">${r.steps.map(s=>`<li><span>${escHTML(s)}</span></li>`).join('')}</ol>
+  ${orderRowHTML(r)}
+  ${isMine?`<button class="del" onclick="delMy(${r._i})">${tr('remove_mine')}</button>`:''}</div>`;
+  return dt;
+}
+
+/* ===== MY RECIPES — the growable family cookbook ===== */
+let MY=[];
+try{MY=JSON.parse(localStorage.getItem('mealkind_myrecipes')||'[]')||[];}catch(e){MY=[];}
+function persistMY(){try{localStorage.setItem('mealkind_myrecipes',JSON.stringify(MY));}catch(e){flagErr('err1','Heads up: this browser can\u2019t save permanently — use \u201cSave my book\u201d to download your recipes.');}}
+let pendingImg=null;
+function toggleAddForm(){const f=document.getElementById('addform');f.style.display=f.style.display==='none'?'block':'none';buildCondChips();}
+function buildCondChips(){
+  const wrap=document.getElementById('my-conds');
+  if(!wrap||wrap.children.length)return;
+  Object.keys(COND_LABEL).forEach(k=>{
+    const b=document.createElement('button');b.className='chip';b.textContent=condLabel(k);b.dataset.c=k;
+    b.onclick=()=>b.classList.toggle('sel');wrap.appendChild(b);
+  });
+}
+function handlePhoto(input){
+  const f=input.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{pendingImg=e.target.result;const pv=document.getElementById('addpreview');pv.src=pendingImg;pv.style.display='block';};
+  rd.readAsDataURL(f);input.value='';
+}
+function saveMyRecipe(){
+  const n=document.getElementById('my-name').value.trim();
+  if(!n){flagErr('err1','Give the recipe a name first.');return;}
+  const tags=[...document.querySelectorAll('#my-conds .chip.sel')].map(b=>b.dataset.c);
+  const ings=document.getElementById('my-ings').value.split('\n').map(l=>l.trim()).filter(Boolean)
+    .map(l=>{const p=l.split(/\s*[-\u2013]\s*/);return p.length>1?[p[0],p.slice(1).join(' - ')]:[l,''];});
+  const steps=document.getElementById('my-steps').value.split('\n').map(l=>l.trim().replace(/^\d+[.)]\s*/,'')).filter(Boolean);
+  MY.unshift({slot:document.getElementById('my-slot').value,tags:tags.length?tags:['all'],n,
+    why:document.getElementById('my-why').value.trim()||'A family favorite, added by you.',
+    time:document.getElementById('my-time').value.trim()||'\u2014',
+    ings:ings.length?ings:[[n,'']],steps:steps.length?steps:['Make it the way the family always has.'],
+    img:pendingImg,mine:true});
+  persistMY();pendingImg=null;
+  ['my-name','my-why','my-time','my-ings','my-steps'].forEach(id=>document.getElementById(id).value='');
+  document.querySelectorAll('#my-conds .chip').forEach(b=>b.classList.remove('sel'));
+  const pv=document.getElementById('addpreview');pv.style.display='none';
+  document.getElementById('addform').style.display='none';
+  renderCookbook();
+}
+function delMy(i){MY.splice(i,1);persistMY();renderCookbook();}
+function exportBook(){
+  const blob=new Blob([JSON.stringify(MY,null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='mealkind-cookbook.json';a.click();
+}
+function importBook(input){
+  const f=input.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{try{
+    const incoming=JSON.parse(e.target.result);
+    const names=new Set(MY.map(r=>r.n));
+    incoming.forEach(r=>{if(r&&r.n&&!names.has(r.n))MY.push(r);});
+    persistMY();renderCookbook();
+  }catch(err){flagErr('err1','That file didn\u2019t look like a MealKind cookbook backup.');}};
+  rd.readAsText(f);input.value='';
+}
+
+
+/* ================= SHOP / COOK / DELIVER ================= */
+let CUR=null,STORE=null;
+const STORE_KEY={'H-E-B':'st_heb','Walmart':'st_walmart','Kroger':'st_kroger','Instacart':'st_instacart','Amazon Fresh':'st_amazon','Whole Foods':'st_wf'};
+async function openShop(c,noLoading){
+  CUR=c;STORE=null;
+  const name=circleName(),f=circleFlags(),p=profile();
+  // Board items carry name/why only — attach full ingredients & steps from the library
+  if(!c.item.ings){
+    if(!noLoading){show('loading');document.getElementById('loadmsg').textContent=tr('load_recipe');
+      await new Promise(res=>setTimeout(res,400));}
+    const src=findRecipe(c.item.n);
+    if(src){ c.item={...c.item,ings:src.ings,steps:src.steps,img:src.img||null,allergens:src.allergens,condFlags:src.condFlags,time:src.time}; }
+    else{ c.item.ings=[[c.item.n,'']];c.item.steps=['Prepare following the family’s usual method.']; }
+  }
+  const known=findRecipe(c.item.n);
+  const v=vet(known||c.item,f);
+  // Unknown recipe (e.g. written by the family) can't be verified → always "check"
+  const conflict=!known?[c.item.n]:[...new Set(v.hits.map(hitText))];
+  const vetHTML=(known&&v.safe)
+    ? `<div class="vetbox ok">${tr('vet_ok',{n:escHTML(name)})}</div>`
+    : `<div class="vetbox warn">${tr('vet_warn',{i:escHTML(conflict.join(', ')||'?'),n:escHTML(name)})}</div>`;
+  const dateTxt=parseISO(c.date).toLocaleDateString(LANG==='es'?'es-MX':'en-US',{weekday:'long',month:'short',day:'numeric'});
+  document.getElementById('shop-eyebrow').textContent=`${dateTxt} · ${c.item.n} · ${tr('for_name',{n:name})}`;
+  const aw=allergyWords(f);
+  document.getElementById('recipecard').innerHTML=`
+    ${vetHTML}
+    <span class="tag green">${dateTxt}</span><span class="tag">⏱ ${c.item.time||''}</span>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:700;color:var(--forest);margin-top:4px;">${escHTML(c.item.n)}</div>
+    <p class="sub">${escHTML(c.item.why)}</p>
+    ${aw.length?`<div class="alert-allergy">${tr('abs_no',{a:escHTML(aw.join(', '))})}</div>`:''}
+    ${textureNote()?`<div class="alert-allergy" style="background:#F0F4EE;border-color:#CFE0CC;color:var(--good);">${textureNote()}</div>`:''}
+    <ol class="steps">${(c.item.steps||[]).map(s=>`<li><span>${escHTML(s)}</span></li>`).join('')}</ol>`;
+  document.getElementById('inglist').innerHTML=(c.item.ings||[]).map(i=>PANTRY_STAPLES.has(i[0])
+    ?`<div class="ing"><span>${escHTML(i[0])} <small style="color:var(--soft);">${tr('pantry')}</small></span><span class="amt">${escHTML(i[1])}</span></div>`
+    :`<div class="ing"><span>${escHTML(i[0])}</span><span class="amt">${escHTML(i[1])}</span></div>`).join('');
+  const st=document.getElementById('stores');st.innerHTML='';
+  STORES.forEach(s=>{
+    const d=document.createElement('div');d.className='store';
+    d.innerHTML=`<div class="si">${s.i}</div><b>${s.n}</b><small>${STORE_KEY[s.n]?tr(STORE_KEY[s.n]):s.t}</small>`;
+    d.onclick=()=>{
+      document.querySelectorAll('.store').forEach(x=>x.classList.remove('sel'));
+      d.classList.add('sel');
+      STORE=s;
+      orderNow();
+    };
+    st.appendChild(d);
+  });
+  renderStatusFlow();
+  show('shop');
+}
+function orderNow(){
+  if(!STORE)return;
+  const shoppable=(CUR.item.ings||[]).filter(i=>!PANTRY_STAPLES.has(i[0]));
+  const q=encodeURIComponent(shoppable.map(i=>i[0]).join(' '));
+  window.open(STORE.u+q,'_blank');
+  if(CUR.status==='claimed'){advanceStatusInDB(CUR.id,'shopping').then(ok=>{if(ok){CUR.status='shopping';renderStatusFlow();}});}
+}
+function renderStatusFlow(){
+  const flow=document.getElementById('statusflow');
+  const stages=['claimed','shopping','cooking','done'];
+  const idx=stages.indexOf(CUR.status);
+  flow.innerHTML=stages.map((s,i)=>`<span class="status ${i<=idx?'st-done':'st-open'}" style="margin:0 6px 6px 0;display:inline-block;">${tr('fl_'+s)}</span>`).join('');
+  const nxt={claimed:'shopping',shopping:'cooking',cooking:'done'}[CUR.status];
+  if(nxt){
+    const b=document.createElement('button');b.className='btn amber sm';b.textContent=tr('nx_'+nxt);
+    b.onclick=async()=>{const ok=await advanceStatusInDB(CUR.id,nxt);if(ok){CUR.status=nxt;renderStatusFlow();renderCircle();}};
+    flow.appendChild(document.createElement('br'));flow.appendChild(b);
+  } else {
+    flow.insertAdjacentHTML('beforeend',`<p class="sub" style="margin-top:8px;">${tr('delivered_thanks')}</p>`);
+  }
+}
+
+/* ================= LANGUAGE RE-RENDER ================= */
+function rerenderActive(){
+  const a=document.querySelector('.screen.active');if(!a)return;
+  const w=document.getElementById('my-conds');if(w)w.innerHTML='';
+  if(a.id==='ob2')ob2Title();
+  if(a.id==='menu'&&S.menu){renderMenu();if(document.getElementById('menucheck').style.display!=='none')menuCheck();}
+  if(a.id==='circle')renderCircle();
+  if(a.id==='calendar')renderCal();
+  if(a.id==='cookbook')renderCookbook();
+  if(a.id==='shop'&&CUR)openShop(CUR,true);
+}
+
+/* ================= BOOTSTRAP: open straight to a shared Care Circle link ================= */
+(async function bootstrapFromLink(){
+  applyLang(LANG);
+  const params=new URLSearchParams(location.search);
+  const slug=params.get('circle');
+  if(!slug)return; // normal onboarding flow
+  const {data}=await sb.rpc('mk_get_family',{p_slug:slug});
+  if(!data){flagErr('err1',tr('fam_invalid'));return;}
+  FAMILY=data;
+  await refreshClaimsFromDB();
+  startCirclePolling();
+  S.role='volunteer';
+  document.getElementById('vt-f').classList.remove('active');
+  document.getElementById('vt-v').classList.add('active');
+  renderCircle();
+  show('circle');
+})();
+</script>
+</body>
+</html>
+
+</template>
+
+</body>
+</html>
