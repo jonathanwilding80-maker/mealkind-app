@@ -1,902 +1,200 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MealKind</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Set up meals · MealKind</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Jost',sans-serif;background:#1F3D2B;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-.gate{background:#FDFBF7;border-radius:20px;padding:40px 36px;max-width:480px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.25);}
-.logo-row{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
-.logo-row svg{flex-shrink:0;}
-.wordmark{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:#1F3D2B;letter-spacing:.01em;}
-.eyebrow{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#E8A33D;font-weight:600;margin-bottom:8px;}
-h1{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:600;color:#1F3D2B;line-height:1.15;margin-bottom:10px;}
-.body-text{font-size:.88rem;color:#6C675E;line-height:1.6;margin-bottom:24px;}
-.nda-box{background:#F4F1E8;border:1.5px solid #EFE7D8;border-radius:13px;padding:16px 18px;font-size:.78rem;color:#4A4540;line-height:1.65;margin-bottom:20px;}
-.nda-box b{color:#1F3D2B;display:block;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;}
-.check-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:24px;cursor:pointer;}
-.check-row input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:#1F3D2B;cursor:pointer;flex-shrink:0;}
-.check-label{font-size:.84rem;color:#2B2B28;line-height:1.5;}
-.field-row{margin-bottom:14px;}
-.field-row label{display:block;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:#6C675E;font-weight:600;margin-bottom:6px;}
-.field-row input[type=text],.field-row input[type=email]{width:100%;border:1.5px solid #EFE7D8;border-radius:11px;padding:11px 14px;font-family:'Jost',sans-serif;font-size:.9rem;color:#2B2B28;background:#FFFFFF;}
-.field-row input[type=text]:focus,.field-row input[type=email]:focus{outline:2px solid #E8A33D;border-color:#E8A33D;}
-.enter-btn{width:100%;background:#1F3D2B;color:#FDFBF7;border:none;border-radius:999px;padding:14px 24px;font-family:'Jost',sans-serif;font-weight:600;font-size:.92rem;cursor:pointer;opacity:.4;pointer-events:none;transition:opacity .2s;}
-.enter-btn.ready{opacity:1;pointer-events:auto;}
-.enter-btn.ready:hover{background:#2d5a3e;}
-.footer-note{text-align:center;font-size:.68rem;color:#9A958B;margin-top:16px;line-height:1.5;}
-</style>
-</head>
+:root{--forest:#1F3D2B;--forest-2:#3A6B4A;--gold:#E8A33D;--gold-soft:#FBF1DE;--cream:#FDFBF7;--card:#FFFFFF;--ink:#2B2B28;--soft:#6C675E;--line:#EFE7D8;--good-bg:#E5EFE7;--good:#2B5038;--warn:#B5471F;
+--display:"Cormorant Garamond",Georgia,serif;--body:"Jost","Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+body{padding:0 16px 60px}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);color:var(--forest);font-weight:600;line-height:1.1;text-wrap:balance}
+h1{font-size:clamp(2.1rem,7vw,3.2rem)}
+h2{font-size:1.8rem}
+h3{font-size:1.35rem}
+p{text-wrap:pretty}
+a{color:var(--forest-2)}
+.eyebrow{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#B97A16;font-weight:600}
+.muted{color:var(--soft)}.small{font-size:.88rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+button,.btn{font-family:var(--body);font-weight:600;font-size:1rem;border-radius:999px;padding:12px 22px;border:2px solid var(--forest);background:var(--forest);color:var(--cream);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;line-height:1.2;text-align:center}
+button.ghost,.btn.ghost{background:transparent;color:var(--forest)}
+button.gold,.btn.gold{background:var(--gold);border-color:var(--gold);color:#2A1E08}
+button.sm,.btn.sm{padding:8px 14px;font-size:.9rem}
+button.link{background:none;border:none;color:var(--forest-2);padding:0;text-decoration:underline;font-weight:500}
+button.wide,.btn.wide{width:100%}
+button:disabled{opacity:.5;cursor:default}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input,select,textarea{font:inherit;width:100%;padding:12px 14px;border:1.5px solid #E2D9C6;border-radius:12px;background:#fff;color:var(--ink)}
+input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:var(--forest);padding:0}
+label{display:flex;flex-direction:column;gap:6px;font-size:.92rem;font-weight:500;color:var(--soft)}
+label.check{flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-weight:400;font-size:1rem}
+.form{display:grid;gap:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) 0 6px;max-width:720px;margin:0 auto}
+header.top .logo{font-family:var(--display);font-size:1.7rem;font-weight:700;color:var(--forest);text-decoration:none}
+header.top .logo span{color:var(--gold)}
+header.top nav{display:flex;gap:14px;align-items:center;font-size:.92rem}
+header.top nav a{color:var(--forest);font-weight:500}
+.tag{font-size:.75rem;background:var(--good-bg);color:var(--good);border-radius:999px;padding:4px 10px;font-weight:600;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-weight:500;font-size:.95rem;padding:9px 14px;border-radius:999px;border:1.5px solid #E2D9C6;background:#fff;color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--forest);border-color:var(--forest);color:var(--cream)}
+.note{background:var(--gold-soft);border-radius:14px;padding:12px 16px;font-size:.95rem}
+.err{color:var(--warn);font-size:.92rem;min-height:1.2em}
+.toast{pointer-events:none;position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--forest);color:var(--cream);padding:12px 18px;border-radius:999px;font-size:.95rem;z-index:10;max-width:calc(100% - 32px);text-align:center}
+.ver{text-align:center;font-size:.72rem;color:#9A958B;margin-top:30px}
+footer.foot{max-width:720px;margin:40px auto 0;border-top:1px solid var(--line);padding-top:18px;display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;font-size:.85rem;color:var(--soft)}
+footer.foot a{color:var(--soft)}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+
+/* set-up wizard */
+.progress{display:flex;gap:6px;margin-top:4px}
+.progress i{flex:1;height:6px;border-radius:99px;background:var(--line)}
+.progress i.on{background:var(--gold)}
+.steplbl{font-size:.85rem;color:var(--soft);margin-top:6px}
+.screen{display:flex;flex-direction:column;gap:20px}
+.q{display:flex;flex-direction:column;gap:10px}
+.q>.qt{font-weight:600;color:var(--forest);font-size:1.05rem}
+.q>.qh{font-size:.88rem;color:var(--soft);margin-top:-6px}
+.conds{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.conds .chip{border-radius:14px;text-align:left;padding:12px 14px;display:flex;justify-content:flex-start;align-items:center}
+.navrow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0}
+#s2 .navrow{position:sticky;bottom:0;background:linear-gradient(transparent,var(--cream) 30%);padding:18px 0 calc(10px + env(safe-area-inset-bottom,0px))}
+.navrow .count{font-size:.92rem;color:var(--soft)}
+.course{display:flex;flex-direction:column}
+.course h3{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 4px}
+.course h3 button{font-family:var(--body)}
+.rec{display:flex;flex-direction:row;gap:12px;align-items:flex-start;color:var(--ink);font-weight:400;font-size:1rem;padding:12px 0;border-bottom:1px solid var(--line)}
+.rec:last-child{border-bottom:none}
+.rec input{margin-top:3px}
+.rec .t{font-weight:500;color:var(--ink)}
+.rec .w{font-size:.88rem;color:var(--soft)}
+.rec details{font-size:.88rem;color:var(--soft);margin-top:4px}
+.rec details ul,.rec details ol{padding-left:18px;margin:4px 0}
+.rec .for{font-size:.7rem;background:var(--good-bg);color:var(--good);border-radius:99px;padding:1px 8px;margin-left:6px;font-weight:600;white-space:nowrap}
+.pw{font-family:var(--display);font-size:3rem;font-weight:700;letter-spacing:.18em;color:var(--forest);background:var(--gold-soft);border:2px dashed var(--gold);border-radius:16px;text-align:center;padding:10px 8px;font-variant-numeric:tabular-nums}
+.share{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.msg{white-space:pre-line;font-size:.95rem;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.msg b{display:inline-block;background:var(--gold-soft);padding:0 6px;border-radius:6px;letter-spacing:.08em}
+.menu{display:flex;flex-direction:column;gap:10px}
+.menu a,.menu button{justify-content:space-between;border-radius:16px;padding:16px 18px;background:#fff;color:var(--forest);border:1.5px solid var(--line);text-align:left}
+.menu a.main{background:var(--forest);color:var(--cream);border-color:var(--forest)}
+.menu small{display:block;font-weight:400;font-size:.85rem;opacity:.8}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.stats div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 6px;font-size:.85rem;color:var(--soft)}
+.stats b{display:block;font-family:var(--display);font-size:1.8rem;color:var(--forest);line-height:1.1}
+details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
+@media (max-width:520px){.share{grid-template-columns:1fr}.pw{font-size:2.4rem}}
+</style></head>
 <body>
-<div class="gate" id="gate" style="display:none">
-  <div class="logo-row">
-    <svg viewBox="0 0 64 64" width="44" height="44" aria-label="MealKind">
-      <rect width="64" height="64" rx="14" fill="#1F3D2B"/>
-      <path d="M14 34h36a2 2 0 0 1 2 2c0 8-8 14-20 14S12 44 12 36a2 2 0 0 1 2-2Z" fill="#FDFBF7"/>
-      <path d="M10 33c-3-6 2-12 8-11M54 33c3-6-2-12-8-11" stroke="#E8A33D" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-      <path d="M32 27c-4-3-4-7 0-9 4 2 4 6 0 9Z" fill="#E8A33D"/>
-    </svg>
-    <div class="wordmark">MealKind</div>
-  </div>
-  <h1>You've been invited to see MealKind.</h1>
-  <p class="body-text" id="introText">This is a working prototype of a proprietary dietary support platform currently in development. Please read and agree to the terms below before entering.</p>
-  <div class="nda-box">
-    <b>Confidentiality Notice</b>
-    This platform contains proprietary concepts, product design, and intellectual property owned by MealKind. By entering, you agree that: (1) this material is shared in confidence for evaluation purposes only; (2) you will not copy, reproduce, share, or disclose any part of it to third parties; (3) no license or rights are granted by viewing this platform; (4) this does not constitute a public disclosure or offering of any kind.
-  </div>
-  <div id="identityFields">
-    <div class="field-row">
-      <label for="ndaName">Your name</label>
-      <input type="text" id="ndaName" placeholder="Jane Smith" autocomplete="name" oninput="toggleBtn()">
-    </div>
-    <div class="field-row">
-      <label for="ndaEmail">Your email</label>
-      <input type="email" id="ndaEmail" placeholder="jane@example.com" autocomplete="email" oninput="toggleBtn()">
-    </div>
-  </div>
-  <label class="check-row">
-    <input type="checkbox" id="agree" onchange="toggleBtn()">
-    <span class="check-label">I understand this is confidential and agree not to share, copy, or distribute any part of this platform.</span>
-  </label>
-  <button class="enter-btn" id="enterBtn" onclick="enter()">Enter MealKind →</button>
-  <p class="footer-note">© 2026 MealKind. All rights reserved. Proprietary and confidential.</p>
-</div>
+<header class="top"><a class="logo" href="/">Meal<span>Kind</span></a><nav><a href="/app.html" id="navHome" hidden>My circle</a></nav></header>
+<main class="wrap">
 
-<!-- Hidden Netlify Form: captures every NDA acceptance and forwards to hello@mealkind.com -->
-<form name="mealkind-nda" netlify netlify-honeypot="bot-field" hidden>
-  <input type="text" name="bot-field">
-  <input type="text" name="name">
-  <input type="email" name="email">
-  <input type="text" name="agreedAt">
-</form>
+<!-- progress (steps 1-4 only) -->
+<div id="prog" hidden><div class="progress"><i></i><i></i><i></i><i></i></div><div class="steplbl" id="stepLbl"></div></div>
 
-<div id="app" style="display:none;width:100%;min-height:100vh;background:#FDFBF7;"></div>
-
-<script>
-// If arriving from the landing page with name & email already given, skip retyping —
-// show a one-line greeting and only ask for the checkbox + click.
-const _params = new URLSearchParams(window.location.search);
-const _preName = (_params.get('name') || '').trim();
-const _preEmail = (_params.get('email') || '').trim();
-if (_preName && _preEmail) {
-  document.getElementById('identityFields').style.display = 'none';
-  document.getElementById('introText').textContent =
-    `Welcome, ${_preName.split(' ')[0]}. Please confirm you agree to the terms below before entering.`;
-}
-
-function toggleBtn(){
-  const btn=document.getElementById('enterBtn');
-  const hasIdentity = (_preName && _preEmail) || (
-    document.getElementById('ndaName').value.trim().length>0
-    && document.getElementById('ndaEmail').value.trim().length>0
-  );
-  const ready=document.getElementById('agree').checked && hasIdentity;
-  btn.classList.toggle('ready',ready);
-}
-function openApp(){
-  document.getElementById('gate').style.display='none';
-  document.body.style.background='#FDFBF7';
-  document.body.style.display='block';
-  document.body.style.padding='0';
-  const app=document.getElementById('app');
-  app.style.display='block';
-  app.innerHTML=getApp();
-  // Re-execute scripts from injected HTML
-  app.querySelectorAll('script').forEach(old=>{
-    const s=document.createElement('script');
-    s.textContent=old.textContent;
-    document.body.appendChild(s);
-  });
-}
-
-(function(){var ok=false;try{ok=!!localStorage.getItem('mk_privacy_v1')}catch(e){}
-  if(!ok){var q=location.search;location.replace('/'+(q?q+'&':'?')+'next=app');return;}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',openApp);else openApp();})();
-function getApp(){
-return document.getElementById('app-template').innerHTML;
-}
-</script>
-
-<template id="app-template">
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MealKind — Care Circle · Groceries · Cookbook</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-:root{--forest:#1F3D2B;--deep:#1F3D2B;--amber:#E8A33D;--amber-soft:#FBF1DE;--cream:#FDFBF7;--card:#FFFFFF;--ink:#2B2B28;--soft:#6C675E;--muted:#9A958B;--line:#EFE7D8;--good:#3E7C4F;--warn:#B5471F;}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:84px;}
-header{background:var(--card);color:var(--forest);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:60;border-bottom:1px solid var(--line);}
-.brandrow{display:flex;align-items:center;gap:9px;}
-.applogo{width:38px;height:38px;border-radius:9px;display:block;object-fit:cover;}
-.wordmark{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--forest);letter-spacing:.01em;}
-.wordmark span{color:var(--forest);}
-.view-toggle{display:flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;background:#fff;}
-.view-toggle button{background:none;border:none;color:var(--soft);font-family:'Jost',sans-serif;font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;padding:7px 11px;cursor:pointer;}
-.view-toggle button.active{background:var(--forest);color:#fff;font-weight:600;}
-main{max-width:680px;margin:0 auto;padding:20px;}
-.screen{display:none;}.screen.active{display:block;animation:fade .25s ease;}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.eyebrow{font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:4px;}
-.h1{font-family:'Cormorant Garamond',serif;font-size:clamp(1.6rem,5vw,2.1rem);font-weight:600;color:var(--forest);line-height:1.12;}
-.sub{color:var(--soft);font-size:.91rem;margin-top:6px;}
-.chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px;}
-.chips.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
-.chip{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:10px 16px;cursor:pointer;font-family:'Jost',sans-serif;font-size:.88rem;}
-.chip.big{border-radius:13px;padding:13px;text-align:left;}
-.chip.big b{display:block;font-size:.92rem;}.chip.big small{color:var(--soft);font-size:.74rem;}
-.chip:hover{border-color:var(--amber);}
-.chip.sel{background:var(--forest);border-color:var(--forest);color:var(--cream);}
-.chip.sel small{color:#BFCBBB;}
-input[type=text],select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-family:'Jost',sans-serif;font-size:.94rem;background:var(--card);margin-top:10px;color:var(--ink);}
-.btn{background:var(--forest);color:var(--cream);border:none;border-radius:999px;padding:11px 24px;font-family:'Jost',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;margin-top:16px;}
-.btn.amber{background:var(--amber);border:none;color:#fff;}
-.btn.ghost{background:none;border:1.5px solid var(--line);color:var(--forest);}
-.btn:disabled{opacity:.45;cursor:default;}
-.btn.sm{padding:8px 16px;font-size:.8rem;margin-top:10px;}
-.cc-hub{display:flex;align-items:center;gap:16px;background:var(--forest);color:var(--cream);border-radius:18px;padding:20px 22px;margin:18px 0 20px;text-decoration:none;box-shadow:0 10px 26px rgba(31,61,43,.22);transition:transform .15s}
-.cc-hub:hover{transform:translateY(-2px)}
-.cc-hub:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
-.cc-hub .cc-ic{width:52px;height:52px;border-radius:14px;background:var(--amber);display:grid;place-items:center;font-size:1.6rem;flex:none}
-.cc-hub b{display:block;font-family:'Cormorant Garamond',serif;font-size:1.55rem;line-height:1.1;font-weight:700}
-.cc-hub small{display:block;font-size:.85rem;opacity:.85;margin-top:3px}
-.cc-hub .cc-go{margin-left:auto;font-size:1.6rem;color:var(--amber);flex:none}
-.back{background:none;border:none;color:var(--forest);font-size:.76rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600;cursor:pointer;margin-bottom:10px;font-family:'Jost',sans-serif;}
-.q-label{font-weight:600;margin-top:18px;font-size:.93rem;}
-.card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:18px;margin-top:13px;}
-.tag{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--amber-soft);color:#8a5e12;display:inline-block;margin:0 5px 5px 0;}
-.tag.green{background:#E5EEE3;color:var(--good);}
-.vet{display:flex;gap:10px;align-items:center;background:#F0F4EE;border:1px solid #CFE0CC;border-radius:12px;padding:11px 14px;margin-top:14px;font-size:.83rem;color:var(--good);}
-.loader{text-align:center;padding:50px 0;}
-.pot{font-size:3rem;animation:bob 1.2s ease-in-out infinite;display:inline-block;}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.loader p{color:var(--soft);margin-top:10px;font-size:.9rem;}
-.slot-h{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--forest);margin-top:24px;}
-.opt{background:var(--card);border:1.5px solid var(--line);border-radius:13px;padding:13px;margin-top:8px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
-.opt:hover{border-color:var(--amber);}
-.opt.sel{border-color:var(--forest);background:#F4F1E8;}
-.opt b{font-size:.95rem;display:block;}
-.opt small{color:var(--soft);font-size:.79rem;display:block;margin-top:2px;}
-.checkmark{flex:0 0 25px;height:25px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:.78rem;color:transparent;}
-.opt.sel .checkmark{background:var(--forest);border-color:var(--forest);color:var(--cream);}
-.tipbox{background:var(--amber-soft);border-radius:13px;padding:15px;margin-top:18px;font-size:.86rem;color:#6e4c0e;}
-.tipbox b{display:block;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;color:#8a5e12;}
-.tipbox li{margin-left:18px;margin-top:4px;}
-.vol{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line);}
-.vol:last-child{border:none;}
-.av{flex:0 0 38px;height:38px;border-radius:50%;background:var(--amber-soft);display:flex;align-items:center;justify-content:center;font-size:1.05rem;}
-.vol b{display:block;font-size:.92rem;}.vol small{color:var(--soft);font-size:.78rem;}
-.claim{background:var(--card);border:1.5px solid var(--line);border-radius:13px;padding:14px;margin-top:9px;}
-.claim .row1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-.claim b{font-size:.95rem;}
-.claim small{color:var(--soft);font-size:.8rem;display:block;}
-.status{font-size:.66rem;font-weight:600;padding:4px 11px;border-radius:999px;white-space:nowrap;}
-.st-open{background:var(--amber-soft);color:#8a5e12;}
-.st-claimed{background:#E2EAF3;color:#2F578C;}
-.st-shopping{background:#F3EBE2;color:#8a5e12;}
-.st-cooking{background:#F6E9DB;color:#A05A1B;}
-.st-done{background:#E5EEE3;color:var(--good);}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:14px;}
-.day{background:var(--card);border:1.5px solid var(--line);border-radius:11px;padding:8px 6px;min-height:96px;font-size:.7rem;}
-.day .dn{font-weight:600;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);}
-.day.chemo{border-color:var(--amber);background:#FBF1DE;}
-.day .ev{background:#E5EEE3;color:var(--good);border-radius:7px;padding:3px 5px;margin-top:5px;line-height:1.25;font-size:.65rem;}
-.day .ev.open{background:var(--amber-soft);color:#8a5e12;}
-.store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px;margin-top:12px;}
-.store{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:13px;cursor:pointer;text-align:center;}
-.store:hover{border-color:var(--amber);}
-.store.sel{border-color:var(--forest);background:#F4F1E8;}
-.store .si{font-size:1.5rem;}
-.store b{display:block;font-size:.82rem;margin-top:4px;}
-.store small{color:var(--soft);font-size:.68rem;}
-.ing{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:.9rem;}
-.ing:last-child{border:none;}
-.ing .amt{color:var(--soft);font-size:.8rem;}
-.steps{list-style:none;counter-reset:s;margin-top:8px;}
-.steps li{counter-increment:s;display:flex;gap:11px;padding:8px 0;font-size:.92rem;align-items:flex-start;}
-.steps li::before{content:counter(s);flex:0 0 26px;height:26px;border-radius:50%;background:var(--forest);color:var(--cream);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:.8rem;}
-.alert-allergy{background:#F6E3DB;border:1px solid #ECC8B5;border-radius:12px;padding:11px 14px;font-size:.84rem;color:var(--warn);margin-top:12px;}
-.lang-toggle button{padding:7px 9px;}
-.calnav{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;margin-top:14px;}
-.calnav b{text-align:center;}
-.cal{grid-template-columns:repeat(7,minmax(0,1fr))!important;}
-.day .ev{overflow-wrap:break-word;}
-@media (max-width:560px){.calnav{grid-template-columns:1fr 1fr;}.calnav b{grid-column:1/-1;grid-row:1;}
- .cal{grid-template-columns:1fr!important;gap:6px;}
- .day{min-height:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:9px 10px;}
- .day .dn{width:46px;}.day .dd{width:22px;font-size:.8rem;}
- .day .ev{margin-top:0;font-size:.74rem;padding:4px 8px;}
- .day .ev br{display:none;}.day .ev b{font-weight:400;}}
-.calnav .btn{margin-top:0;}
-.calnav b{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--forest);}
-.day{cursor:default;}
-.day.editable{cursor:pointer;outline:1.5px dashed var(--amber);outline-offset:-3px;}
-.day .dd{font-size:.62rem;color:var(--muted);}
-.day.today{border-color:var(--forest);}
-.progress{height:8px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:10px;}
-.progress span{display:block;height:100%;background:var(--forest);border-radius:999px;transition:width .3s;}
-.bookrow{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px;margin-top:10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
-.book{flex:0 0 220px;scroll-snap-align:start;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px;}
-.book .cover{font-size:2.6rem;background:var(--amber-soft);border-radius:12px;height:84px;display:flex;align-items:center;justify-content:center;}
-.book .bt{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:700;color:var(--forest);line-height:1.15;}
-.book .ba{font-size:.78rem;color:var(--soft);}
-.book .bd{font-size:.8rem;color:var(--ink);flex:1;}
-.book .bp{font-weight:600;color:var(--forest);font-size:.9rem;}
-.book .btn{margin-top:4px;text-align:center;text-decoration:none;display:block;}
-details.cb{border-left-width:5px;}
-.safefor{font-size:.78rem;color:var(--good);margin:8px 0 2px;line-height:1.6;}
-.orderrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center;}
-.orderrow .lbl{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--forest);margin-right:4px;}
-.orderrow button{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:6px 12px;font-family:'Jost',sans-serif;font-size:.8rem;cursor:pointer;}
-.orderrow button:hover{border-color:var(--amber);}
-.vetbox{border-radius:12px;padding:11px 14px;font-size:.88rem;margin:10px 0 4px;font-weight:500;}
-.vetbox.ok{background:#E5EEE3;color:var(--forest);border:1px solid #CFE0CC;}
-.vetbox.warn{background:var(--amber-soft);color:#7a4f0c;border:1px solid #F0D9A8;}
-.checkline{padding:7px 0;border-bottom:1px dashed var(--line);font-size:.88rem;}
-.checkline:last-child{border:none;}
-.sharebtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
-.sharebtns .btn{margin-top:0;text-decoration:none;display:inline-block;}
-.btn.wa{background:#25D366;color:#fff;}
-@media (max-width:420px){header{padding:10px 12px;gap:6px;}.wordmark{font-size:1.2rem;}.view-toggle button{padding:7px 8px;font-size:.6rem;}.applogo{width:32px;height:32px;}}
-nav.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #EDE7DB;display:flex;justify-content:space-around;padding:9px 4px calc(10px + env(safe-area-inset-bottom));z-index:60;}
-nav.bottom button{background:none;border:none;color:#A39D92;font-family:'Jost',sans-serif;font-size:.6rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;}
-nav.bottom button .ico{font-size:1.2rem;}
-nav.bottom button.active{color:var(--forest);font-weight:600;}
-details.cb{background:var(--card);border:1.5px solid var(--line);border-radius:13px;padding:0;margin-top:8px;overflow:hidden;}
-details.cb summary{list-style:none;cursor:pointer;padding:13px;display:flex;justify-content:space-between;gap:8px;align-items:center;}
-details.cb summary::-webkit-details-marker{display:none;}
-details.cb summary b{font-size:.94rem;}
-details.cb summary small{color:var(--soft);font-size:.78rem;display:block;}
-details.cb .cb-body{padding:0 13px 13px;border-top:1px dashed var(--line);}
-.tag.mine{background:var(--amber);color:#142819;}
-.cbbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
-.field{margin-top:10px;}
-.field label{font-size:.78rem;font-weight:600;color:var(--forest);display:block;margin-bottom:4px;}
-textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-family:'Jost',sans-serif;font-size:.94rem;background:var(--card);min-height:70px;resize:vertical;}
-textarea:focus,input[type=text]:focus,select:focus{outline:2px solid var(--amber);border-color:var(--amber);}
-.preview{width:100%;max-height:180px;object-fit:cover;border-radius:12px;margin-top:10px;display:none;}
-.cbphoto{width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin:10px 0;}
-.del{background:none;border:1.5px solid var(--line);color:var(--warn);border-radius:999px;padding:7px 14px;font-size:.78rem;font-weight:600;cursor:pointer;margin-top:10px;font-family:'Jost',sans-serif;}
-.err{background:#F6E3DB;color:var(--warn);border-radius:12px;padding:11px 14px;font-size:.85rem;margin-top:12px;display:none;}
-footer{text-align:center;padding:22px;font-size:.7rem;color:var(--soft);font-style:italic;}
-</style>
-</head>
-<body>
-<header>
-  <div class="brandrow">
-    <svg id="applogo" class="applogo" viewBox="0 0 64 64" aria-label="MealKind">
-      <rect width="64" height="64" rx="14" fill="#1F3D2B"/>
-      <path d="M14 34h36a2 2 0 0 1 2 2c0 8-8 14-20 14S12 44 12 36a2 2 0 0 1 2-2Z" fill="#FDFBF7"/>
-      <path d="M10 33c-3-6 2-12 8-11M54 33c3-6-2-12-8-11" stroke="#E8A33D" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-      <path d="M32 27c-4-3-4-7 0-9 4 2 4 6 0 9Z" fill="#E8A33D"/>
-    </svg>
-    <div class="wordmark">Meal<span>Kind</span></div>
-  </div>
-  <div class="view-toggle lang-toggle" role="group" aria-label="Language / Idioma">
-    <button id="lang-en" class="active" onclick="applyLang('en')">EN</button>
-    <button id="lang-es" onclick="applyLang('es')">ES</button>
-  </div>
-  <div class="view-toggle">
-    <button id="vt-f" class="active" onclick="setRole('family')" data-i18n="vt_family">Patient</button>
-    <button id="vt-v" onclick="setRole('volunteer')" data-i18n="vt_circle">Support</button>
-  </div>
-</header>
-
-<main>
-
-<!-- ====== ONBOARDING ====== -->
-<section class="screen active" id="ob1">
-  <div class="eyebrow" data-i18n="ob1_eyebrow">Welcome · 1 of 3</div>
-  <h1 class="h1" data-i18n="ob1_title">Who are we cooking for?</h1>
-  <p class="sub" data-i18n="ob1_sub">One minute of questions. Then every menu, recipe, and grocery list is built — and screened — for this person.</p>
-  <div class="q-label" data-i18n="ob1_name">Their first name</div>
-  <input type="text" id="pname" placeholder="Linda" maxlength="30">
-  <div class="q-label" data-i18n="ob1_facing">What are they facing?</div>
-  <div class="chips grid">
-    <button class="chip big" data-k="cond" data-v="cancer" onclick="pick1(this);condExtra()"><b data-i18n="c_cancer">Cancer</b><small data-i18n="c_cancer_s">All types · in or after treatment</small></button>
-    <button class="chip big" data-k="cond" data-v="dialysis" onclick="pick1(this);condExtra()"><b data-i18n="c_dialysis">Kidney disease / Dialysis</b><small data-i18n="c_dialysis_s">Renal diet</small></button>
-    <button class="chip big" data-k="cond" data-v="cardio" onclick="pick1(this);condExtra()"><b data-i18n="c_cardio">Cardiovascular</b><small data-i18n="c_cardio_s">Heart disease · post-cardiac event</small></button>
-    <button class="chip big" data-k="cond" data-v="stroke" onclick="pick1(this);condExtra()"><b data-i18n="c_stroke">Stroke recovery</b><small data-i18n="c_stroke_s">Swallow-safe · blood-pressure aware</small></button>
-    <button class="chip big" data-k="cond" data-v="gi" onclick="pick1(this);condExtra()"><b data-i18n="c_gi">GI / Intestinal</b><small data-i18n="c_gi_s">Crohn's · colitis · IBS · post-surgery</small></button>
-    <button class="chip big" data-k="cond" data-v="ortho" onclick="pick1(this);condExtra()"><b data-i18n="c_ortho">Orthopedic recovery</b><small data-i18n="c_ortho_s">Surgery · fracture · joint replacement</small></button>
-    <button class="chip big" data-k="cond" data-v="parkinsons" onclick="pick1(this);condExtra()"><b data-i18n="c_parkinsons">Parkinson's</b><small data-i18n="c_parkinsons_s">Medication-timing &amp; texture aware</small></button>
-    <button class="chip big" data-k="cond" data-v="als" onclick="pick1(this);condExtra()"><b data-i18n="c_als">ALS</b><small data-i18n="c_als_s">High-calorie · swallow-safe</small></button>
-    <button class="chip big" data-k="cond" data-v="tbi" onclick="pick1(this);condExtra()"><b data-i18n="c_tbi">TBI</b><small data-i18n="c_tbi_s">Brain injury recovery</small></button>
-    <button class="chip big" data-k="cond" data-v="alzheimers" onclick="pick1(this);condExtra()"><b data-i18n="c_alzheimers">Alzheimer's / Dementia</b><small data-i18n="c_alzheimers_s">MIND-aligned · finger-food friendly</small></button>
-    <button class="chip big" data-k="cond" data-v="depression" onclick="pick1(this);condExtra()"><b data-i18n="c_depression">Depression</b><small data-i18n="c_depression_s">Low energy · low appetite</small></button>
-    <button class="chip big" data-k="cond" data-v="postpartum" onclick="pick1(this);condExtra()"><b data-i18n="c_postpartum">Postpartum</b><small data-i18n="c_postpartum_s">Recovery · new-mom support</small></button>
-  </div>
-  <button class="btn amber" onclick="ob2()" data-i18n="continue">Continue →</button>
+<!-- STEP 1: WHO -->
+<section class="screen" id="s1" hidden>
+  <div><div class="eyebrow">For the patient or family</div><h1>Who are we cooking for?</h1>
+  <p class="muted" style="margin-top:8px">This decides which recipes friends can choose from. Only you see this set-up page.</p></div>
+  <label class="q"><span class="qt">Their first name</span><input id="fName" maxlength="40" autocomplete="off" placeholder="e.g. Dave"></label>
+  <div class="q"><span class="qt">What are they going through?</span><div class="conds" id="conds"></div></div>
+  <div class="q" id="textureQ" hidden><span class="qt">Do they need softer food?</span><div class="chips" id="texture"></div></div>
+  <div class="q"><span class="qt">Allergies</span><span class="qh">Tick any that apply.</span><div class="chips" id="allergies"></div>
+    <input id="fOther" maxlength="120" placeholder="Anything else to avoid? e.g. mushrooms, pork"></div>
+  <div class="q"><span class="qt">Foods to limit</span><span class="qh" id="limitHint">Tick what their care team has asked them to cut down on.</span><div class="chips" id="limits"></div></div>
+  <label class="q"><span class="qt">Likes and dislikes <span class="muted small">(optional)</span></span><input id="fLikes" maxlength="200" placeholder="e.g. Loves soup; can't face anything spicy"></label>
+  <label class="check" id="consentRow"><input type="checkbox" id="consent"> <span>I've read <a href="/privacy.html" target="_blank">how MealKind uses this information</a>.</span></label>
+  <div class="err" id="err1" role="alert"></div>
+  <div class="navrow"><span></span><button id="next1" type="button">Next: choose recipes</button></div>
 </section>
 
-<section class="screen" id="ob2">
-  <button class="back" onclick="show('ob1')" data-i18n="back">← Back</button>
-  <div class="eyebrow" data-i18n="ob2_eyebrow">Welcome · 2 of 3</div>
-  <h1 class="h1" id="ob2title">A little more detail.</h1>
-  <div id="cancerExtra" style="display:none;">
-    <div class="q-label" data-i18n="ob2_ctype">What kind of cancer?</div>
-    <select id="ctype">
-      <option value="" data-i18n="ct_select">Select cancer type…</option>
-      <option value="Breast" data-i18n="ct_breast">Breast</option><option value="Lung" data-i18n="ct_lung">Lung</option><option value="Colorectal" data-i18n="ct_colorectal">Colorectal</option><option value="Prostate" data-i18n="ct_prostate">Prostate</option>
-      <option value="Pancreatic" data-i18n="ct_pancreatic">Pancreatic</option><option value="Stomach / Gastric" data-i18n="ct_stomach">Stomach / Gastric</option><option value="Esophageal" data-i18n="ct_esophageal">Esophageal</option><option value="Liver" data-i18n="ct_liver">Liver</option>
-      <option value="Kidney" data-i18n="ct_kidney">Kidney</option><option value="Bladder" data-i18n="ct_bladder">Bladder</option><option value="Ovarian" data-i18n="ct_ovarian">Ovarian</option><option value="Uterine / Endometrial" data-i18n="ct_uterine">Uterine / Endometrial</option>
-      <option value="Cervical" data-i18n="ct_cervical">Cervical</option><option value="Head &amp; Neck" data-i18n="ct_headneck">Head &amp; Neck</option><option value="Brain" data-i18n="ct_brain">Brain</option><option value="Leukemia" data-i18n="ct_leukemia">Leukemia</option>
-      <option value="Lymphoma" data-i18n="ct_lymphoma">Lymphoma</option><option value="Multiple Myeloma" data-i18n="ct_myeloma">Multiple Myeloma</option><option value="Melanoma / Skin" data-i18n="ct_melanoma">Melanoma / Skin</option><option value="Sarcoma" data-i18n="ct_sarcoma">Sarcoma</option>
-      <option value="Thyroid" data-i18n="ct_thyroid">Thyroid</option><option value="Other / not sure" data-i18n="ct_other">Other / not sure</option>
-    </select>
-    <div class="q-label" data-i18n="ob2_chemo">Currently on chemotherapy?</div>
-    <div class="chips">
-      <button class="chip" data-k="chemo" data-v="yes" onclick="pick1(this)" data-i18n="chemo_yes">Yes — on a cycle</button>
-      <button class="chip sel" data-k="chemo" data-v="no" onclick="pick1(this)" data-i18n="no">No</button>
-    </div>
-  </div>
-  <div id="swallowExtra" style="display:none;">
-    <div class="q-label" data-i18n="ob2_swallow">Swallowing guidance from their care team</div>
-    <div class="chips">
-      <button class="chip sel" data-k="texture" data-v="regular" onclick="pick1(this)" data-i18n="tx_regular">Regular textures</button>
-      <button class="chip" data-k="texture" data-v="soft" onclick="pick1(this)" data-i18n="tx_soft">Soft &amp; moist only</button>
-      <button class="chip" data-k="texture" data-v="pureed" onclick="pick1(this)" data-i18n="tx_pureed">Pureed / minced</button>
-    </div>
-  </div>
-  <div class="q-label" data-i18n="ob2_allergies">Allergies &amp; absolute no's (these travel with every recipe)</div>
-  <div class="chips" id="allergies">
-    <button class="chip" data-v="Tree nuts" onclick="pickM(this)" data-i18n="al_tree_nut">Tree nuts</button>
-    <button class="chip" data-v="Peanuts" onclick="pickM(this)" data-i18n="al_peanut">Peanuts</button>
-    <button class="chip" data-v="Dairy" onclick="pickM(this)" data-i18n="al_milk">Dairy</button>
-    <button class="chip" data-v="Gluten" onclick="pickM(this)" data-i18n="al_wheat_gluten">Gluten</button>
-    <button class="chip" data-v="Shellfish" onclick="pickM(this)" data-i18n="al_shellfish">Shellfish</button>
-    <button class="chip" data-v="Eggs" onclick="pickM(this)" data-i18n="al_egg">Eggs</button>
-    <button class="chip" data-v="Fish" onclick="pickM(this)" data-i18n="al_fish">Fish</button>
-    <button class="chip" data-v="Sesame" onclick="pickM(this)" data-i18n="al_sesame">Sesame</button>
-  </div>
-  <input type="text" id="allergyother" placeholder="Anything else (e.g. grapefruit — medication interaction)" data-i18n-ph="ph_allergyother">
-  <div class="q-label" data-i18n="ob2_diet">Foods to avoid for health reasons (not a diagnosis — just what to skip)</div>
-  <div class="chips" id="dietres">
-    <button class="chip" data-v="High-potassium (bananas, potatoes)" onclick="pickM(this)" data-i18n="dr_high_potassium">High-potassium (bananas, potatoes)</button>
-    <button class="chip" data-v="High-sodium" onclick="pickM(this)" data-i18n="dr_high_sodium">High-sodium</button>
-    <button class="chip" data-v="High-sugar" onclick="pickM(this)" data-i18n="dr_high_sugar">High-sugar</button>
-    <button class="chip" data-v="Acidic (citrus, tomato)" onclick="pickM(this)" data-i18n="dr_acidic">Acidic (citrus, tomato)</button>
-    <div id="impliedNote" style="display:none;flex-basis:100%;font-size:.8rem;color:#8a5e12;background:#FBF1DE;border-radius:10px;padding:8px 12px;margin-top:6px;"></div>
-  </div>
-  <div class="q-label" data-i18n="ob2_loves">Foods they love / foods they can't stand right now</div>
-  <input type="text" id="loves" placeholder="Loves: e.g. soups, anything lemony" data-i18n-ph="ph_loves">
-  <input type="text" id="hates" placeholder="Can't stand: e.g. red meat, fried food" data-i18n-ph="ph_hates">
-  <button class="btn amber" onclick="show('ob3')" data-i18n="continue">Continue →</button>
+<!-- STEP 2: RECIPES -->
+<section class="screen" id="s2" hidden>
+  <div><div class="eyebrow">Step 2</div><h1>Choose the recipes friends can cook</h1>
+  <p class="muted" style="margin-top:8px" id="s2sub"></p></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="gold" id="selAll" type="button">Select all</button><button class="ghost" id="selNone" type="button">Clear</button></div>
+  <div id="recList"></div>
+  <div class="err" id="err2" role="alert"></div>
+  <div class="navrow"><button class="ghost" type="button" data-go="1">Back</button><span class="count" id="recCount"></span><button id="next2" type="button">Next</button></div>
 </section>
 
-<section class="screen" id="ob3">
-  <button class="back" onclick="show('ob2')" data-i18n="back">← Back</button>
-  <div class="eyebrow" data-i18n="ob3_eyebrow">Welcome · 3 of 3</div>
-  <h1 class="h1" data-i18n="ob3_title">Build the Care Circle.</h1>
-  <p class="sub" data-i18n="ob3_sub">Family and friends who keep saying "let me know if you need anything." This is the anything. They see the approved menu and claim what they'll cook — never any medical details.</p>
-  <div class="card">
-    <div class="vol"><div class="av">📋</div><div style="flex:1"><b data-i18n="ob3_s1">Approve the meals</b><small data-i18n="ob3_s1d">Pick what sounds good from this week's menu.</small></div></div>
-    <div class="vol"><div class="av">🔗</div><div style="flex:1"><b data-i18n="ob3_s2">Share one link</b><small data-i18n="ob3_s2d">Send it by WhatsApp, text or email — or print the QR code.</small></div></div>
-    <div class="vol"><div class="av">🧑‍🍳</div><div style="flex:1"><b data-i18n="ob3_s3">They claim and cook</b><small data-i18n="ob3_s3d">Each meal shows who's cooking, and when it's delivered.</small></div></div>
+<!-- STEP 3: NOTE -->
+<section class="screen" id="s3" hidden>
+  <div><div class="eyebrow">Step 3</div><h1>A short note for friends</h1>
+  <p class="muted" style="margin-top:8px">This is the first thing friends read. Keep it short and personal.</p></div>
+  <label>Your note<textarea id="fStory" rows="5" maxlength="1000"></textarea></label>
+  <div class="two">
+    <label>Best drop-off time<input id="fWindow" maxlength="60" placeholder="e.g. 5–6 pm"></label>
+    <label>Drop-off address and details<input id="fDrop" maxlength="400" placeholder="Only shown to people who sign up"></label>
   </div>
-  <button class="btn amber" onclick="buildMenu()" data-i18n="ob3_build">Build this week's menu ✨</button>
+  <details class="more"><summary>Optional: meal fund or gift list</summary>
+    <div class="form" style="margin-top:12px">
+      <label>GoFundMe link<input id="fFund" type="url" placeholder="https://www.gofundme.com/..."></label>
+      <label>Amazon gift list link<input id="fGift" type="url" placeholder="https://www.amazon.com/..."></label>
+    </div></details>
+  <div class="err" id="err3" role="alert"></div>
+  <div class="navrow"><button class="ghost" type="button" data-go="2">Back</button><button id="next3" type="button">Next: share it</button></div>
 </section>
 
-<!-- ====== LOADING ====== -->
-<section class="screen" id="loading">
-  <div class="loader"><span class="pot">🍲</span><p id="loadmsg">Reading the profile…</p></div>
-</section>
-
-<!-- ====== MENU BOARD ====== -->
-<section class="screen" id="menu">
-  <div class="eyebrow"><span data-i18n="menu_eyebrow">This week's menu</span> · <span id="mname">for them</span></div>
-  <h1 class="h1" data-i18n="menu_title">Pick what sounds good.</h1>
-  <p class="sub" data-i18n="menu_sub">Seven choices for every mealtime, breakfast through dessert. Tap to approve — only approved meals go to the Care Circle.</p>
-  <div class="vet" id="vetline">✔️ <span></span></div>
-  <div class="alert-allergy" id="allergyline" style="display:none;"></div>
-  <div id="menuboard"></div>
-  <div class="tipbox" id="tips"></div>
-  <button class="btn ghost" onclick="buildMenu()" data-i18n="menu_rebuild">↻ Build a different menu</button>
-  <button class="btn ghost" id="selallbtn" onclick="selectAllMenu()" data-i18n="menu_selall">Select all recipes</button>
-  <button class="btn amber" id="sendbtn" onclick="sendToCircle()" data-i18n="menu_send">Approve meals &amp; send to Care Circle</button>
-  <br><button class="btn ghost sm" id="checkbtn" onclick="menuCheck()" data-i18n="menu_check">Check my menu for conflicts →</button>
-  <div class="card" id="menucheck" style="display:none;"></div>
-</section>
-
-<!-- ====== CIRCLE / CLAIMS ====== -->
-<section class="screen" id="circle">
-  <div class="eyebrow" id="circle-eyebrow">Care Circle</div>
-  <h1 class="h1" id="circle-h1" data-i18n="circle_title">Choose what you'll cook.</h1>
-  <p class="sub" id="circle-sub"></p>
-  <div id="ccHub"></div>
-  <div class="alert-allergy" id="allergyline2"></div>
-  <div id="shareBox"></div>
-  <div id="claimlist"></div>
-</section>
-
-<!-- ====== CALENDAR ====== -->
-<section class="screen" id="calendar">
-  <div class="eyebrow" data-i18n="cal_eyebrow">Calendar</div>
-  <h1 class="h1" data-i18n="cal_title">Every meal has a name on it.</h1>
-  <p class="sub" id="calsub" data-i18n="cal_sub">Claimed meals lock to the calendar. Reminders go out the day before.</p>
-  <div class="calnav">
-    <button class="btn ghost sm" onclick="calShift(-1)" data-i18n="cal_prev">‹ Previous week</button>
-    <b id="calrange"></b>
-    <button class="btn ghost sm" onclick="calShift(1)" data-i18n="cal_next">Next week ›</button>
+<!-- STEP 4: SHARE -->
+<section class="screen" id="s4" hidden>
+  <div><div class="eyebrow">Step 4</div><h1>Send the link and password</h1>
+  <p class="muted" style="margin-top:8px">Friends need both. Send them together in one message.</p></div>
+  <div class="q"><span class="qt">Password</span><div class="pw" id="pwBig">······</div></div>
+  <div class="q"><span class="qt">The message friends get</span><div class="msg" id="msgPrev"></div></div>
+  <div class="share">
+    <a class="btn gold" id="shText" href="#">Send by text</a>
+    <a class="btn gold" id="shWa" href="#" target="_blank" rel="noopener">Send on WhatsApp</a>
+    <a class="btn ghost" id="shMail" href="#">Send by email</a>
+    <button class="ghost" id="shCopy" type="button">Copy message</button>
   </div>
-  <div class="cal" id="calgrid"></div>
-  <button class="btn ghost sm" id="treatbtn" onclick="toggleTreatMode()">💉 <span data-i18n="cal_add_treat">Add a treatment date</span></button>
-  <p class="sub" id="treathint" style="display:none;" data-i18n="cal_treat_hint">Tap any day to mark or unmark it as a treatment day. Tap “Done” when finished.</p>
-  <div class="card" id="calstatus"></div>
+  <details class="more"><summary>Change the password</summary>
+    <div style="display:flex;gap:10px;margin-top:10px"><input id="newPw" inputmode="numeric" maxlength="8" placeholder="4–8 numbers"><button class="ghost" id="pwSave" type="button">Save</button></div>
+    <p class="small muted" style="margin-top:6px">Friends who already joined will need the new one.</p></details>
+  <div class="navrow"><button class="ghost" type="button" data-go="3">Back</button><a class="btn" id="toCircle" href="#">See the Care Circle page</a></div>
 </section>
 
-<!-- ====== COOKBOOK ====== -->
-<section class="screen" id="cookbook">
-  <div class="eyebrow" data-i18n="cb_eyebrow">The MealKind Cookbook™</div>
-  <h1 class="h1" data-i18n="cb_title">Every recipe. Every condition.</h1>
-
-  <!-- Recommended books (store) — MealKind links out; no payment is processed here -->
-  <div class="slot-h" data-i18n="books_title">Recommended Books</div>
-  <p class="sub" style="margin-top:2px;" data-i18n="books_sub">Nutrition cookbooks vetted for your condition — written by specialists and survivors.</p>
-  <div class="bookrow" id="bookrow"></div>
-  <p class="sub" style="font-size:.8rem;"><span data-i18n="books_author">Are you a cookbook author? Email</span> <a href="mailto:hello@mealkind.com?subject=Cookbook%20Listing" style="color:var(--forest);font-weight:600;">hello@mealkind.com</a> <span data-i18n="books_author2">with ‘Cookbook Listing’ in the subject.</span></p>
-
-  <div class="slot-h" data-i18n="cb_library">Recipe library</div>
-  <p class="sub" data-i18n="cb_sub">The full library behind the menus — browse by condition, cook anything. The print edition is coming; pilot proceeds keep patient access free.</p>
-  <select id="cbfilter" onchange="renderCookbook()">
-    <option value="all" data-i18n="cb_all">All conditions</option>
-    <option value="cancer" data-i18n="c_cancer">Cancer</option><option value="dialysis" data-i18n="c_dialysis">Kidney / Dialysis</option>
-    <option value="cardio" data-i18n="c_cardio">Cardiovascular</option><option value="stroke" data-i18n="c_stroke">Stroke recovery</option>
-    <option value="gi" data-i18n="c_gi">GI / Intestinal</option><option value="ortho" data-i18n="c_ortho">Orthopedic recovery</option>
-    <option value="parkinsons" data-i18n="c_parkinsons">Parkinson's</option><option value="als" data-i18n="c_als">ALS</option>
-    <option value="tbi" data-i18n="c_tbi">TBI</option><option value="alzheimers" data-i18n="c_alzheimers">Alzheimer's / Dementia</option>
-    <option value="depression" data-i18n="c_depression">Depression</option><option value="postpartum" data-i18n="c_postpartum">Postpartum</option>
-  </select>
-  <label style="display:flex;align-items:center;gap:6px;margin:8px 0;font-size:.85rem;color:var(--soft);">
-    <input type="checkbox" id="cbShowAll" onchange="renderCookbook()">
-    <span data-i18n="cb_showall">Show recipes outside my allergy/diet restrictions too</span>
-  </label>
-  <div class="cbbar">
-    <button class="btn amber sm" onclick="toggleAddForm()" data-i18n="cb_add">+ Add a recipe</button>
-    <button class="btn ghost sm" onclick="exportBook()" data-i18n="cb_save">&#11015; Save my book</button>
-    <button class="btn ghost sm" onclick="document.getElementById('importIn').click()" data-i18n="cb_load">&#11014; Load my book</button>
-    <input type="file" id="importIn" accept=".json" hidden onchange="importBook(this)">
+<!-- HOME (returning family) -->
+<section class="screen" id="home" hidden>
+  <div><div class="eyebrow">Your Care Circle</div><h1 id="hTitle">Meals for…</h1></div>
+  <div class="stats"><div><b id="stRec">0</b>recipes</div><div><b id="stMeals">0</b>meals planned</div><div><b id="stPw">–</b>password</div></div>
+  <div class="menu">
+    <a class="btn main" id="hCircle" href="#">Open the calendar<small>See who's cooking and mark treatment days</small></a>
+    <button type="button" data-go="4">Share the link and password<small>Text, WhatsApp or email</small></button>
+    <button type="button" data-go="2">Change the recipes<small id="hRecSub">Add or remove recipes friends can choose</small></button>
+    <button type="button" data-go="3">Edit the note and drop-off<small>What friends read first</small></button>
+    <button type="button" data-go="1">Update illness and allergies<small id="hCond"></small></button>
   </div>
-  <div class="card" id="addform" style="display:none;">
-    <b style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--forest);" data-i18n="af_title">Add to the family cookbook</b>
-    <div class="field"><label data-i18n="af_photo">Photo (optional — snap a handwritten card)</label>
-      <button class="btn ghost sm" onclick="document.getElementById('photoIn').click()" style="margin-top:0;" data-i18n="af_addphoto">&#128247; Add photo</button>
-      <input type="file" id="photoIn" accept="image/*" hidden onchange="handlePhoto(this)">
-      <img class="preview" id="addpreview" alt="">
-    </div>
-    <div class="field"><label data-i18n="af_name">Recipe name</label><input type="text" id="my-name" placeholder="Grandma's chicken &amp; rice" style="margin-top:0;"></div>
-    <div class="field"><label data-i18n="af_slot">Mealtime</label>
-      <select id="my-slot" style="margin-top:0;">
-        <option value="breakfast" data-i18n="sl_breakfast">Breakfast</option><option value="lunch" data-i18n="sl_lunch">Lunch</option>
-        <option value="snack" data-i18n="sl_snack1">Snack</option><option value="dinner" selected data-i18n="sl_dinner">Dinner</option><option value="dessert" data-i18n="sl_dessert1">Dessert</option>
-      </select></div>
-    <div class="field"><label data-i18n="af_good">Good for (tap all that apply — leave empty for everyone)</label>
-      <div class="chips" id="my-conds"></div></div>
-    <div class="field"><label data-i18n="af_why">Why it helps (one warm line)</label><input type="text" id="my-why" placeholder="Soft, comforting, and it always gets eaten." style="margin-top:0;"></div>
-    <div class="field"><label data-i18n="af_time">Time</label><input type="text" id="my-time" placeholder="30 min" style="margin-top:0;"></div>
-    <div class="field"><label data-i18n="af_ings">Shopping list — one ingredient per line ("item - amount")</label>
-      <textarea id="my-ings" placeholder="Chicken thighs - 2 lb&#10;White rice - 2 lb&#10;Carrots - 1 lb"></textarea></div>
-    <div class="field"><label data-i18n="af_steps">Steps — one per line, keep it to 3-4</label>
-      <textarea id="my-steps" placeholder="Brown the chicken.&#10;Add rice and broth; simmer 25 min.&#10;Rest 5 minutes and serve."></textarea></div>
-    <button class="btn amber" onclick="saveMyRecipe()" data-i18n="af_save">Save to the cookbook</button>
-    <button class="btn ghost sm" onclick="toggleAddForm()" data-i18n="cancel">Cancel</button>
-  </div>
-  <div id="cbbody"></div>
+  <details class="more card"><summary>Use MealKind on another phone</summary>
+    <p class="small" style="margin:8px 0">This private link lets someone manage the circle with you, for example your partner. Don't send it to friends.</p>
+    <button class="ghost sm" id="famLink" type="button">Copy private family link</button></details>
+  <p class="small muted" style="text-align:center"><button class="link" id="newCircle" type="button">Set up a circle for someone else</button></p>
 </section>
 
-<!-- ====== SHOP / COOK / DELIVER ====== -->
-<section class="screen" id="shop">
-  <button class="back" onclick="show('circle')" data-i18n="shop_back">← Back to the menu</button>
-  <div class="eyebrow" id="shop-eyebrow">Your claimed meal</div>
-  <div class="card" id="recipecard"></div>
-  <div class="card">
-    <b style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--forest);" data-i18n="shop_list">Shopping list</b>
-    <div id="inglist"></div>
-    <div class="q-label" style="margin-top:14px;" data-i18n="shop_store">Tap a store to order ingredients to your home</div>
-    <div class="store-grid" id="stores"></div>
-  </div>
-  <div class="card" id="statuscard">
-    <b style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--forest);" data-i18n="shop_cook">Cook &amp; deliver</b>
-    <p class="sub" style="margin-top:2px;" data-i18n="shop_cook_sub">Move it along as you go — the family sees every step.</p>
-    <div style="margin-top:10px;" id="statusflow"></div>
-  </div>
-  <div class="err" id="err2"></div>
-</section>
-
+<p class="ver">Version 13 · 9 Oct 2026</p>
 </main>
-
-<nav class="bottom" id="bnav" style="display:none;">
-  <button class="active" data-s="menu" onclick="navTo(this)"><span class="ico">📋</span><span data-i18n="nav_menu">Menu</span></button>
-  <button data-s="circle" onclick="navTo(this)"><span class="ico">🤝</span><span data-i18n="nav_circle">Care Circle</span></button>
-  <button data-s="calendar" onclick="navTo(this)"><span class="ico">📅</span><span data-i18n="nav_calendar">Calendar</span></button>
-  <button data-s="cookbook" onclick="navTo(this)"><span class="ico">📖</span><span data-i18n="nav_cookbook">Cookbook</span></button>
-</nav>
-
-<div class="err" id="err1" style="max-width:680px;margin:12px auto;"></div>
-<footer data-i18n="footer">MealKind menus follow frameworks reviewed by registered dietitians in each specialty. Food coordination, not medical advice — care-team instructions always come first.</footer>
+<div class="toast" id="toast" hidden></div>
 
 <script>
-/* ================= LANGUAGE (EN / ES) =================
-   Static text: elements with data-i18n="key" (English lives in the HTML
-   and is copied into T.en on first run). Placeholders: data-i18n-ph.
-   Dynamic text: tr('key'). Choice is saved in localStorage 'mk_lang'.
-   Recipe names, ingredients and steps are English-only for now.       */
-const T={
-en:{
- ob2_title:'Details for {c}, kept simple.',
- load1:'Reading the profile…',load2:'Applying the specialist framework…',load3:'Screening for allergies…',load4:'Writing seven choices per mealtime…',load_recipe:'Writing the full recipe & shopping list…',
- for_name:'for {n}',choices:'{n} choices',recipes_n:'{n} recipes',
- sl_breakfast:'Breakfast',sl_lunch:'Lunch',sl_snack:'Snacks',sl_dinner:'Dinner',sl_dessert:'Desserts',sl_infusion:'Infusion day',
- infusion_label:'Infusion-day plan',infusion_sub:'For the days around infusion — cold, gentle, low-smell.',
- travels:'⚠️ <b>Travels with every recipe:</b> no {a}. Volunteers see this on everything they cook.',
- no_safe_slot:'⚠️ Nothing in the recipe library clears every restriction for {s} right now. Please plan this meal manually with the care team rather than picking from this board.',
- tips_h:'Tips & tricks · {c}',my_recipe:'My recipe',
- err_approve:'Tap at least one meal to approve it first.',
- err_create:'Could not create your Care Circle board — check your connection and try again.',
- err_save:'Some meals didn’t save to the shared board — try refreshing.',
- err_claimed:'Someone may have just claimed this — refreshing the board.',
- err_status:'Only the person who claimed this meal (or the family) can update it.',
- err_family_only:'Only the family’s device can add meals to this board. Start a new menu from “Family” to create your own circle.',
- circle_eyebrow:'Care Circle · for {n}',
- circle_sub:'Every meal below was chosen for {n} and screened against their allergies and restrictions. Claim one — you get the recipe, the shopping list, and a delivery day.',
- before_cook:'⚠️ <b>Before you cook anything:</b> absolutely no {a}. This warning rides on every recipe and shopping list.',
- also_avoid:'Also avoid: {d}.',
- no_allergies:'✔️ No allergies on file — the specialist menu rules still apply to every recipe.',
- no_menu_yet:'The family hasn’t approved this week’s menu yet. Check back soon.',
- st_open:'Open — claim it',st_claimed:'Claimed',st_shopping:'Ingredients ordered',st_cooking:'Cooking',st_done:'Delivered ✓',
- cook_this:"I'll cook this →",open_recipe:'Open recipe & status →',
- ask_name:"Your name, so the family knows who's cooking:",
- ask_email:'Your email (optional) — lets you update this meal from another phone:',
- ask_email_update:'Enter the email you used when you claimed this meal:',
- shield_ok:'🛡️ Safe',shield_warn:'⚠️ Check needed',
- share_title:'Share your Care Circle',share_sub:'Send this link by WhatsApp, text, or email — or post the QR code.',
- share_msg:"I've been added to {n}'s MealKind Care Circle. Tap to see what meals are needed and claim one to cook: {l}",
- share_copy:'Copy link',share_copied:'Copied!',share_wa:'WhatsApp',share_sms:'Text message',share_more:'Share…',
- cal_range:'Week of {r}',cal_summary:'{p} meals planned · {c} claimed · {d} delivered',
- cal_cover:'{n} of 7 days covered',cal_treat:'💉 Treatment day',cal_treat_note:'Plan cold, gentle meals on treatment days.',
- cal_done:'Done',unclaimed:'unclaimed',
- books_amazon:'Buy on Amazon',books_author_btn:'Buy from Author',books_none:'No recommended books for this condition yet.',
- hidden_n:'🛡️ {n} recipe(s) hidden for containing a listed allergy or restriction. Check “Show recipes outside my restrictions” above to see them anyway.',
- universal:'Universal — safe across conditions',good_for:'Good for:',not_checked:'⚠️ Not yet checked for allergies',remove_mine:'Remove from my book',
- safe_for:'Safe for:',order_ings:'Order ingredients',
- vet_ok:'✅ Safe for {n}',vet_warn:'⚠️ Check before cooking — contains {i}, which conflicts with {n}’s restrictions.',
- abs_no:'⚠️ Absolutely no {a} — check every label.',texture_note:'🥄 Texture guidance: {t} — per the care team.',tx_soft_l:'soft & moist only',tx_pureed_l:'pureed / minced',
- pantry:'(pantry staple — probably already have it)',
- fl_claimed:'✋ Claimed',fl_shopping:'🛒 Ingredients ordered',fl_cooking:'🍳 Cooking',fl_done:'🚗 Delivered',
- nx_shopping:'Mark ingredients ordered',nx_cooking:'Start cooking',nx_done:'Mark delivered 🎉',
- delivered_thanks:'Delivered. The family can see it on the board — thank you. 💛',
- check_title:'Menu check',check_none:'Approve a few meals first, then run the check.',check_clear:'clear',check_contains:'contains {i}',
- check_ok_all:'Every approved meal clears {n}’s allergies and restrictions.',check_bad:'{k} meal(s) need a second look before they go to the Care Circle.',
- your_person:'your person',
- st_heb:'Curbside & delivery',st_walmart:'Delivery',st_kroger:'Pickup & delivery',st_instacart:'1-hr · any local store',st_amazon:'Same-day',st_wf:'Prime delivery',
- fam_invalid:'This Care Circle link isn’t valid anymore. Ask the family to send it again.'
-},
-es:{
- vt_family:'Paciente',vt_circle:'Apoyo',menu_selall:'Seleccionar todas',
- ob1_eyebrow:'Bienvenida · 1 de 3',ob1_title:'¿Para quién cocinamos?',
- ob1_sub:'Un minuto de preguntas. Después, cada menú, receta y lista de compras se arma — y se revisa — para esta persona.',
- ob1_name:'Su nombre',ob1_facing:'¿Qué están enfrentando?',continue:'Continuar →',back:'← Atrás',
- c_cancer:'Cáncer',c_cancer_s:'Todos los tipos · en tratamiento o después',
- c_dialysis:'Enfermedad renal / Diálisis',c_dialysis_s:'Dieta renal',
- c_cardio:'Cardiovascular',c_cardio_s:'Enfermedad cardíaca · después de un evento cardíaco',
- c_stroke:'Recuperación de derrame cerebral',c_stroke_s:'Seguro para tragar · cuida la presión',
- c_gi:'GI / Intestinal',c_gi_s:'Crohn · colitis · colon irritable · post-cirugía',
- c_ortho:'Recuperación ortopédica',c_ortho_s:'Cirugía · fractura · reemplazo de articulación',
- c_parkinsons:'Párkinson',c_parkinsons_s:'Cuida horarios de medicina y texturas',
- c_als:'ELA',c_als_s:'Alta en calorías · seguro para tragar',
- c_tbi:'Lesión cerebral traumática',c_tbi_s:'Recuperación de lesión cerebral',
- c_alzheimers:'Alzhéimer / Demencia',c_alzheimers_s:'Estilo MIND · comida para comer con la mano',
- c_depression:'Depresión',c_depression_s:'Poca energía · poco apetito',
- c_postpartum:'Posparto',c_postpartum_s:'Recuperación · apoyo a la nueva mamá',
- ob2_eyebrow:'Bienvenida · 2 de 3',ob2_title:'Detalles para {c}, sin complicaciones.',
- ob2_ctype:'¿Qué tipo de cáncer?',ct_select:'Elige el tipo de cáncer…',ct_breast:'Mama',ct_lung:'Pulmón',ct_colorectal:'Colorrectal',ct_prostate:'Próstata',
- ct_pancreatic:'Páncreas',ct_stomach:'Estómago / Gástrico',ct_esophageal:'Esófago',ct_liver:'Hígado',ct_kidney:'Riñón',ct_bladder:'Vejiga',ct_ovarian:'Ovario',
- ct_uterine:'Útero / Endometrio',ct_cervical:'Cervicouterino',ct_headneck:'Cabeza y cuello',ct_brain:'Cerebro',ct_leukemia:'Leucemia',ct_lymphoma:'Linfoma',
- ct_myeloma:'Mieloma múltiple',ct_melanoma:'Melanoma / Piel',ct_sarcoma:'Sarcoma',ct_thyroid:'Tiroides',ct_other:'Otro / no estoy seguro',
- ob2_chemo:'¿Está en quimioterapia?',chemo_yes:'Sí — en un ciclo',no:'No',
- ob2_swallow:'Indicaciones para tragar de su equipo médico',tx_regular:'Texturas normales',tx_soft:'Solo suave y húmedo',tx_pureed:'En puré / picado',
- ob2_allergies:'Alergias y “nunca” absolutos (viajan con cada receta)',
- al_tree_nut:'Nueces',al_peanut:'Cacahuates',al_milk:'Lácteos',al_wheat_gluten:'Gluten',al_shellfish:'Mariscos',al_egg:'Huevo',al_fish:'Pescado',al_sesame:'Ajonjolí',
- ph_allergyother:'Algo más (ej. toronja — interacción con medicina)',
- ob2_diet:'Alimentos a evitar por salud (no es un diagnóstico — solo lo que hay que evitar)',
- dr_high_potassium:'Alto en potasio (plátano, papa)',dr_high_sodium:'Alto en sodio',dr_high_sugar:'Alto en azúcar',dr_acidic:'Ácidos (cítricos, jitomate)',
- ob2_loves:'Lo que le encanta / lo que no soporta ahora',ph_loves:'Le encanta: ej. sopas, todo con limón',ph_hates:'No soporta: ej. carne roja, fritos',
- ob3_eyebrow:'Bienvenida · 3 de 3',ob3_title:'Arma el Círculo de Cuidado.',
- ob3_sub:'Familia y amigos que siempre dicen “avísame si necesitas algo”. Esto es ese algo. Ven el menú aprobado y apartan lo que van a cocinar — nunca ven detalles médicos.',
- ob3_s1:'Aprueba las comidas',ob3_s1d:'Elige lo que se te antoje del menú de la semana.',
- ob3_s2:'Comparte un solo enlace',ob3_s2d:'Envíalo por WhatsApp, mensaje o correo — o imprime el código QR.',
- ob3_s3:'Ellos apartan y cocinan',ob3_s3d:'Cada comida muestra quién cocina y cuándo se entregó.',
- ob3_build:'Arma el menú de esta semana ✨',
- menu_eyebrow:'El menú de esta semana',menu_title:'Elige lo que se te antoje.',
- menu_sub:'Siete opciones para cada comida, del desayuno al postre. Toca para aprobar — solo las comidas aprobadas llegan al Círculo de Cuidado.',
- menu_rebuild:'↻ Armar otro menú',menu_send:'Aprobar comidas y enviar al Círculo de Cuidado',menu_check:'Revisar mi menú por conflictos →',
- circle_title:'Elige lo que vas a cocinar.',
- cal_eyebrow:'Calendario',cal_title:'Cada comida tiene un nombre.',cal_sub:'Las comidas apartadas quedan en el calendario.',
- cal_prev:'‹ Semana anterior',cal_next:'Semana siguiente ›',cal_add_treat:'Agregar día de tratamiento',
- cal_treat_hint:'Toca cualquier día para marcarlo o desmarcarlo como día de tratamiento. Toca “Listo” al terminar.',
- cb_eyebrow:'El Recetario MealKind™',cb_title:'Cada receta. Cada condición.',
- books_title:'Libros recomendados',books_sub:'Libros de cocina y nutrición revisados para tu condición — escritos por especialistas y sobrevivientes.',
- books_author:'¿Escribiste un libro de cocina? Escribe a',books_author2:'con “Cookbook Listing” en el asunto.',
- cb_library:'Biblioteca de recetas',
- cb_sub:'La biblioteca completa detrás de los menús — busca por condición, cocina lo que quieras. La edición impresa viene en camino; lo recaudado mantiene el acceso gratis para los pacientes.',
- cb_all:'Todas las condiciones',cb_showall:'Mostrar también recetas fuera de mis alergias/restricciones',
- cb_add:'+ Agregar receta',cb_save:'⬇ Guardar mi recetario',cb_load:'⬆ Cargar mi recetario',
- af_title:'Agregar al recetario familiar',af_photo:'Foto (opcional — tómale foto a una receta escrita a mano)',af_addphoto:'📷 Agregar foto',
- af_name:'Nombre de la receta',af_slot:'Comida del día',sl_snack1:'Botana',sl_dessert1:'Postre',
- af_good:'Buena para (marca las que apliquen — vacío = para todos)',af_why:'Por qué ayuda (una frase cálida)',af_time:'Tiempo',
- af_ings:'Lista de compras — un ingrediente por línea (“ingrediente - cantidad”)',af_steps:'Pasos — uno por línea, máximo 3-4',
- af_save:'Guardar en el recetario',cancel:'Cancelar',
- shop_back:'← Volver al menú',shop_list:'Lista de compras',shop_store:'Toca una tienda para pedir los ingredientes a tu casa',
- shop_cook:'Cocinar y entregar',shop_cook_sub:'Avanza el estado conforme vas — la familia ve cada paso.',
- nav_menu:'Menú',nav_circle:'Círculo',nav_calendar:'Calendario',nav_cookbook:'Recetario',
- footer:'Los menús de MealKind siguen marcos revisados por dietistas registrados en cada especialidad. Coordinación de comida, no consejo médico — las indicaciones del equipo médico siempre van primero.',
- load1:'Leyendo el perfil…',load2:'Aplicando el marco del especialista…',load3:'Revisando alergias…',load4:'Escribiendo siete opciones por comida…',load_recipe:'Preparando la receta completa y la lista de compras…',
- for_name:'para {n}',choices:'{n} opciones',recipes_n:'{n} recetas',
- sl_breakfast:'Desayuno',sl_lunch:'Comida',sl_snack:'Botanas',sl_dinner:'Cena',sl_dessert:'Postres',sl_infusion:'Día de infusión',
- infusion_label:'Plan para días de infusión',infusion_sub:'Para los días cerca de la infusión — frío, suave y con poco olor.',
- travels:'⚠️ <b>Viaja con cada receta:</b> nada de {a}. Los voluntarios lo ven en todo lo que cocinan.',
- no_safe_slot:'⚠️ Ninguna receta de la biblioteca cumple todas las restricciones para {s} por ahora. Planea esta comida con el equipo médico en lugar de elegir de esta lista.',
- tips_h:'Consejos · {c}',my_recipe:'Mi receta',
- err_approve:'Toca al menos una comida para aprobarla primero.',
- err_create:'No se pudo crear tu Círculo de Cuidado — revisa tu conexión e intenta de nuevo.',
- err_save:'Algunas comidas no se guardaron — intenta recargar.',
- err_claimed:'Alguien acaba de apartar esta comida — actualizando.',
- err_status:'Solo quien apartó esta comida (o la familia) puede actualizarla.',
- err_family_only:'Solo el dispositivo de la familia puede agregar comidas a este círculo. Empieza un menú nuevo desde “Familia” para crear tu propio círculo.',
- circle_eyebrow:'Círculo de Cuidado · para {n}',
- circle_sub:'Cada comida de abajo se eligió para {n} y se revisó contra sus alergias y restricciones. Aparta una — recibes la receta, la lista de compras y un día de entrega.',
- before_cook:'⚠️ <b>Antes de cocinar:</b> absolutamente nada de {a}. Esta advertencia viaja con cada receta y lista de compras.',
- also_avoid:'Evita también: {d}.',
- no_allergies:'✔️ Sin alergias registradas — las reglas del menú especializado aplican a cada receta.',
- no_menu_yet:'La familia todavía no aprueba el menú de esta semana. Vuelve pronto.',
- st_open:'Disponible — reclamarlo',st_claimed:'Apartado',st_shopping:'Ingredientes pedidos',st_cooking:'Cocinando',st_done:'Entregado ✓',
- cook_this:'Yo cocinaré esto →',open_recipe:'Ver receta y estado →',
- ask_name:'Tu nombre, para que la familia sepa quién cocina:',
- ask_email:'Tu correo (opcional) — para actualizar esta comida desde otro teléfono:',
- ask_email_update:'Escribe el correo que usaste al apartar esta comida:',
- shield_ok:'🛡️ Segura',shield_warn:'⚠️ Revisar',
- share_title:'Comparte tu Círculo de Cuidado',share_sub:'Envía este enlace por WhatsApp, mensaje o correo — o comparte el código QR.',
- share_msg:'Me agregaron al Círculo de Cuidado de MealKind de {n}. Toca para ver qué comidas se necesitan y apartar una para cocinar: {l}',
- share_copy:'Copiar enlace',share_copied:'¡Copiado!',share_wa:'WhatsApp',share_sms:'Mensaje de texto',share_more:'Compartir…',
- cal_range:'Semana del {r}',cal_summary:'{p} comidas planeadas · {c} apartadas · {d} entregadas',
- cal_cover:'{n} de 7 días cubiertos',cal_treat:'💉 Día de tratamiento',cal_treat_note:'Planea comidas frías y suaves en los días de tratamiento.',
- cal_done:'Listo',unclaimed:'sin apartar',
- books_amazon:'Comprar en Amazon',books_author_btn:'Comprar al autor',books_none:'Aún no hay libros recomendados para esta condición.',
- hidden_n:'🛡️ {n} receta(s) ocultas por contener una alergia o restricción registrada. Marca “Mostrar también recetas fuera de mis restricciones” para verlas.',
- universal:'Universal — segura para todas las condiciones',good_for:'Buena para:',not_checked:'⚠️ Aún no revisada por alergias',remove_mine:'Quitar de mi recetario',
- safe_for:'Segura para:',order_ings:'Pedir ingredientes',
- vet_ok:'✅ Segura para {n}',vet_warn:'⚠️ Revisa antes de cocinar — contiene {i}, que choca con las restricciones de {n}.',
- abs_no:'⚠️ Absolutamente nada de {a} — revisa cada etiqueta.',texture_note:'🥄 Textura: {t} — según el equipo médico.',tx_soft_l:'solo suave y húmedo',tx_pureed_l:'en puré / picado',
- pantry:'(básico de despensa — seguro ya lo tienes)',
- fl_claimed:'✋ Apartado',fl_shopping:'🛒 Ingredientes pedidos',fl_cooking:'🍳 Cocinando',fl_done:'🚗 Entregado',
- nx_shopping:'Marcar ingredientes pedidos',nx_cooking:'Empezar a cocinar',nx_done:'Marcar entregado 🎉',
- delivered_thanks:'Entregado. La familia ya lo ve en el tablero — gracias. 💛',
- check_title:'Revisión del menú',check_none:'Primero aprueba algunas comidas y luego revisa.',check_clear:'sin conflictos',check_contains:'contiene {i}',
- check_ok_all:'Todas las comidas aprobadas respetan las alergias y restricciones de {n}.',check_bad:'{k} comida(s) necesitan revisión antes de enviarlas al Círculo de Cuidado.',
- your_person:'tu ser querido',
- st_heb:'Recoger y entrega',st_walmart:'Entrega',st_kroger:'Recoger y entrega',st_instacart:'1 hora · cualquier tienda',st_amazon:'Mismo día',st_wf:'Entrega Prime',
- fam_invalid:'Este enlace del Círculo de Cuidado ya no es válido. Pide a la familia que lo envíe de nuevo.'
-}};
-const COND_ES={cancer:'Cáncer',dialysis:'Enfermedad renal / Diálisis',cardio:'Cardiovascular',stroke:'Recuperación de derrame cerebral',gi:'GI / Intestinal',ortho:'Recuperación ortopédica',parkinsons:'Párkinson',als:'ELA',tbi:'Lesión cerebral traumática',alzheimers:'Alzhéimer / Demencia',depression:'Depresión',postpartum:'Posparto'};
-const VETBY_ES={
- cancer:'Marco de menú revisado por una dietista oncológica certificada (RD, CSO).',
- dialysis:'Basado en las guías de la National Kidney Foundation y los NIH para la dieta renal: cuida potasio, fósforo, sodio y líquidos. Confirma las porciones con tu dietista renal.',
- cardio:'Marco de menú revisado por una dietista cardíaca — bajo en sodio, grasas saludables.',
- stroke:'Marco de menú revisado por una dietista de rehabilitación — texturas seguras, cuida la presión.',
- gi:'Marco de menú revisado por una dietista gastrointestinal — cocina suave y con pocos detonantes.',
- ortho:'Marco de menú revisado por una dietista de recuperación — proteína, calcio y vitamina D para sanar.',
- parkinsons:'Marco de menú revisado por una dietista neurológica — cuida horarios de medicina y texturas.',
- als:'Marco de menú revisado por una dietista neurológica y terapeuta del lenguaje — alto en calorías, seguro para tragar.',
- tbi:'Marco de menú revisado por una dietista de recuperación neurológica — omega-3 y energía constante.',
- alzheimers:'Marco de menú revisado por una dietista en demencia — estilo MIND, comida para comer con la mano.',
- depression:'Marco de menú revisado por una dietista especializada en nutrición y salud mental.',
- postpartum:'Marco de menú revisado por una dietista perinatal — recuperación, hierro y lactancia.'};
-const TIPS_ES={
- cancer:['En días de infusión, lo frío es mejor que lo caliente — la comida fría huele menos, y el olor es el detonante #1 de náusea.','¿Sabor metálico? Usa cubiertos de bambú y agrega limón a los platillos salados.','Sirve platos pequeños — un plato pequeño se ve fácil de terminar.','Proteína primero en cada comida; reconstruye entre ciclos.'],
- dialysis:['En diálisis se necesita más proteína: huevo, pollo, pescado y cerdo fresco en casi todas las comidas.','Evita los sustitutos de sal y la sal "lite"; muchos contienen potasio.','Revisa las etiquetas por ingredientes con "fos" (ácido fosfórico, fosfato de sodio) y elige carne fresca sin solución añadida.','Enjuaga las verduras y el atún enlatados; hierve dos veces las papas si las usas.','Sazona con hierbas, ajo y limón, nunca con el salero.','Límite de líquidos: sopas, hielo, gelatina y paletas cuentan como líquidos.'],
- cardio:['Más aceite de oliva, menos mantequilla — las grasas importan tanto como la sal.','Pescado dos veces por semana es la cardiología más barata.','La avena y los frijoles bajan el colesterol cada vez que se sirven.','Lee etiquetas: casi todo el sodio se esconde en pan, salsas y carnes frías.'],
- stroke:['Sigue exactamente la textura que indicó el terapeuta del lenguaje — es una orden de seguridad, no una preferencia.','Húmedo es mejor que seco: salsas y gravy hacen cada bocado más seguro.','Comida para comer con la mano y cubiertos de mango grueso devuelven independencia en la mesa.','Mantén bajo el sodio — la presión es el socio silencioso de la rehabilitación.'],
- gi:['Usa aceite infusionado con ajo en lugar de ajo — el sabor sin el detonante.','Comidas pequeñas y frecuentes son mejores que tres grandes durante una crisis.','Pela frutas y verduras cuando el estómago está sensible.','Lleva una nota sencilla de comida + síntomas — los patrones aparecen rápido.'],
- ortho:['Proteína en cada comida — el hueso y el músculo sanan con proteína.','Calcio más vitamina D, diario, hasta que te den de alta.','La vitamina C construye el colágeno con el que cuenta el cirujano.','Prepara estaciones para trabajar sentado — la cocina queda lejos con muletas.'],
- parkinsons:['Si toma levodopa, separa la proteína de las dosis como indique el equipo médico.','Texturas suaves y húmedas en días de temblor; mejor tazones que platos.','Cubiertos de mango grueso y vasos con tapa mantienen la independencia.','Comidas más pequeñas y frecuentes ayudan cuando la medicina quita el apetito.'],
- als:['Las calorías son la receta — refuerza todo con crema, mantequilla y cremas de nueces.','Sigue la indicación para tragar del terapeuta en cada textura.','Húmedo, suave y a temperatura ambiente suele ser lo más seguro.','Bajar de peso es el enemigo: pésalo cada semana, refuerza cada día.'],
- tbi:['Los omega-3 (salmón, nueces, huevo) reconstruyen el cerebro.','Comidas constantes evitan bajones de azúcar que empeoran la niebla mental y el dolor de cabeza.','Primero hidratación cuando sube el dolor de cabeza.','Máximo 3 pasos por receta — la fatiga de decisiones es real después de una lesión cerebral.'],
- alzheimers:['La comida para comer con la mano preserva la dignidad cuando los cubiertos se complican.','Un alimento a la vez en un plato de alto contraste ayuda a comer más.','Coman juntos — ver a alguien comer invita suavemente a comer.','Básicos estilo MIND: moras, verduras de hoja, pescado, aceite de oliva.'],
- depression:['Baja la exigencia: comer es mejor que perfecto, siempre.','Los omega-3 y las comidas constantes sí apoyan el ánimo.','Cocina doble cuando haya energía — congela el triunfo de mañana.','Una comida acompañada vale doble. Entrégala y quédate un rato.'],
- postpartum:['Solo comida para una mano — la otra carga al bebé.','El hierro se repone después del parto: res, lentejas, espinaca, con vitamina C al lado.','Agua en cada sesión de lactancia; una botella en cada cuarto.','Di que sí a cada comida ofrecida. Para eso es el Círculo de Cuidado.']};
+const SUPABASE_URL="https://cyxwfacrfrievhdgaoku.supabase.co",SUPABASE_KEY="sb_publishable_WHoTJ70SNONQhLgDUsnOlw_p56uKC-i";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}},del(k){try{localStorage.removeItem(k)}catch{}}};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,3500)}
+const ERR={not_family:"This device isn't linked to that circle.",bad_code_format:"Passwords are 4 to 8 numbers.",bad_gofundme:"The meal fund link must be a gofundme.com link.",bad_amazon:"The gift list link must be an amazon.com link."};
+const errMsg=e=>{const m=(e&&e.message)||"";const k=Object.keys(ERR).find(k=>m.includes(k));return k?ERR[k]:"Something went wrong. Check your connection and try again."};
+async function rpc(fn,args){const {data,error}=await sb.rpc(fn,args);if(error)throw error;return data}
 
-let LANG='en';
-try{LANG=localStorage.getItem('mk_lang')==='es'?'es':'en';}catch(e){}
-function tr(k,vars){
-  let s=(T[LANG]&&T[LANG][k]!=null)?T[LANG][k]:(T.en[k]!=null?T.en[k]:k);
-  if(vars)Object.keys(vars).forEach(v=>{s=s.split('{'+v+'}').join(vars[v]);});
-  return s;
-}
-function condLabel(k){return LANG==='es'?(COND_ES[k]||k):(COND_LABEL[k]||k);}
-function applyLang(lang){
-  LANG=lang==='es'?'es':'en';
-  try{localStorage.setItem('mk_lang',LANG);}catch(e){}
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const k=el.dataset.i18n;
-    if(T.en[k]==null)T.en[k]=el.innerHTML;          // English comes from the HTML
-    el.innerHTML=(LANG==='es'&&T.es[k]!=null)?T.es[k]:T.en[k];
-  });
-  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
-    const k=el.dataset.i18nPh;
-    if(T.en[k]==null)T.en[k]=el.getAttribute('placeholder')||'';
-    el.setAttribute('placeholder',(LANG==='es'&&T.es[k]!=null)?T.es[k]:T.en[k]);
-  });
-  document.documentElement.lang=LANG;
-  const en=document.getElementById('lang-en'),es=document.getElementById('lang-es');
-  if(en){en.classList.toggle('active',LANG==='en');es.classList.toggle('active',LANG==='es');}
-  rerenderActive();
-}
-
-/* ================= BACKEND (Supabase) =================
-   Care Circle data lives in Supabase and is reached ONLY through
-   secure functions (mk_*). The family's diagnosis (S.cond) is used
-   ONLY on this device to pick a menu — it is never sent anywhere.
-   Only first name, allergy/restriction flags and meal names travel.
-   - family_token (this device) lets the family add meals
-   - claim_token / email lets a volunteer update the meal they claimed */
-const SUPABASE_URL='https://cyxwfacrfrievhdgaoku.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5eHdmYWNyZnJpZXZoZGdhb2t1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5OTk5NDQsImV4cCI6MjEwNDU3NTk0NH0.mMhBjYDU5i_xnYCJZ2TzYd06bi9Wbyu_VCc0mIa5AM0';
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-
-const ALLERGY_MAP={'Tree nuts':'tree_nut','Peanuts':'peanut','Dairy':'milk','Gluten':'wheat_gluten','Shellfish':'shellfish','Eggs':'egg','Fish':'fish','Sesame':'sesame'};
-let FAMILY=null;        // {id, slug, display_name, allergy_flags, dietary_flags}
-let CIRCLE_POLL=null;
-
-function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
-function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-function familyToken(){return FAMILY?lsGet('mk_family_token_'+FAMILY.slug,null):null;}
-function claimTokens(){return lsGet('mk_claim_tokens',{});}
-
-async function createFamily(displayName,allergyFlags,dietaryFlags){
-  const {data,error}=await sb.rpc('mk_create_family',{p_name:displayName||null,p_allergy_flags:allergyFlags||[],p_dietary_flags:dietaryFlags||[]});
-  if(error||!data){flagErr('err1',tr('err_create'));return null;}
-  lsSet('mk_family_token_'+data.slug,data.family_token);
-  lsSet('mk_my_circle',data.slug);
-  FAMILY={id:data.id,slug:data.slug,display_name:data.display_name,allergy_flags:data.allergy_flags||[],dietary_flags:data.dietary_flags||[]};
-  const url=new URL(location.href);url.searchParams.set('circle',data.slug);
-  history.replaceState(null,'',url.toString());
-  return FAMILY;
-}
-
-function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function parseISO(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
-function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
-
-async function pushClaimsToDB(items){
-  if(!FAMILY)return false;
-  // The chosen recipes become the Care Circle menu; friends pick the day themselves
-  const rows=items.map(a=>({name:a.item.n,course:a.slot}));
-  const {error}=await sb.rpc('mk_set_menu',{p_slug:FAMILY.slug,p_family_token:familyToken(),p_items:rows});
-  if(error){flagErr('err1',/not_family/.test(error.message)?tr('err_family_only'):tr('err_save'));return false;}
-  if(!lsGet('mk_pw_'+FAMILY.slug,null)){
-    const pw=String(Math.floor(100000+Math.random()*900000));
-    const r=await sb.rpc('mk_set_passcode',{p_slug:FAMILY.slug,p_family_token:familyToken(),p_code:pw});
-    if(!r.error){lsSet('mk_pw_'+FAMILY.slug,pw);lsSet('mk_code_'+FAMILY.slug,pw);}
-  }
-  return true;
-}
-
-async function refreshClaimsFromDB(){
-  if(!FAMILY)return;
-  const {data,error}=await sb.rpc('mk_list_items',{p_slug:FAMILY.slug});
-  if(error||!data)return;
-  const week0=weekStart(new Date());
-  S.claims=data.map((row,i)=>{
-    // Older rows have no date — place them on this week by position, as before
-    const date=row.date_slot?parseISO(row.date_slot):addDays(week0,i%7);
-    return {id:row.id,slot:row.time_window,item:{n:row.title,why:row.description||''},
-      date:isoDate(date),day:DAYS[(date.getDay()+6)%7],vol:row.claimed_by_name,status:row.status==='in_progress'?'cooking':row.status};
-  });
-}
-
-async function claimItemInDB(id,volunteerName,email){
-  const {data,error}=await sb.rpc('mk_claim_item',{p_slug:FAMILY.slug,p_item:id,p_name:volunteerName,p_email:email||null});
-  if(error){flagErr('err1',tr('err_claimed'));}
-  else{const t=claimTokens();t[id]=data.claim_token;lsSet('mk_claim_tokens',t);}
-  await refreshClaimsFromDB();
-  return !error;
-}
-
-async function advanceStatusInDB(id,newStatus){
-  const args={p_slug:FAMILY.slug,p_item:id,p_status:newStatus,p_claim_token:claimTokens()[id]||null,p_email:null,p_family_token:familyToken()};
-  let {error}=await sb.rpc('mk_advance_item',args);
-  if(error&&/not_your_meal/.test(error.message)){
-    const email=(prompt(tr('ask_email_update'))||'').trim();
-    if(email){args.p_email=email;({error}=await sb.rpc('mk_advance_item',args));}
-  }
-  if(error){flagErr('err1',tr('err_status'));await refreshClaimsFromDB();return false;}
-  await refreshClaimsFromDB();
-  return true;
-}
-
-function startCirclePolling(){
-  if(CIRCLE_POLL)clearInterval(CIRCLE_POLL);
-  CIRCLE_POLL=setInterval(async()=>{
-    await refreshClaimsFromDB();
-    const a=document.querySelector('.screen.active');
-    if(a&&a.id==='circle')renderCircle();
-    if(a&&a.id==='calendar')renderCal();
-  },15000);
-}
-
-/* ================= STATE ================= */
-const S={cond:'cancer',chemo:'no',texture:'regular',role:'family',approved:[],claims:[],menu:null};
-/* Small flavoring/pantry staples — a volunteer almost certainly already owns these,
-   and searching for them by name (e.g. "vanilla") floods store search results with
-   irrelevant products. Shown in the recipe list, but excluded from the store search. */
-const PANTRY_STAPLES=new Set(['Cinnamon','Vanilla extract','Garlic powder','Black pepper','Dried oregano','Dried herb blend (no salt)','Dijon mustard']);
-const SLOTS=[['breakfast','Breakfast'],['lunch','Lunch'],['snack','Snacks'],['dinner','Dinner'],['dessert','Desserts']];
-const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const STORES=[
- {n:'H-E-B',i:'🛒',t:'Curbside & delivery',u:'https://www.heb.com/search/?q='},
- {n:'Walmart',i:'🏪',t:'Delivery',u:'https://www.walmart.com/search?q='},
- {n:'Kroger',i:'🏬',t:'Pickup & delivery',u:'https://www.kroger.com/search?query='},
- {n:'Instacart',i:'🥕',t:'1-hr · any local store',u:'https://www.instacart.com/store/search_v3/term?term='},
- {n:'Amazon Fresh',i:'📦',t:'Same-day',u:'https://www.amazon.com/s?k='},
- {n:'Whole Foods',i:'🍃',t:'Prime delivery',u:'https://www.wholefoodsmarket.com/search?text='}];
-const COND_LABEL={cancer:'Cancer',dialysis:'Kidney / Dialysis',cardio:'Cardiovascular',stroke:'Stroke recovery',gi:'GI / Intestinal',ortho:'Orthopedic recovery',parkinsons:"Parkinson's",als:'ALS',tbi:'TBI',alzheimers:"Alzheimer's / Dementia",depression:'Depression',postpartum:'Postpartum'};
-const VETBY={
- cancer:'Menu framework reviewed by a board-certified oncology dietitian (RD, CSO).',
- dialysis:'Built from National Kidney Foundation and NIH kidney-diet guidance: potassium, phosphorus, sodium & fluid aware. Confirm portions with your renal dietitian.',
- cardio:'Menu framework reviewed by a cardiac dietitian — low sodium, heart-healthy fats.',
- stroke:'Menu framework reviewed by a stroke-rehab dietitian — swallow-safe textures, blood-pressure aware.',
- gi:'Menu framework reviewed by a GI-specialty dietitian — gentle, low-trigger cooking.',
- ortho:'Menu framework reviewed by a recovery dietitian — protein, calcium & vitamin D for healing.',
- parkinsons:"Menu framework reviewed by a neuro dietitian — medication-timing and texture aware.",
- als:'Menu framework reviewed by a neuro dietitian & speech therapist — high-calorie, swallow-safe.',
- tbi:'Menu framework reviewed by a neuro-recovery dietitian — omega-3s and steady fuel.',
- alzheimers:'Menu framework reviewed by a dementia-care dietitian — MIND-diet aligned, finger-food friendly.',
- depression:'Menu framework reviewed by a dietitian specializing in nutrition & mental health.',
- postpartum:'Menu framework reviewed by a perinatal dietitian — recovery, iron & lactation aware.'};
-const TIPS={
- cancer:['On infusion days, cold beats hot — cold food carries less smell, the #1 nausea trigger.','Metallic taste? Switch to bamboo utensils and add lemon to savory dishes.','Serve small plates — a small plate looks finishable.','Protein first at every meal; it rebuilds between cycles.'],
- dialysis:['On dialysis, protein needs go up: eggs, chicken, fish and fresh pork at most meals.','Skip salt substitutes and "lite" salt; many are made with potassium.','Check labels for "phos" ingredients (phosphoric acid, sodium phosphate) and choose fresh meat with no added solution.','Rinse canned vegetables and tuna; double-boil potatoes if you use them.','Season with herbs, garlic and lemon, never the salt shaker.','Fluid limits: soups, ice, gelatin and ice pops count as fluids.'],
- cardio:['Olive oil in, butter mostly out — fats matter as much as salt.','Fish twice a week is the cheapest cardiology there is.','Oats and beans quietly lower cholesterol every time they\u2019re served.','Read labels: most sodium hides in bread, sauces, and deli meat.'],
- stroke:['Follow the speech therapist\u2019s texture guidance exactly — it\u2019s a safety order, not a preference.','Moist beats dry: sauces and gravies make every bite safer.','Finger foods and big-handle utensils restore independence at the table.','Keep sodium low — blood pressure is the rehab\u2019s silent partner.'],
- gi:['Use garlic-infused oil instead of garlic — the flavor without the trigger.','Small, frequent meals beat three big ones during a flare.','Peel fruits and vegetables when things are sensitive.','Keep a simple food + symptom note — patterns show up fast.'],
- ortho:['Protein at every meal — bone and muscle heal out of the protein budget.','Calcium plus vitamin D, daily, until cleared.','Vitamin C builds the collagen the surgeon is counting on.','Set up seated prep stations — counters are far away on crutches.'],
- parkinsons:["If on levodopa, time protein away from medication doses as the care team advises.",'Soft, moist textures on tremor days; bowls beat plates.','Big-handled utensils and lidded cups keep mealtimes independent.','Smaller, more frequent meals fight medication-related appetite dips.'],
- als:['Calories are the prescription — fortify everything with cream, butter, and nut butters.','Follow the speech therapist\u2019s swallow guidance on every texture.','Moist, soft, and room temperature is usually the safest combination.','Weight loss is the enemy: weigh weekly, fortify daily.'],
- tbi:['Omega-3s (salmon, walnuts, eggs) are brain-rebuilding food.','Steady meals prevent the blood-sugar dips that worsen fog and headaches.','Hydration first when headaches spike.','Keep prep to 3 steps — decision fatigue is real after brain injury.'],
- alzheimers:['Finger foods preserve dignity when utensils get hard.','One food at a time on a high-contrast plate increases intake.','Eat together — modeling the meal gently prompts the meal.','MIND-style staples: berries, leafy greens, fish, olive oil.'],
- depression:['Lower the bar: fed beats perfect, every single time.','Omega-3s and steady meals genuinely support mood.','Cook double when energy shows up — freeze tomorrow\u2019s win.','A meal eaten with someone counts double. Deliver it and stay.'],
- postpartum:['One-handed foods only — the other hand has a baby in it.','Iron rebuilds after birth: beef, lentils, spinach, vitamin C alongside.','Water every nursing session; a bottle in every room.','Say yes to every offered meal. That\u2019s what the Care Circle is for.']};
-
-/* ================= RECIPE POOL =================
-   tags: list of condition keys, or ['all'] for universally safe
-   (renal-safe, heart-safe, soft, gentle) staples            */
+/* recipe library (same as the Care Circle page) */
+let CUSTOM=[];
+var activeFlags=()=>({custom:CUSTOM});
 function R(slot,tags,n,why,time,ings,steps){return{slot,tags,n,why,time,ings,steps};}
 const POOL=[
 /* ---- KIDNEY / DIALYSIS (renal) — lower potassium, phosphorus and sodium; protein-forward for dialysis.
@@ -1185,600 +483,191 @@ function vet(r,flags){
 function isSafeFor(r,allergyFlags,dietaryFlags){
   return vet(r,{allergy:allergyFlags,diet:dietaryFlags,custom:activeFlags().custom}).safe;
 }
-function flagLabel(f){
-  if(f.startsWith('other:'))return f.slice(6);
-  if(T.es['al_'+f]!=null)return tr('al_'+f).toLowerCase();
-  if(T.es['dr_'+f]!=null)return tr('dr_'+f).toLowerCase();
-  return f.replace(/_/g,' ');
-}
-function hitText(h){return h.ing?h.ing.toLowerCase():flagLabel(h.flag);}
-const SAFE_LABEL={tree_nut:['Nut-free','Sin nueces'],peanut:['Peanut-free','Sin cacahuate'],milk:['Dairy-free','Sin lácteos'],wheat_gluten:['Gluten-free','Sin gluten'],egg:['Egg-free','Sin huevo'],shellfish:['Shellfish-free','Sin mariscos'],fish:['Fish-free','Sin pescado'],sesame:['Sesame-free','Sin ajonjolí'],high_sodium:['Low sodium','Bajo en sodio'],high_potassium:['Low potassium','Bajo en potasio'],high_sugar:['Low sugar','Bajo en azúcar'],acidic:['Low acid','Bajo en ácido']};
-function safeForHTML(r){
-  const ok=Object.keys(SAFE_LABEL).filter(k=>{
-    const isAllergy=['tree_nut','peanut','milk','wheat_gluten','egg','shellfish','fish','sesame'].includes(k);
-    return vet(r,isAllergy?{allergy:[k]}:{diet:[k]}).safe;
-  });
-  if(!ok.length)return '';
-  return `<div class="safefor"><b>${tr('safe_for')}</b> ${ok.map(k=>'✓ '+SAFE_LABEL[k][LANG==='es'?1:0]).join('&nbsp; ')}</div>`;
-}
-function findRecipe(name){return MY.find(r=>r.n===name)||POOL.find(r=>r.n===name)||INFUSION.items.find(r=>r.n===name)||null;}
 
-/* ================= WHO ARE WE COOKING FOR ================= */
-function parseCustom(txt){
-  return String(txt||'').split(/[,;\/]|\band\b|\by\b/i).map(s=>s.trim().toLowerCase()).filter(s=>s.length>=3);
-}
-function profileTouched(){
-  return !!(document.getElementById('pname').value.trim()||document.getElementById('allergyother').value.trim()||
-    document.querySelector('#allergies .chip.sel, #dietres .chip.sel'));
-}
-function profileFlagsFull(){
-  const {allergyFlags,dietaryFlags}=profileFlags();
-  return {allergy:allergyFlags,diet:dietaryFlags,custom:parseCustom(document.getElementById('allergyother').value)};
-}
-function familyFlagsFull(){
-  const a=(FAMILY.allergy_flags||[]);
-  const d=FAMILY.dietary_flags||[];
-  return {allergy:a.filter(x=>!x.startsWith('other:')),diet:d.filter(x=>!x.startsWith('texture:')&&!x.startsWith('cond:')),custom:a.filter(x=>x.startsWith('other:')).map(x=>x.slice(6))};
-}
-// The Care Circle always uses what the family saved; menus/cookbook use the live profile
-function circleFlags(){return FAMILY?familyFlagsFull():profileFlagsFull();}
-function activeFlags(){return (FAMILY&&!profileTouched())?familyFlagsFull():profileFlagsFull();}
-function circleTexture(){
-  if(FAMILY){const t=(FAMILY.dietary_flags||[]).find(x=>x.startsWith('texture:'));return t?t.slice(8):'regular';}
-  return ['stroke','parkinsons','als','alzheimers'].includes(S.cond)?S.texture:'regular';
-}
-function textureNote(){const t=circleTexture();return t==='regular'?'':tr('texture_note',{t:t==='soft'?tr('tx_soft_l'):tr('tx_pureed_l')});}
-function circleName(){
-  if(FAMILY&&FAMILY.display_name)return FAMILY.display_name;
-  return document.getElementById('pname').value.trim()||tr('your_person');
-}
-function allergyWords(f){return f.allergy.map(flagLabel).concat(f.custom);}
-function dietWords(f){return f.diet.map(flagLabel);}
 
-/* ================= HELPERS ================= */
-function pick1(b){document.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x=>x.classList.remove('sel'));b.classList.add('sel');S[b.dataset.k]=b.dataset.v;if(b.dataset.k==='cond')S.condChosen=true;}
-function pickM(b){b.classList.toggle('sel');}
-function getM(id){return [...document.querySelectorAll('#'+id+' .chip.sel')].map(b=>b.dataset.v||b.textContent.trim());}
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0});
-  document.getElementById('bnav').style.display=['menu','circle','calendar','shop','cookbook'].includes(id)?'flex':'none';
-  document.querySelectorAll('#bnav button').forEach(b=>b.classList.toggle('active',b.dataset.s===id||(id==='shop'&&b.dataset.s==='circle')));}
-function navTo(b){if(b.dataset.s==='circle')renderCircle();if(b.dataset.s==='calendar')renderCal();if(b.dataset.s==='cookbook')renderCookbook();show(b.dataset.s);}
-function flagErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',6500);}
-function condExtra(){}
-function ob2Title(){document.getElementById('ob2title').textContent=tr('ob2_title',{c:condLabel(S.cond).toLowerCase()});}
-const IMPLIED_DIET={dialysis:['High-potassium (bananas, potatoes)','High-sodium'],cardio:['High-sodium'],stroke:['High-sodium']};
-function applyImpliedDiet(){
-  if(S._impliedFor===S.cond)return;            // only when the condition changes; never overrides later unticks
-  S._impliedFor=S.cond;
-  const want=IMPLIED_DIET[S.cond]||[];
-  document.querySelectorAll('#dietres .chip').forEach(b=>{if(want.includes(b.dataset.v))b.classList.add('sel');});
-  const note=document.getElementById('impliedNote');
-  if(want.length){note.style.display='block';
-    note.textContent=LANG==='es'?`Marcamos lo que normalmente se limita en ${condLabel(S.cond).toLowerCase()}. Desmarca algo solo si su equipo médico lo permite.`
-      :`We've pre-selected what's usually limited for ${condLabel(S.cond).toLowerCase()}. Only untick something if their care team says it's fine.`;}
-  else note.style.display='none';
-}
-function ob2(){
-  applyImpliedDiet();
-  document.getElementById('cancerExtra').style.display=S.cond==='cancer'?'block':'none';
-  document.getElementById('swallowExtra').style.display=['stroke','parkinsons','als','alzheimers'].includes(S.cond)?'block':'none';
-  ob2Title();
-  show('ob2');
-}
-function profile(){
-  return {name:document.getElementById('pname').value.trim()||tr('your_person'),condition:S.cond,conditionLabel:COND_LABEL[S.cond],
-    cancerType:S.cond==='cancer'?(document.getElementById('ctype').value||'not specified'):null,
-    onChemo:S.cond==='cancer'&&S.chemo==='yes',texture:S.texture,
-    allergies:[...getM('allergies'),document.getElementById('allergyother').value.trim()].filter(Boolean),
-    dietRestrictions:getM('dietres'),
-    loves:document.getElementById('loves').value.trim(),dislikes:document.getElementById('hates').value.trim()};
-}
-const DIETRES_MAP={'High-potassium (bananas, potatoes)':'high_potassium','High-sodium':'high_sodium','High-sugar':'high_sugar','Acidic (citrus, tomato)':'acidic'};
-function profileFlags(){
-  const p=profile();
-  return {
-    allergyFlags:(p.allergies||[]).map(a=>ALLERGY_MAP[a]).filter(Boolean),
-    dietaryFlags:(p.dietRestrictions||[]).map(d=>DIETRES_MAP[d]).filter(Boolean).concat(S.cond==='dialysis'?['high_phosphorus']:[])
-  };
-}
+const CONDS=[["cancer","Cancer"],["dialysis","Kidney disease / dialysis"],["cardio","Heart condition"],["stroke","Stroke recovery"],["gi","Digestive / GI"],["ortho","Surgery / orthopedic"],["parkinsons","Parkinson's"],["als","ALS"],["tbi","Brain injury"],["alzheimers","Alzheimer's / dementia"],["depression","Depression"],["postpartum","New baby / postpartum"]];
+const CLABEL=Object.fromEntries(CONDS);
+const SOFT=["stroke","parkinsons","als","alzheimers"];
+const ALLERGIES=[["tree_nut","Tree nuts"],["peanut","Peanuts"],["milk","Dairy"],["wheat_gluten","Gluten"],["egg","Eggs"],["fish","Fish"],["shellfish","Shellfish"],["sesame","Sesame"]];
+const LIMITS=[["high_potassium","High-potassium (bananas, potatoes)"],["high_sodium","Salty foods"],["high_sugar","Sugary foods"],["acidic","Acidic (citrus, tomato)"]];
+const IMPLIED={dialysis:["high_potassium","high_sodium"],cardio:["high_sodium"],stroke:["high_sodium"]};
+const TEXTURES=[["regular","Regular"],["soft","Soft"],["pureed","Pureed"]];
+const COURSES=[["breakfast","Breakfast"],["lunch","Lunch"],["dinner","Dinner"],["snack","Snacks"],["dessert","Desserts"]];
 
-/* ================= MENU ================= */
-let lt;
-async function buildMenu(){
-  const LOAD=[tr('load1'),tr('load2'),tr('load3'),tr('load4')];
-  show('loading');let i=0;document.getElementById('loadmsg').textContent=LOAD[0];
-  lt=setInterval(()=>{i=(i+1)%LOAD.length;document.getElementById('loadmsg').textContent=LOAD[i];},450);
-  const p=profile();
-  await new Promise(res=>setTimeout(res,1400));
-  const m={slots:menuFor(S.cond),ai:false};
-  if(S.cond==='cancer'&&S.chemo==='yes'){
-    const f=profileFlagsFull();
-    const items=INFUSION.items.filter(r=>vet(r,f).safe);   // infusion ideas are screened too
-    m.infusion=items.length?{label:INFUSION.label,items}:null;
-  } else m.infusion=null;
-  clearInterval(lt);
-  S.menu=m;S.approved=[];S.claims=FAMILY&&familyToken()?S.claims:[];
-  document.getElementById('menucheck').style.display='none';
-  renderMenu(p);
-}
-function renderMenu(p){
-  p=p||profile();
-  document.getElementById('mname').textContent=tr('for_name',{n:p.name});
-  document.querySelector('#vetline span').textContent=LANG==='es'?VETBY_ES[S.cond]:VETBY[S.cond];
-  const al=document.getElementById('allergyline');
-  const aw=allergyWords(profileFlagsFull());
-  if(aw.length){al.style.display='block';al.innerHTML=tr('travels',{a:escHTML(aw.join(', '))});}else al.style.display='none';
-  const board=document.getElementById('menuboard');board.innerHTML='';
-  if(S.menu.infusion){
-    board.insertAdjacentHTML('beforeend',`<div class="slot-h">🧊 ${tr('infusion_label')}</div><p class="sub" style="margin-top:0">${tr('infusion_sub')}</p>`);
-    S.menu.infusion.items.forEach((it,i)=>board.appendChild(optEl(it,'infusion',i)));
-  }
-  SLOTS.forEach(([key])=>{
-    const items=S.menu.slots[key]||[];
-    board.insertAdjacentHTML('beforeend',`<div class="slot-h">${tr('sl_'+key)} <span class="tag green" style="vertical-align:middle;">${tr('choices',{n:items.length})}</span></div>`);
-    if(items._noSafeOptions){
-      board.insertAdjacentHTML('beforeend',`<div class="alert-allergy">${tr('no_safe_slot',{s:tr('sl_'+key).toLowerCase()})}</div>`);
-    }
-    items.forEach((it,i)=>board.appendChild(optEl(it,key,i)));
-  });
-  const tips=LANG==='es'?TIPS_ES[S.cond]:TIPS[S.cond];
-  document.getElementById('tips').innerHTML=`<b>${tr('tips_h',{c:condLabel(S.cond)})}</b><ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul>`;
-  show('menu');
-}
-function selectAllMenu(){
-  const all=[];SLOTS.forEach(([key])=>(S.menu.slots[key]||[]).forEach((it,i)=>all.push({k:key+':'+i,slot:key,item:it})));
-  const everything=all.every(a=>S.approved.some(x=>x.k===a.k));
-  S.approved=everything?[]:all;
-  document.querySelectorAll('#menuboard .opt').forEach(el=>{if(all.some(x=>x.k===el.dataset.k))el.classList.toggle('sel',!everything)});
-  document.getElementById('selallbtn').textContent=everything?(LANG==='es'?'Seleccionar todas':'Select all recipes'):(LANG==='es'?'Quitar selección':'Clear selection');
-}
-function optEl(item,slot,idx){
-  const d=document.createElement('div');d.className='opt';
-  const k=slot+':'+idx;
-  d.dataset.k=k;
-  if(S.approved.some(a=>a.k===k))d.classList.add('sel');
-  d.innerHTML=`<div>${item.mine?`<span class="tag mine">${tr('my_recipe')}</span>`:''}<b>${item.n}</b><small>${item.why}</small><small style="color:#8a5e12;margin-top:3px;">⏱ ${item.time||''}</small></div><div class="checkmark">✓</div>`;
-  d.onclick=()=>{d.classList.toggle('sel');
-    const at=S.approved.findIndex(a=>a.k===k);
-    if(at>=0)S.approved.splice(at,1);else S.approved.push({k,slot,item});};
-  return d;
-}
-/* Local menu check: scan every approved meal against the person's flags */
-function menuCheck(){
-  const box=document.getElementById('menucheck');box.style.display='block';
-  const f=profileFlagsFull(),name=profile().name;
-  if(!S.approved.length){box.innerHTML=`<b>${tr('check_title')}</b><p class="sub">${tr('check_none')}</p>`;return;}
-  let bad=0;
-  const lines=S.approved.map(a=>{
-    const r=findRecipe(a.item.n)||a.item;
-    const v=vet(r,f);
-    if(!v.safe)bad++;
-    return `<div class="checkline">${v.safe?'✅':'⚠️'} <b>${a.item.n}</b> — ${v.safe?tr('check_clear'):tr('check_contains',{i:[...new Set(v.hits.map(hitText))].join(', ')})}</div>`;
-  });
-  box.innerHTML=`<b style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--forest);">${tr('check_title')}</b>
-    <div class="vetbox ${bad?'warn':'ok'}">${bad?tr('check_bad',{k:bad}):tr('check_ok_all',{n:name})}</div>${lines.join('')}`;
-  box.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-async function sendToCircle(){
-  if(!S.approved.length){flagErr('err1',tr('err_approve'));return;}
-  const p=profile();
-  const f=profileFlagsFull();
-  // Reuse this device's own circle; otherwise start a new one
-  if(!FAMILY||!familyToken()){
-    FAMILY=null;S.claims=[];
-    const tex=['stroke','parkinsons','als','alzheimers'].includes(S.cond)&&S.texture!=='regular'?['texture:'+S.texture]:[];
-    await createFamily(p.name===tr('your_person')?'':p.name,f.allergy.concat(f.custom.map(c=>'other:'+c)),f.diet.concat(tex,S.cond?['cond:'+S.cond]:[]));
-    if(!FAMILY)return;
-  }
-  const ok=await pushClaimsToDB(S.approved);
-  if(!ok)return;
-  await refreshClaimsFromDB();
-  startCirclePolling();
-  setRole('volunteer');
-  showShareLink();
-}
+const Q=new URLSearchParams(location.search);
+if(Q.get("circle")&&Q.get("t")){store.set("mk_family_token_"+Q.get("circle"),Q.get("t"));store.set("mk_my_circle",Q.get("circle"));history.replaceState(null,"",location.pathname)}
+let SLUG=store.get("mk_my_circle",null);
+const token=()=>SLUG?store.get("mk_family_token_"+SLUG,null):null;
+if(SLUG&&!token())SLUG=null;
+let P=null;                // circle as saved
+let F={cond:null,texture:"regular",allergy:[],limits:[],implied:null};
+let PICK=new Set();
+let ASKED_STEP=parseInt(Q.get("step")||"0",10);
 
-function circleLink(){const url=new URL(location.origin+'/');url.searchParams.set('circle',FAMILY.slug);return url.toString();}
-function showShareLink(){
-  if(!FAMILY)return;
-  const link=circleLink();
-  const pw=lsGet('mk_pw_'+FAMILY.slug,'');
-  const msg=tr('share_msg',{n:circleName(),l:link})+(pw?`\n${LANG==='es'?'Contraseña':'Password'}: ${pw}`:'');
-  const qrImg=`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}`;
-  const box=document.getElementById('shareBox');
-  if(!box)return;
-  box.innerHTML=`<div class="card"><b>${tr('share_title')}</b><p class="sub" style="margin:6px 0;">${tr('share_sub')}</p>
-    <input type="text" readonly value="${link}" style="width:100%;margin-bottom:8px;" onclick="this.select()">
-    ${pw?`<div style="margin:0 0 10px;font-size:.95rem">${LANG==='es'?'Contraseña del grupo':'Group password'}: <b style="font-size:1.2rem;letter-spacing:.15em">${pw}</b><br><small style="color:var(--soft)">${LANG==='es'?'Envía el enlace y la contraseña. Solo quien tenga ambos puede ver la página.':'Send the link and the password. Only people with both can open the page.'}</small></div>`:''}
-    <div class="sharebtns">
-      <a class="btn wa sm" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">🟢 ${tr('share_wa')}</a>
-      <a class="btn ghost sm" href="sms:?&body=${encodeURIComponent(msg)}">💬 ${tr('share_sms')}</a>
-      <button class="btn amber sm" id="copybtn" onclick="copyLink()">📋 ${tr('share_copy')}</button>
-      ${navigator.share?`<button class="btn ghost sm" onclick="navigator.share({title:'MealKind Care Circle',text:${JSON.stringify(msg).replace(/"/g,'&quot;')}}).catch(()=>{})">↗ ${tr('share_more')}</button>`:''}
-    </div>
-    <img src="${qrImg}" alt="QR code" style="display:block;margin-top:10px;border-radius:8px;">
-  </div>`;
+/* ---------- chips ---------- */
+function chips(el,items,multi,get,set){
+  $(el).innerHTML=items.map(([k,l])=>`<button type="button" class="chip" data-k="${k}" aria-pressed="false">${esc(l)}</button>`).join("");
+  $(el).onclick=e=>{const b=e.target.closest(".chip");if(!b)return;set(b.dataset.k);paint(el,get())};
 }
-function copyLink(){
-  const _pw=lsGet('mk_pw_'+FAMILY.slug,''),link=circleLink()+(_pw?`\n${LANG==='es'?'Contraseña':'Password'}: ${_pw}`:''),b=document.getElementById('copybtn');
-  const done=()=>{b.textContent='✓ '+tr('share_copied');setTimeout(()=>{b.textContent='📋 '+tr('share_copy');},2000);};
-  const legacy=()=>{ // older phones / non-secure contexts
-    const ta=document.createElement('textarea');ta.value=link;ta.style.position='fixed';ta.style.opacity='0';
-    document.body.appendChild(ta);ta.select();let okc=false;try{okc=document.execCommand('copy');}catch(e){}
-    ta.remove();if(okc)done();else prompt('',link);
-  };
-  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(link).then(done,legacy);
-  else legacy();
+function paint(el,sel){document.querySelectorAll("#"+el+" .chip").forEach(b=>b.setAttribute("aria-pressed",String([].concat(sel).includes(b.dataset.k))))}
+chips("conds",CONDS,false,()=>F.cond,k=>{F.cond=k;applyImplied();$("textureQ").hidden=!SOFT.includes(k)});
+chips("texture",TEXTURES,false,()=>F.texture,k=>F.texture=k);
+chips("allergies",ALLERGIES,true,()=>F.allergy,k=>F.allergy=toggle(F.allergy,k));
+chips("limits",LIMITS,true,()=>F.limits,k=>F.limits=toggle(F.limits,k));
+function toggle(a,k){return a.includes(k)?a.filter(x=>x!==k):a.concat(k)}
+function applyImplied(){
+  if(F.implied===F.cond)return;F.implied=F.cond;
+  const want=IMPLIED[F.cond]||[];F.limits=[...new Set(F.limits.concat(want))];paint("limits",F.limits);
+  $("limitHint").textContent=want.length?`We've ticked what's usually limited for ${CLABEL[F.cond].toLowerCase()}. Only untick something if their care team says it's fine.`:"Tick what their care team has asked them to cut down on.";
 }
+function customTerms(){return String($("fOther").value||"").split(/[,;\/]|\band\b/i).map(s=>s.trim().toLowerCase()).filter(s=>s.length>=3)}
+function flags(){
+  CUSTOM=customTerms();
+  const allergy=F.allergy.concat(CUSTOM.map(t=>"other:"+t));
+  const diet=F.limits.concat(F.cond==="dialysis"?["high_phosphorus"]:[]).concat(F.cond?["cond:"+F.cond]:[]).concat(SOFT.includes(F.cond)&&F.texture!=="regular"?["texture:"+F.texture]:[]);
+  return {allergy,diet};
+}
+function fromSaved(){
+  const a=P.allergy_flags||[],d=P.dietary_flags||[];
+  F.allergy=a.filter(x=>!x.startsWith("other:"));CUSTOM=a.filter(x=>x.startsWith("other:")).map(x=>x.slice(6));
+  F.cond=(d.find(x=>x.startsWith("cond:"))||"").slice(5)||null;F.implied=F.cond;
+  F.texture=(d.find(x=>x.startsWith("texture:"))||"texture:regular").slice(8);
+  F.limits=d.filter(x=>LIMITS.some(l=>l[0]===x));
+  $("fName").value=P.recipient_name||P.display_name||"";$("fOther").value=CUSTOM.join(", ");
+  $("fLikes").value=(P.food_notes&&P.food_notes.likes)||"";
+  paint("conds",F.cond);paint("texture",F.texture);paint("allergies",F.allergy);paint("limits",F.limits);$("textureQ").hidden=!SOFT.includes(F.cond);
+  PICK=new Set((P.menu||[]).map(m=>m.name));
+  $("fStory").value=P.story||"";$("fWindow").value=P.drop_off_window||"";$("fDrop").value=P.drop_off_note||"";
+  $("fFund").value=P.gofundme_url||"";$("fGift").value=P.amazon_url||"";
+}
+const who=()=>($("fName").value.trim()||(P&&(P.recipient_name||P.display_name))||"your loved one");
 
-/* ================= CIRCLE / CLAIMS ================= */
-function setRole(r){
-  S.role=r;
-  document.getElementById('vt-f').classList.toggle('active',r==='family');
-  document.getElementById('vt-v').classList.toggle('active',r==='volunteer');
-  if(r==='volunteer'){renderCircle();show('circle');}
-  else{ if(S.menu){renderMenu();} else show('ob1'); }
+/* ---------- screens ---------- */
+const TITLES=["","Who it's for","Choose recipes","Note to friends","Share it"];
+function show(id){
+  ["s1","s2","s3","s4","home"].forEach(s=>$(s).hidden=s!==id);
+  const n=+(id.slice(1))||0;$("prog").hidden=!n;
+  document.querySelectorAll(".progress i").forEach((i,k)=>i.classList.toggle("on",k<n));
+  if(n)$("stepLbl").textContent=`Step ${n} of 4 · ${TITLES[n]}`;
+  $("navHome").hidden=!P||id==="home";
+  window.scrollTo({top:0});
 }
-function renderCcHub(){
-  const hub=document.getElementById('ccHub');if(!hub)return;
-  if(!FAMILY){hub.innerHTML='';return;}
-  const es=(typeof LANG!=='undefined'&&LANG==='es');
-  hub.innerHTML=`<a class="cc-hub" href="care-circle.html?circle=${encodeURIComponent(FAMILY.slug)}">
-    <span class="cc-ic">🤝</span>
-    <span><b>${es?'Abrir la página del Care Circle':'Open the Care Circle page'}</b>
-    <small>${es?'Calendario, quién hace qué, mensajes, ayuda extra y recordatorios':"Calendar, who's doing what, messages, extra help and reminders"}</small></span>
-    <span class="cc-go">→</span></a>`;
+function go(n){
+  if(n===1){$("consentRow").hidden=!!P;show("s1")}
+  if(n===2){renderRecipes();show("s2")}
+  if(n===3){if(!$("fStory").value.trim())$("fStory").value=`Hi everyone, this page is for ${who()}, who is going through ${F.cond?CLABEL[F.cond].toLowerCase():"treatment"}. Cooking one of these meals would mean so much to us. Thank you for being part of ${who()}'s circle.`;show("s3")}
+  if(n===4){renderShare();show("s4")}
+  if(n===0){renderHome();show("home")}
 }
-function renderCircle(){
-  renderCcHub();
-  const name=circleName(),f=circleFlags();
-  document.getElementById('circle-eyebrow').textContent=tr('circle_eyebrow',{n:name});
-  document.getElementById('circle-sub').textContent=tr('circle_sub',{n:name});
-  const al=document.getElementById('allergyline2');
-  const aw=allergyWords(f),dw=dietWords(f);
-  const tn=textureNote();
-  al.innerHTML=(aw.length?tr('before_cook',{a:escHTML(aw.join(', '))}):tr('no_allergies'))+(dw.length?'<br>'+tr('also_avoid',{d:dw.join(', ')}):'')+(tn?'<br>'+tn:'');
-  if(FAMILY&&familyToken())showShareLink();
-  const list=document.getElementById('claimlist');list.innerHTML='';
-  if(!S.claims.length){list.innerHTML=`<div class="card">${tr('no_menu_yet')}</div>`;return;}
-  const stMap={open:['st-open','st_open'],claimed:['st-claimed','st_claimed'],shopping:['st-shopping','st_shopping'],cooking:['st-cooking','st_cooking'],done:['st-done','st_done']};
-  S.claims.forEach(c=>{
-    const d=document.createElement('div');d.className='claim';
-    const [cls,key]=stMap[c.status]||stMap.claimed;
-    let shield='';
-    if(c.status!=='open'){
-      const r=findRecipe(c.item.n);
-      const ok=r&&vet(r,f).safe;
-      shield=`<span title="${ok?tr('shield_ok'):tr('shield_warn')}" style="margin-left:4px;">${ok?'🛡️':'⚠️'}</span>`;
-    }
-    const dateTxt=parseISO(c.date).toLocaleDateString(LANG==='es'?'es-MX':'en-US',{weekday:'short',month:'short',day:'numeric'});
-    d.innerHTML=`<div class="row1"><div><span class="tag">${tr('sl_'+c.slot)!==('sl_'+c.slot)?tr('sl_'+c.slot):c.slot}</span><span class="tag green">${dateTxt}</span><b>${c.item.n}</b>${shield}<small>${c.item.why}</small>${c.vol?`<small style="margin-top:4px;">👤 ${escHTML(c.vol)}</small>`:''}</div><span class="status ${cls}">${tr(key)}</span></div>`;
-    const btn=document.createElement('button');btn.className='btn sm '+(c.status==='open'?'amber':'ghost');
-    btn.textContent=c.status==='open'?tr('cook_this'):tr('open_recipe');
-    btn.onclick=async()=>{
-      if(c.status==='open'){
-        const name=(prompt(tr('ask_name'),lsGet('mk_vol_name',''))||'').trim();
-        if(!name)return;
-        const email=(prompt(tr('ask_email'),lsGet('mk_vol_email',''))||'').trim();
-        lsSet('mk_vol_name',name);if(email)lsSet('mk_vol_email',email);
-        await claimItemInDB(c.id,name,email);
-        renderCircle();
-        return;
-      }
-      await openShop(c);
-    };
-    d.appendChild(btn);list.appendChild(d);
-  });
-}
-function escHTML(s){return String(s==null?'':s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(b)go(+b.dataset.go)});
 
-/* ================= CALENDAR ================= */
-let CAL_OFFSET=0,TREAT_EDIT=false;
-function weekStart(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return x;}
-function treatKey(){return 'mk_treatment_days_'+(FAMILY?FAMILY.slug:'local');}
-function treatDays(){return lsGet(treatKey(),null);}
-function isTreatDay(date){
-  const saved=treatDays();
-  if(saved)return saved.includes(isoDate(date));
-  return S.cond==='cancer'&&S.chemo==='yes'&&date.getDay()===3;   // default: Wednesday, as before
-}
-function toggleTreat(iso){
-  let saved=treatDays();
-  if(!saved){ // first edit: start from the defaults currently shown
-    saved=[];
-    const ws=addDays(weekStart(new Date()),CAL_OFFSET*7);
-    for(let i=0;i<7;i++){const d=addDays(ws,i);if(isTreatDay(d))saved.push(isoDate(d));}
-  }
-  saved=saved.includes(iso)?saved.filter(x=>x!==iso):saved.concat(iso);
-  lsSet(treatKey(),saved);renderCal();
-}
-function toggleTreatMode(){TREAT_EDIT=!TREAT_EDIT;renderCal();}
-function calShift(n){CAL_OFFSET+=n;renderCal();}
-function renderCal(){
-  const loc=LANG==='es'?'es-MX':'en-US';
-  const ws=addDays(weekStart(new Date()),CAL_OFFSET*7),we=addDays(ws,6);
-  document.getElementById('calrange').textContent=tr('cal_range',{r:ws.toLocaleDateString(loc,{month:'short',day:'numeric'})+' – '+we.toLocaleDateString(loc,{month:'short',day:'numeric'})});
-  const grid=document.getElementById('calgrid');grid.innerHTML='';
-  const today=isoDate(new Date());
-  const inWeek=S.claims.filter(c=>c.date>=isoDate(ws)&&c.date<=isoDate(we));
-  let covered=0;
-  for(let i=0;i<7;i++){
-    const date=addDays(ws,i),iso=isoDate(date),treat=isTreatDay(date);
-    const d=document.createElement('div');
-    d.className='day'+(treat?' chemo':'')+(iso===today?' today':'')+(TREAT_EDIT?' editable':'');
-    d.innerHTML=`<div class="dn">${date.toLocaleDateString(loc,{weekday:'short'})}${treat?' 💉':''}</div><div class="dd">${date.getDate()}</div>`;
-    const dayClaims=inWeek.filter(c=>c.date===iso);
-    if(dayClaims.some(c=>c.status!=='open'))covered++;
-    dayClaims.forEach(c=>{
-      d.insertAdjacentHTML('beforeend',`<div class="ev ${c.status==='open'?'open':''}">${c.item.n}<br><b> · </b>${c.vol?escHTML(c.vol.split(' ')[0]):tr('unclaimed')}</div>`);
-    });
-    if(TREAT_EDIT)d.onclick=()=>toggleTreat(iso);
-    grid.appendChild(d);
-  }
-  document.getElementById('treatbtn').innerHTML=TREAT_EDIT?'✓ '+tr('cal_done'):'💉 '+tr('cal_add_treat');
-  document.getElementById('treathint').style.display=TREAT_EDIT?'block':'none';
-  const planned=inWeek.length,claimed=inWeek.filter(c=>c.status!=='open').length,done=inWeek.filter(c=>c.status==='done').length;
-  const pct=Math.round(covered/7*100);
-  const anyTreat=[0,1,2,3,4,5,6].some(i=>isTreatDay(addDays(ws,i)));
-  document.getElementById('calstatus').innerHTML=`<b style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--forest);">${tr('cal_summary',{p:planned,c:claimed,d:done})}</b>
-    <div class="progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></div>
-    <p class="sub" style="margin-top:6px;">${tr('cal_cover',{n:covered})} · ${pct}%${anyTreat?' · '+tr('cal_treat_note'):''}</p>`;
-}
-
-/* ================= COOKBOOK STORE ================= */
-const BOOKS_SEED=[
- {title:'The Cancer-Fighting Kitchen',author:'Rebecca Katz with Mat Edelson',condition_tags:['cancer'],description:'Nourishing, big-flavored foods for cancer treatment and recovery.',price:'$22.99',amazon_url:'https://www.amazon.com/s?k=The+Cancer-Fighting+Kitchen+Rebecca+Katz',emoji:'🍲'},
- {title:'Eating Well Through Cancer',author:'Holly Clegg & Gerald Miletello MD',condition_tags:['cancer'],description:'Easy recipes and tips during and after cancer treatment.',price:'$19.99',amazon_url:'https://www.amazon.com/s?k=Eating+Well+Through+Cancer+Holly+Clegg',emoji:'📗'},
- {title:'The Renal Diet Cookbook',author:'Susan Zogheib MHS RD',condition_tags:['dialysis'],description:'The complete guide and meal plan for managing kidney disease.',price:'$16.99',amazon_url:'https://www.amazon.com/s?k=The+Renal+Diet+Cookbook+Susan+Zogheib',emoji:'💙'},
- {title:'Prevent a Second Heart Attack',author:'Janet Bond Brill PhD RD',condition_tags:['cardio'],description:'Eight foods, eight weeks to reverse heart disease.',price:'$18.99',amazon_url:'https://www.amazon.com/s?k=Prevent+a+Second+Heart+Attack+Janet+Brill',emoji:'❤️'},
- {title:'The MIND Diet',author:'Maggie Moon MS RD',condition_tags:['alzheimers','depression','tbi'],description:"A scientific approach to enhancing brain function and helping prevent Alzheimer's.",price:'$21.99',amazon_url:'https://www.amazon.com/s?k=The+MIND+Diet+Maggie+Moon',emoji:'🧠'},
- {title:'The First Forty Days',author:'Heng Ou with Amely Greeven',condition_tags:['postpartum'],description:'The essential art of nourishing the new mother.',price:'$24.99',amazon_url:'https://www.amazon.com/s?k=The+First+Forty+Days+Heng+Ou',emoji:'🌸'}];
-let BOOKS=null;
-async function loadBooks(){
-  if(BOOKS)return BOOKS;
+/* ---------- step 1 ---------- */
+$("next1").onclick=async()=>{
+  const name=$("fName").value.trim();
+  if(!name){$("err1").textContent="Add their first name.";return}
+  if(!F.cond){$("err1").textContent="Choose what they're going through.";return}
+  if(!P&&!$("consent").checked){$("err1").textContent="Please tick the privacy box to continue.";return}
+  $("err1").textContent="";const btn=$("next1");btn.disabled=true;btn.textContent="Saving…";
+  const {allergy,diet}=flags();
   try{
-    const {data,error}=await sb.from('cookbooks').select('*').order('featured',{ascending:false}).order('created_at');
-    BOOKS=(!error&&data&&data.length)?data:BOOKS_SEED;
-  }catch(e){BOOKS=BOOKS_SEED;}
-  return BOOKS;
-}
-function safeUrl(u){return /^https:\/\//i.test(u||'')?u:'';}
-async function renderBooks(){
-  const row=document.getElementById('bookrow');
-  const all=await loadBooks();
-  const list=S.condChosen?all.filter(b=>(b.condition_tags||[]).includes(S.cond)):all;
-  row.innerHTML=list.length?list.map(b=>`<div class="book">
-      <div class="cover">${escHTML(b.emoji||'📘')}</div>
-      <div class="bt">${escHTML(b.title)}</div>
-      <div class="ba">${escHTML(b.author||'')}</div>
-      <div>${(b.condition_tags||[]).map(c=>`<span class="tag">${escHTML(condLabel(c))}</span>`).join('')}</div>
-      <div class="bd">${escHTML(b.description||'')}</div>
-      ${b.price?`<div class="bp">${escHTML(b.price)}</div>`:''}
-      ${safeUrl(b.amazon_url)?`<a class="btn amber sm" href="${escHTML(safeUrl(b.amazon_url))}" target="_blank" rel="noopener">${tr('books_amazon')}</a>`:''}
-      ${safeUrl(b.author_url)?`<a class="btn ghost sm" href="${escHTML(safeUrl(b.author_url))}" target="_blank" rel="noopener">${tr('books_author_btn')}</a>`:''}
-    </div>`).join(''):`<p class="sub">${tr('books_none')}</p>`;
-}
-
-/* ================= COOKBOOK ================= */
-const COND_COLOR={cancer:'#E8A33D',dialysis:'#5B8DB8',cardio:'#C0504D'};
-function cardColor(r){
-  const f=document.getElementById('cbfilter').value;
-  if(COND_COLOR[f]&&r.tags.includes(f))return COND_COLOR[f];
-  if(r.tags.includes('all'))return '#1F3D2B';
-  const k=['cancer','dialysis','cardio'].find(c=>r.tags.includes(c));
-  return k?COND_COLOR[k]:'#1F3D2B';
-}
-function circleCond(){const c=FAMILY&&(FAMILY.dietary_flags||[]).find(x=>x.startsWith('cond:'));return c?c.slice(5):(S.condChosen?S.cond:null);}
-function renderCookbook(){
-  {const sel=document.getElementById('cbfilter'),c=circleCond();if(c&&!sel.dataset.set){sel.value=c;sel.dataset.set='1';}}
-  renderBooks();
-  buildCondChips();
-  const f=document.getElementById('cbfilter').value;
-  const showAll=document.getElementById('cbShowAll').checked;
-  const {allergy,diet}=activeFlags();
-  const body=document.getElementById('cbbody');body.innerHTML='';
-  let hiddenCount=0;
-  SLOTS.forEach(([key])=>{
-    const mine=MY.map((r,i)=>({...r,_i:i})).filter(r=>r.slot===key&&(f==='all'||r.tags.includes(f)||r.tags.includes('all')));
-    let items=POOL.filter(r=>r.slot===key&&(f==='all'||r.tags.includes(f)||r.tags.includes('all')));
-    if(!showAll){
-      const before=items.length;
-      items=items.filter(r=>isSafeFor(r,allergy,diet));
-      hiddenCount+=(before-items.length);
+    if(!P){
+      const d=await rpc("mk_create_family",{p_name:name,p_allergy_flags:allergy,p_dietary_flags:diet});
+      SLUG=d.slug;store.set("mk_family_token_"+SLUG,d.family_token);store.set("mk_my_circle",SLUG);
+    }else{
+      await rpc("mk_update_flags",{p_slug:SLUG,p_family_token:token(),p_name:name,p_allergy_flags:allergy,p_dietary_flags:diet});
     }
-    if(!mine.length&&!items.length)return;
-    body.insertAdjacentHTML('beforeend',`<div class="slot-h">${tr('sl_'+key)} <span class="tag green" style="vertical-align:middle;">${tr('recipes_n',{n:mine.length+items.length})}</span></div>`);
-    mine.forEach(r=>body.appendChild(cbEntry(r,true)));
-    items.forEach(r=>body.appendChild(cbEntry(r,false)));
-  });
-  if(hiddenCount>0){
-    body.insertAdjacentHTML('afterbegin',`<div class="alert-allergy" style="background:#F0F4EE;border-color:#CFE0CC;color:var(--good);">${tr('hidden_n',{n:hiddenCount})}</div>`);
-  }
-}
-function orderRowHTML(r){
-  const names=(r.ings||[]).map(i=>i[0]).filter(n=>!PANTRY_STAPLES.has(n)).slice(0,3);
-  const q=encodeURIComponent(names.join(' '));
-  const pick=['H-E-B','Amazon Fresh','Instacart','Walmart'];
-  return `<div class="orderrow"><span class="lbl">${tr('order_ings')}</span>${pick.map(n=>{const s=STORES.find(x=>x.n===n);return s?`<button type="button" onclick="window.open('${s.u}${q}','_blank','noopener')">${s.i} ${s.n}</button>`:'';}).join('')}</div>`;
-}
-function cbEntry(r,isMine){
-  const dt=document.createElement('details');dt.className='cb';
-  dt.style.borderLeftColor=cardColor(r);
-  const tagline=r.tags.includes('all')?tr('universal'):r.tags.map(t=>condLabel(t)).join(' · ');
-  dt.innerHTML=`<summary><div>${isMine?`<span class="tag mine">${tr('my_recipe')}</span><span class="tag" style="background:#F6E3DB;color:#B5471F;">${tr('not_checked')}</span>`:''}<b>${escHTML(r.n)}</b><small>${escHTML(r.why)}</small></div><span class="tag">⏱ ${escHTML(r.time)}</span></summary>
-  <div class="cb-body">${r.img?`<img class="cbphoto" src="${r.img}" alt="">`:''}<p class="sub" style="margin:10px 0 4px;"><b>${tr('good_for')}</b> ${tagline}</p>
-  ${isMine?'':safeForHTML(r)}
-  ${r.ings.map(i=>`<div class="ing"><span>${escHTML(i[0])}</span><span class="amt">${escHTML(i[1]||'')}</span></div>`).join('')}
-  <ol class="steps">${r.steps.map(s=>`<li><span>${escHTML(s)}</span></li>`).join('')}</ol>
-  ${orderRowHTML(r)}
-  ${isMine?`<button class="del" onclick="delMy(${r._i})">${tr('remove_mine')}</button>`:''}</div>`;
-  return dt;
-}
+    await rpc("mk_update_page",{p_slug:SLUG,p_family_token:token(),p:{recipient_name:name,food_notes:{likes:$("fLikes").value.trim()}}});
+    await reload();go(2);
+  }catch(e){$("err1").textContent=errMsg(e)}
+  btn.disabled=false;btn.textContent="Next: choose recipes";
+};
 
-/* ===== MY RECIPES — the growable family cookbook ===== */
-let MY=[];
-try{MY=JSON.parse(localStorage.getItem('mealkind_myrecipes')||'[]')||[];}catch(e){MY=[];}
-function persistMY(){try{localStorage.setItem('mealkind_myrecipes',JSON.stringify(MY));}catch(e){flagErr('err1','Heads up: this browser can\u2019t save permanently — use \u201cSave my book\u201d to download your recipes.');}}
-let pendingImg=null;
-function toggleAddForm(){const f=document.getElementById('addform');f.style.display=f.style.display==='none'?'block':'none';buildCondChips();}
-function buildCondChips(){
-  const wrap=document.getElementById('my-conds');
-  if(!wrap||wrap.children.length)return;
-  Object.keys(COND_LABEL).forEach(k=>{
-    const b=document.createElement('button');b.className='chip';b.textContent=condLabel(k);b.dataset.c=k;
-    b.onclick=()=>b.classList.toggle('sel');wrap.appendChild(b);
-  });
+/* ---------- step 2 ---------- */
+function safeRecipes(){
+  const {allergy,diet}=flags();
+  const al=allergy.filter(x=>!x.startsWith("other:")),dt=diet.filter(x=>!x.includes(":"));
+  return POOL.filter(r=>(r.tags.includes(F.cond)||r.tags.includes("all"))&&vet(r,{allergy:al,diet:dt,custom:CUSTOM}).safe)
+    .sort((a,b)=>(b.tags.includes(F.cond)?1:0)-(a.tags.includes(F.cond)?1:0));
 }
-function handlePhoto(input){
-  const f=input.files[0];if(!f)return;
-  const rd=new FileReader();
-  rd.onload=e=>{pendingImg=e.target.result;const pv=document.getElementById('addpreview');pv.src=pendingImg;pv.style.display='block';};
-  rd.readAsDataURL(f);input.value='';
+let SAFE=[];
+function renderRecipes(){
+  SAFE=safeRecipes();
+  const names=new Set(SAFE.map(r=>r.n));PICK=new Set([...PICK].filter(n=>names.has(n)));
+  const avoid=[...F.allergy.map(k=>(ALLERGIES.find(a=>a[0]===k)||[,k])[1].toLowerCase()),...CUSTOM,...F.limits.map(k=>(LIMITS.find(a=>a[0]===k)||[,k])[1].toLowerCase())];
+  $("s2sub").textContent=`These ${SAFE.length} recipes suit ${F.cond?CLABEL[F.cond].toLowerCase():"their needs"}`+(avoid.length?` and leave out ${avoid.join(", ")}.`:".")+" Friends can only choose from the ones you tick.";
+  $("recList").innerHTML=COURSES.map(([c,l])=>{const rs=SAFE.filter(r=>r.slot===c);if(!rs.length)return"";
+    return `<div class="course card"><h3>${l}<button type="button" class="link small" data-course="${c}">Select all ${l.toLowerCase()}</button></h3>${rs.map(r=>`<label class="rec"><input type="checkbox" data-n="${esc(r.n)}" ${PICK.has(r.n)?"checked":""}><span><span class="t">${esc(r.n)}</span>${r.tags.includes(F.cond)?`<span class="for">For ${esc(CLABEL[F.cond].split(" /")[0].toLowerCase())}</span>`:""}<div class="w">${esc(r.why)} · ${esc(r.time||"")}</div><details><summary>Ingredients and method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol>${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details></span></label>`).join("")}</div>`}).join("")||`<p class="muted">No recipes match every restriction. Try removing one, or contact hello@mealkind.com.</p>`;
+  count();
 }
-function saveMyRecipe(){
-  const n=document.getElementById('my-name').value.trim();
-  if(!n){flagErr('err1','Give the recipe a name first.');return;}
-  const tags=[...document.querySelectorAll('#my-conds .chip.sel')].map(b=>b.dataset.c);
-  const ings=document.getElementById('my-ings').value.split('\n').map(l=>l.trim()).filter(Boolean)
-    .map(l=>{const p=l.split(/\s*[-\u2013]\s*/);return p.length>1?[p[0],p.slice(1).join(' - ')]:[l,''];});
-  const steps=document.getElementById('my-steps').value.split('\n').map(l=>l.trim().replace(/^\d+[.)]\s*/,'')).filter(Boolean);
-  MY.unshift({slot:document.getElementById('my-slot').value,tags:tags.length?tags:['all'],n,
-    why:document.getElementById('my-why').value.trim()||'A family favorite, added by you.',
-    time:document.getElementById('my-time').value.trim()||'\u2014',
-    ings:ings.length?ings:[[n,'']],steps:steps.length?steps:['Make it the way the family always has.'],
-    img:pendingImg,mine:true});
-  persistMY();pendingImg=null;
-  ['my-name','my-why','my-time','my-ings','my-steps'].forEach(id=>document.getElementById(id).value='');
-  document.querySelectorAll('#my-conds .chip').forEach(b=>b.classList.remove('sel'));
-  const pv=document.getElementById('addpreview');pv.style.display='none';
-  document.getElementById('addform').style.display='none';
-  renderCookbook();
-}
-function delMy(i){MY.splice(i,1);persistMY();renderCookbook();}
-function exportBook(){
-  const blob=new Blob([JSON.stringify(MY,null,1)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='mealkind-cookbook.json';a.click();
-}
-function importBook(input){
-  const f=input.files[0];if(!f)return;
-  const rd=new FileReader();
-  rd.onload=e=>{try{
-    const incoming=JSON.parse(e.target.result);
-    const names=new Set(MY.map(r=>r.n));
-    incoming.forEach(r=>{if(r&&r.n&&!names.has(r.n))MY.push(r);});
-    persistMY();renderCookbook();
-  }catch(err){flagErr('err1','That file didn\u2019t look like a MealKind cookbook backup.');}};
-  rd.readAsText(f);input.value='';
-}
+function count(){$("recCount").textContent=`${PICK.size} chosen`}
+$("recList").addEventListener("change",e=>{const c=e.target.closest("input[data-n]");if(!c)return;c.checked?PICK.add(c.dataset.n):PICK.delete(c.dataset.n);count()});
+$("recList").addEventListener("click",e=>{const b=e.target.closest("[data-course]");if(!b)return;e.preventDefault();SAFE.filter(r=>r.slot===b.dataset.course).forEach(r=>PICK.add(r.n));renderRecipes()});
+$("selAll").onclick=()=>{SAFE.forEach(r=>PICK.add(r.n));renderRecipes()};
+$("selNone").onclick=()=>{PICK.clear();renderRecipes()};
+$("next2").onclick=async()=>{
+  if(!PICK.size){$("err2").textContent="Tick at least one recipe, or press Select all.";return}
+  $("err2").textContent="";const btn=$("next2");btn.disabled=true;
+  try{const items=SAFE.filter(r=>PICK.has(r.n)).map(r=>({name:r.n,course:r.slot}));
+    await rpc("mk_set_menu",{p_slug:SLUG,p_family_token:token(),p_items:items});await reload();go(3)}
+  catch(e){$("err2").textContent=errMsg(e)}btn.disabled=false;
+};
 
+/* ---------- step 3 ---------- */
+$("next3").onclick=async()=>{
+  const fund=$("fFund").value.trim(),gift=$("fGift").value.trim();
+  $("err3").textContent="";const btn=$("next3");btn.disabled=true;
+  try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:token(),p:{story:$("fStory").value.trim(),drop_off_window:$("fWindow").value.trim(),drop_off_note:$("fDrop").value.trim(),gofundme_url:fund,amazon_url:gift}});
+    await reload();go(4)}
+  catch(e){$("err3").textContent=errMsg(e)}btn.disabled=false;
+};
 
-/* ================= SHOP / COOK / DELIVER ================= */
-let CUR=null,STORE=null;
-const STORE_KEY={'H-E-B':'st_heb','Walmart':'st_walmart','Kroger':'st_kroger','Instacart':'st_instacart','Amazon Fresh':'st_amazon','Whole Foods':'st_wf'};
-async function openShop(c,noLoading){
-  CUR=c;STORE=null;
-  const name=circleName(),f=circleFlags(),p=profile();
-  // Board items carry name/why only — attach full ingredients & steps from the library
-  if(!c.item.ings){
-    if(!noLoading){show('loading');document.getElementById('loadmsg').textContent=tr('load_recipe');
-      await new Promise(res=>setTimeout(res,400));}
-    const src=findRecipe(c.item.n);
-    if(src){ c.item={...c.item,ings:src.ings,steps:src.steps,img:src.img||null,allergens:src.allergens,condFlags:src.condFlags,time:src.time}; }
-    else{ c.item.ings=[[c.item.n,'']];c.item.steps=['Prepare following the family’s usual method.']; }
-  }
-  const known=findRecipe(c.item.n);
-  const v=vet(known||c.item,f);
-  // Unknown recipe (e.g. written by the family) can't be verified → always "check"
-  const conflict=!known?[c.item.n]:[...new Set(v.hits.map(hitText))];
-  const vetHTML=(known&&v.safe)
-    ? `<div class="vetbox ok">${tr('vet_ok',{n:escHTML(name)})}</div>`
-    : `<div class="vetbox warn">${tr('vet_warn',{i:escHTML(conflict.join(', ')||'?'),n:escHTML(name)})}</div>`;
-  const dateTxt=parseISO(c.date).toLocaleDateString(LANG==='es'?'es-MX':'en-US',{weekday:'long',month:'short',day:'numeric'});
-  document.getElementById('shop-eyebrow').textContent=`${dateTxt} · ${c.item.n} · ${tr('for_name',{n:name})}`;
-  const aw=allergyWords(f);
-  document.getElementById('recipecard').innerHTML=`
-    ${vetHTML}
-    <span class="tag green">${dateTxt}</span><span class="tag">⏱ ${c.item.time||''}</span>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:700;color:var(--forest);margin-top:4px;">${escHTML(c.item.n)}</div>
-    <p class="sub">${escHTML(c.item.why)}</p>
-    ${aw.length?`<div class="alert-allergy">${tr('abs_no',{a:escHTML(aw.join(', '))})}</div>`:''}
-    ${textureNote()?`<div class="alert-allergy" style="background:#F0F4EE;border-color:#CFE0CC;color:var(--good);">${textureNote()}</div>`:''}
-    <ol class="steps">${(c.item.steps||[]).map(s=>`<li><span>${escHTML(s)}</span></li>`).join('')}</ol>`;
-  document.getElementById('inglist').innerHTML=(c.item.ings||[]).map(i=>PANTRY_STAPLES.has(i[0])
-    ?`<div class="ing"><span>${escHTML(i[0])} <small style="color:var(--soft);">${tr('pantry')}</small></span><span class="amt">${escHTML(i[1])}</span></div>`
-    :`<div class="ing"><span>${escHTML(i[0])}</span><span class="amt">${escHTML(i[1])}</span></div>`).join('');
-  const st=document.getElementById('stores');st.innerHTML='';
-  STORES.forEach(s=>{
-    const d=document.createElement('div');d.className='store';
-    d.innerHTML=`<div class="si">${s.i}</div><b>${s.n}</b><small>${STORE_KEY[s.n]?tr(STORE_KEY[s.n]):s.t}</small>`;
-    d.onclick=()=>{
-      document.querySelectorAll('.store').forEach(x=>x.classList.remove('sel'));
-      d.classList.add('sel');
-      STORE=s;
-      orderNow();
-    };
-    st.appendChild(d);
-  });
-  renderStatusFlow();
-  show('shop');
+/* ---------- step 4 ---------- */
+const circleUrl=()=>location.origin+"/care-circle.html?circle="+encodeURIComponent(SLUG);
+const pw=()=>store.get("mk_pw_"+SLUG,null);
+async function ensurePw(){
+  if(P&&P.has_password&&pw())return pw();
+  const c=String(Math.floor(100000+Math.random()*900000));
+  await rpc("mk_set_passcode",{p_slug:SLUG,p_family_token:token(),p_code:c});
+  store.set("mk_pw_"+SLUG,c);store.set("mk_code_"+SLUG,c);if(P)P.has_password=true;return c;
 }
-function orderNow(){
-  if(!STORE)return;
-  const shoppable=(CUR.item.ings||[]).filter(i=>!PANTRY_STAPLES.has(i[0]));
-  const q=encodeURIComponent(shoppable.map(i=>i[0]).join(' '));
-  window.open(STORE.u+q,'_blank');
-  if(CUR.status==='claimed'){advanceStatusInDB(CUR.id,'shopping').then(ok=>{if(ok){CUR.status='shopping';renderStatusFlow();}});}
+function message(c){return `Hi! We've set up a MealKind Care Circle so friends can cook meals for ${who()}.\n\n1. Open this link:\n${circleUrl()}\n\n2. Enter this password:\n${c}\n\nThen pick a day and a recipe. You'll get a text reminder. Thank you!`}
+async function renderShare(){
+  let c=pw();
+  try{c=await ensurePw()}catch(e){toast(errMsg(e))}
+  $("pwBig").textContent=c||"······";
+  const m=message(c||"");
+  $("msgPrev").innerHTML=esc(m).replace("password:\n"+esc(c||""),"password:\n<b>"+esc(c||"")+"</b>");
+  $("shText").href="sms:?&body="+encodeURIComponent(m);
+  $("shWa").href="https://wa.me/?text="+encodeURIComponent(m);
+  $("shMail").href="mailto:?subject="+encodeURIComponent(`${who()}'s Care Circle: link and password inside`)+"&body="+encodeURIComponent(m.replace(`2. Enter this password:\n${c}`,`2. Enter this password:\n\n    PASSWORD:  ${c}\n`));
+  $("toCircle").href=circleUrl();
 }
-function renderStatusFlow(){
-  const flow=document.getElementById('statusflow');
-  const stages=['claimed','shopping','cooking','done'];
-  const idx=stages.indexOf(CUR.status);
-  flow.innerHTML=stages.map((s,i)=>`<span class="status ${i<=idx?'st-done':'st-open'}" style="margin:0 6px 6px 0;display:inline-block;">${tr('fl_'+s)}</span>`).join('');
-  const nxt={claimed:'shopping',shopping:'cooking',cooking:'done'}[CUR.status];
-  if(nxt){
-    const b=document.createElement('button');b.className='btn amber sm';b.textContent=tr('nx_'+nxt);
-    b.onclick=async()=>{const ok=await advanceStatusInDB(CUR.id,nxt);if(ok){CUR.status=nxt;renderStatusFlow();renderCircle();}};
-    flow.appendChild(document.createElement('br'));flow.appendChild(b);
-  } else {
-    flow.insertAdjacentHTML('beforeend',`<p class="sub" style="margin-top:8px;">${tr('delivered_thanks')}</p>`);
-  }
-}
+$("shCopy").onclick=async()=>{const m=message(pw()||"");try{await navigator.clipboard.writeText(m);toast("Copied. Paste it into a text, WhatsApp or email.")}catch{toast("Couldn't copy. Use one of the send buttons.")}};
+$("pwSave").onclick=async()=>{const c=$("newPw").value.trim();if(!/^\d{4,8}$/.test(c)){toast(ERR.bad_code_format);return}
+  try{await rpc("mk_set_passcode",{p_slug:SLUG,p_family_token:token(),p_code:c});store.set("mk_pw_"+SLUG,c);store.set("mk_code_"+SLUG,c);$("newPw").value="";renderShare();toast("Password changed. Send it to your friends.")}catch(e){toast(errMsg(e))}};
 
-/* ================= LANGUAGE RE-RENDER ================= */
-function rerenderActive(){
-  const a=document.querySelector('.screen.active');if(!a)return;
-  const w=document.getElementById('my-conds');if(w)w.innerHTML='';
-  if(a.id==='ob2')ob2Title();
-  if(a.id==='menu'&&S.menu){renderMenu();if(document.getElementById('menucheck').style.display!=='none')menuCheck();}
-  if(a.id==='circle')renderCircle();
-  if(a.id==='calendar')renderCal();
-  if(a.id==='cookbook')renderCookbook();
-  if(a.id==='shop'&&CUR)openShop(CUR,true);
+/* ---------- home ---------- */
+function renderHome(){
+  $("hTitle").textContent=`Meals for ${who()}`;
+  $("stRec").textContent=(P.menu||[]).length;
+  $("stMeals").textContent=(P.meals||[]).filter(m=>m.date>=new Date().toLocaleDateString("en-CA")).length;
+  $("stPw").textContent=pw()||"–";
+  $("hCircle").href=circleUrl();
+  $("hCond").textContent=F.cond?CLABEL[F.cond]:"";
 }
+$("famLink").onclick=async()=>{const l=location.origin+"/app.html?circle="+encodeURIComponent(SLUG)+"&t="+encodeURIComponent(token());
+  try{await navigator.clipboard.writeText(l);toast("Private family link copied. Only send it to family.")}catch{toast(l)}};
+$("newCircle").onclick=()=>{if(!confirm("Start a new circle for someone else? Your current circle stays saved; open it again with your private family link."))return;store.del("mk_my_circle");location.href="/app.html"};
 
-/* ================= BOOTSTRAP: open straight to a shared Care Circle link ================= */
-(async function bootstrapFromLink(){
-  applyLang(LANG);
-  const params=new URLSearchParams(location.search);
-  const slug=params.get('circle');
-  if(!slug)return; // normal onboarding flow
-  const {data}=await sb.rpc('mk_get_family',{p_slug:slug});
-  if(!data){flagErr('err1',tr('fam_invalid'));return;}
-  FAMILY=data;
-  await refreshClaimsFromDB();
-  startCirclePolling();
-  S.role='volunteer';
-  document.getElementById('vt-f').classList.remove('active');
-  document.getElementById('vt-v').classList.add('active');
-  renderCircle();
-  show('circle');
+/* ---------- load ---------- */
+async function reload(){P=await rpc("mk_get_circle",{p_slug:SLUG,p_code:null,p_family_token:token()})}
+(async function(){
+  if(!SLUG){show("s1");go(1);return}
+  try{await reload();fromSaved();
+    if(ASKED_STEP>=1&&ASKED_STEP<=4)go(ASKED_STEP);
+    else if(!(P.menu||[]).length)go(2);
+    else go(0);
+  }catch(e){show("s1");go(1);toast("Couldn't load your circle. Check your connection.")}
 })();
 </script>
-</body>
-</html>
-
-</template>
-
-</body>
-</html>
+</body></html>

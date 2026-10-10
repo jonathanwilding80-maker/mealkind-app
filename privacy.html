@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Privacy · MealKind</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap">
+<style>
+:root{--forest:#1F3D2B;--forest-2:#3A6B4A;--gold:#E8A33D;--gold-soft:#FBF1DE;--cream:#FDFBF7;--card:#FFFFFF;--ink:#2B2B28;--soft:#6C675E;--line:#EFE7D8;--good-bg:#E5EFE7;--good:#2B5038;--warn:#B5471F;
+--display:"Cormorant Garamond",Georgia,serif;--body:"Jost","Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+body{padding:0 16px 60px}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);color:var(--forest);font-weight:600;line-height:1.1;text-wrap:balance}
+h1{font-size:clamp(2.1rem,7vw,3.2rem)}
+h2{font-size:1.8rem}
+h3{font-size:1.35rem}
+p{text-wrap:pretty}
+a{color:var(--forest-2)}
+.eyebrow{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#B97A16;font-weight:600}
+.muted{color:var(--soft)}.small{font-size:.88rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+button,.btn{font-family:var(--body);font-weight:600;font-size:1rem;border-radius:999px;padding:12px 22px;border:2px solid var(--forest);background:var(--forest);color:var(--cream);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;line-height:1.2;text-align:center}
+button.ghost,.btn.ghost{background:transparent;color:var(--forest)}
+button.gold,.btn.gold{background:var(--gold);border-color:var(--gold);color:#2A1E08}
+button.sm,.btn.sm{padding:8px 14px;font-size:.9rem}
+button.link{background:none;border:none;color:var(--forest-2);padding:0;text-decoration:underline;font-weight:500}
+button.wide,.btn.wide{width:100%}
+button:disabled{opacity:.5;cursor:default}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input,select,textarea{font:inherit;width:100%;padding:12px 14px;border:1.5px solid #E2D9C6;border-radius:12px;background:#fff;color:var(--ink)}
+input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:var(--forest);padding:0}
+label{display:flex;flex-direction:column;gap:6px;font-size:.92rem;font-weight:500;color:var(--soft)}
+label.check{flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-weight:400;font-size:1rem}
+.form{display:grid;gap:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) 0 6px;max-width:720px;margin:0 auto}
+header.top .logo{font-family:var(--display);font-size:1.7rem;font-weight:700;color:var(--forest);text-decoration:none}
+header.top .logo span{color:var(--gold)}
+header.top nav{display:flex;gap:14px;align-items:center;font-size:.92rem}
+header.top nav a{color:var(--forest);font-weight:500}
+.tag{font-size:.75rem;background:var(--good-bg);color:var(--good);border-radius:999px;padding:4px 10px;font-weight:600;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-weight:500;font-size:.95rem;padding:9px 14px;border-radius:999px;border:1.5px solid #E2D9C6;background:#fff;color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--forest);border-color:var(--forest);color:var(--cream)}
+.note{background:var(--gold-soft);border-radius:14px;padding:12px 16px;font-size:.95rem}
+.err{color:var(--warn);font-size:.92rem;min-height:1.2em}
+.toast{pointer-events:none;position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--forest);color:var(--cream);padding:12px 18px;border-radius:999px;font-size:.95rem;z-index:10;max-width:calc(100% - 32px);text-align:center}
+.ver{text-align:center;font-size:.72rem;color:#9A958B;margin-top:30px}
+footer.foot{max-width:720px;margin:40px auto 0;border-top:1px solid var(--line);padding-top:18px;display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;font-size:.85rem;color:var(--soft)}
+footer.foot a{color:var(--soft)}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+
+section{display:flex;flex-direction:column;gap:6px}
+</style></head>
+<body>
+<header class="top"><a class="logo" href="/">Meal<span>Kind</span></a></header>
+<main class="wrap" style="margin-top:16px">
+  <div><div class="eyebrow">Privacy</div><h1>Your privacy, in plain words</h1></div>
+  <section><h3>What we keep</h3><p>The first name of the person being cared for, their illness, allergies and foods to limit, the recipes the family chooses, the family's note, and drop-off details. For friends who sign up: your name, the day and recipe you chose, and the mobile number or email you give for reminders.</p></section>
+  <section><h3>Who can see it</h3><p>A Care Circle page can only be opened with its link and its password, which the family shares. People who open it see the note, the calendar, first names and what's being brought. Phone numbers and emails are never shown to anyone. The drop-off address is only shown to people after they sign up.</p></section>
+  <section><h3>What we never do</h3><p>We don't sell your information or use it for advertising. We only use it to run the Care Circle and send the reminders you asked for.</p></section>
+  <section><h3>Health and food</h3><p>MealKind isn't a medical service. Recipes are general guidance checked against what the family enters; follow the care team's advice. Only share what you're comfortable sharing.</p></section>
+  <section><h3>Your choices</h3><p>Reply STOP to any text to stop reminders. Email <a href="mailto:hello@mealkind.com">hello@mealkind.com</a> any time to have a circle or your details deleted.</p></section>
+</main>
+<footer class="foot"><span>© 2026 MealKind · San Antonio, Texas</span><a href="/">Home</a></footer>
+</body></html>

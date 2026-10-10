@@ -90,16 +90,17 @@ header.top a span{color:var(--gold)}
 @media (max-width:520px){.two{grid-template-columns:1fr}.day{min-height:54px;padding:5px}.day .n{font-size:1.1rem}.hero{flex-direction:column;text-align:center}}
 </style></head>
 <body>
-<header class="top"><a href="/">Meal<span>Kind</span></a><span class="tag" id="famTag" hidden>Family view</span></header>
+<header class="top"><a href="/">Meal<span>Kind</span></a><span style="display:flex;gap:10px;align-items:center"><a id="famNav" href="/app.html" hidden style="font-family:var(--body);font-size:.92rem;font-weight:500;color:var(--forest)">Family set-up</a><span class="tag" id="famTag" hidden>Family view</span></span></header>
 
 <!-- PASSWORD -->
 <form class="gate" id="gate" hidden>
   <div class="eyebrow">Care Circle</div>
   <h1>Enter the password</h1>
-  <p class="muted">The family shared a password with the link. You only need to enter it once on this device.</p>
-  <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" aria-label="Password">
+  <p class="muted">It's the number in the message the family sent you, under "Enter this password". You only need it once on this phone.</p>
+  <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" aria-label="Password" placeholder="••••••">
   <div class="err" id="gateErr" role="alert"></div>
   <button type="submit">Open the Care Circle</button>
+  <p class="small muted">By continuing you agree to <a href="/privacy.html" target="_blank">how MealKind uses your information</a>.</p>
 </form>
 
 <main class="wrap" id="page" hidden>
@@ -109,33 +110,18 @@ header.top a span{color:var(--gold)}
     <div><div class="eyebrow">Care Circle</div><h1 id="title"></h1></div>
   </section>
   <p class="blurb" id="blurb"></p>
-  <div id="blurbEdit" hidden>
-    <button class="sm ghost" id="blurbBtn" type="button">Write a short note for friends</button>
-    <form id="blurbForm" class="form" hidden style="margin-top:10px">
-      <label>Who is this for?<input id="bName" maxlength="80" placeholder="e.g. Dave Martinez"></label>
-      <label>A short note<textarea id="bText" rows="4" maxlength="1000" placeholder="Hi everyone, this page is for Dave, who's going through renal care over the next few weeks. We're so grateful for your support, however you can help."></textarea></label>
-      <div><button type="submit" class="sm">Save</button></div>
-    </form>
-  </div>
   <p class="notes" id="notes"></p>
 
   <!-- FAMILY ONLY -->
   <section class="card" id="famBox" hidden>
-    <div class="eyebrow">Share with friends</div>
-    <p style="margin:6px 0 10px">Send the link <strong>and</strong> the password. Only people with both can see this page.</p>
-    <div class="form">
-      <label>Link<input id="shareLink" readonly></label>
-      <div class="two">
-        <label>Password<input id="sharePw" readonly placeholder="Not set"></label>
-        <label>Change password<input id="newPw" inputmode="numeric" maxlength="8" placeholder="4–8 digits"></label>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="sm gold" id="copyBtn" type="button">Copy link and password</button><button class="sm ghost" id="pwBtn" type="button">Save new password</button></div>
-      <p class="small muted">To change the recipe list, go back to the MealKind app and send the menu again. Tap any day to mark it as a treatment day.</p>
-    </div>
+    <div class="eyebrow">Only you see this box</div>
+    <p style="margin:6px 0 12px">This is the page your friends see. Tap any day on the calendar to mark it as a treatment day.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn sm gold" href="/app.html?step=4">Share link and password</a><a class="btn sm ghost" href="/app.html?step=2">Change recipes</a><a class="btn sm ghost" href="/app.html?step=3">Edit the note</a></div>
   </section>
 
   <!-- HOW IT WORKS -->
-  <div class="steps"><div><b>1</b>Pick a day</div><div><b>2</b>Pick a recipe</div><div><b>3</b>Add your details</div></div>
+  <div><h2 style="font-size:1.5rem">How to help</h2>
+  <div class="steps" style="margin-top:10px"><div><b>1</b>Tap a day below</div><div><b>2</b>Choose a recipe</div><div><b>3</b>Add your name; we'll text a reminder</div></div></div>
 
   <!-- CALENDAR -->
   <section>
@@ -161,7 +147,7 @@ header.top a span{color:var(--gold)}
   </section>
 
   <section class="links" id="links" hidden></section>
-  <p class="ver">Version 12 · 8 Oct 2026</p>
+  <p class="ver">Version 13 · 9 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -173,7 +159,6 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v)
 const Q=new URLSearchParams(location.search);
 const SLUG=(Q.get("circle")||Q.get("f")||"").trim();
 if(!SLUG){location.replace("/")}
-(function(){let ok=false;try{ok=!!localStorage.getItem("mk_privacy_v1")}catch(e){}if(!ok&&SLUG)location.replace("/?circle="+encodeURIComponent(SLUG)+"&next=care-circle")})();
 // family code: from the app on this device (or an organizer link)
 const rawTok=store.raw("mk_family_token_"+SLUG);
 let TOKEN=Q.get("t")||store.get("mk_org_"+SLUG,null)||(rawTok?rawTok.replace(/^"|"$/g,""):null);
@@ -186,7 +171,7 @@ const iso=d=>d.toLocaleDateString("en-CA");
 const todayISO=iso(new Date());
 const longDate=s=>new Date(s+"T12:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,3500)}
-const ERR={bad_code:"That password isn't right. Check the message the family sent you.",no_password_yet:"The family hasn't set a password yet. Ask them to open the MealKind app and send the menu.",not_found:"This Care Circle link isn't valid.",missing_name:"Please add your name.",missing_recipe:"Please choose a recipe.",bad_date:"Please choose a day from today onward.",slow_down:"Lots of activity right now. Try again in a few minutes.",not_family:"Only the family can do that.",bad_code_format:"Passwords are 4 to 8 numbers.",not_your_slot:"Only the person who signed up can cancel this."};
+const ERR={bad_code:"That password isn't right. Check the message the family sent you.",no_password_yet:"The family hasn't finished setting up yet. Ask them to send the link again when it's ready.",not_found:"This Care Circle link isn't valid.",missing_name:"Please add your name.",missing_recipe:"Please choose a recipe.",bad_date:"Please choose a day from today onward.",slow_down:"Lots of activity right now. Try again in a few minutes.",not_family:"Only the family can do that.",bad_code_format:"Passwords are 4 to 8 numbers.",not_your_slot:"Only the person who signed up can cancel this."};
 const errMsg=e=>{const m=(e&&e.message)||"";const k=Object.keys(ERR).find(k=>m.includes(k));return k?ERR[k]:"Something went wrong. Check your connection and try again."};
 async function rpc(fn,args){const {data,error}=await sb.rpc(fn,args);if(error)throw error;return data}
 
@@ -480,6 +465,7 @@ function vet(r,flags){
 function isSafeFor(r,allergyFlags,dietaryFlags){
   return vet(r,{allergy:allergyFlags,diet:dietaryFlags,custom:activeFlags().custom}).safe;
 }
+
 const RECIPE=Object.fromEntries(POOL.map(r=>[r.n,r]));
 const COURSES=[["breakfast","Breakfast"],["lunch","Lunch"],["dinner","Dinner"],["snack","Snack"],["dessert","Dessert"]];
 const CLABEL=Object.fromEntries(COURSES);
@@ -501,16 +487,15 @@ $("gate").addEventListener("submit",e=>{e.preventDefault();const c=$("code").val
 function name(){return (P.recipient_name||P.display_name||"your friend")}
 function render(){
   const fam=!!P.is_family;
-  $("famTag").hidden=!fam;
+  $("famTag").hidden=!fam;$("famNav").hidden=!fam;
   document.title=`Meals for ${name()} · MealKind`;
   $("title").textContent=`Meals for ${name()}`;
   $("photo").innerHTML=P.photo_url?`<img src="${esc(P.photo_url)}" alt="">`:esc(name()[0]||"M");
   $("blurb").textContent=P.story||(fam?"":"");
-  $("blurbEdit").hidden=!fam;$("blurbBtn").textContent=P.story?"Edit the note for friends":"Write a short note for friends";
   const avoid=[...(P.allergy_flags||[]).filter(x=>!x.startsWith("other:")).map(x=>FLAG[x]||x),...(P.allergy_flags||[]).filter(x=>x.startsWith("other:")).map(x=>x.slice(6)),...(P.dietary_flags||[]).filter(x=>FLAG[x]).map(x=>FLAG[x])];
-  $("notes").innerHTML=(avoid.length?`<strong>Please avoid:</strong> ${esc(avoid.join(", "))}. `:"")+(P.drop_off_window?`<strong>Drop-off:</strong> ${esc(P.drop_off_window)}. `:"")+`The recipes below already follow these rules.`;
+  const tex=((P.dietary_flags||[]).find(x=>x.startsWith("texture:"))||"").slice(8),likes=(P.food_notes&&P.food_notes.likes)||"";
+  $("notes").innerHTML=(avoid.length?`<strong>Please avoid:</strong> ${esc(avoid.join(", "))}. `:"")+(tex?`<strong>Texture:</strong> ${tex==="pureed"?"pureed":"soft, easy to chew"}. `:"")+(likes?`<strong>Good to know:</strong> ${esc(likes)}. `:"")+(P.drop_off_window?`<strong>Drop-off:</strong> ${esc(P.drop_off_window)}. `:"")+`Every recipe on this page already follows these rules.`;
   $("famBox").hidden=!fam;
-  if(fam){const link=location.origin+"/?circle="+encodeURIComponent(SLUG);$("shareLink").value=link;$("sharePw").value=CODE||store.get("mk_pw_"+SLUG,"")||"";if(!P.has_password)$("sharePw").placeholder="Not set yet: add one";}
   const l=[];if(P.gofundme_url)l.push(`<a class="btn gold" href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">Give to the meal fund</a>`);if(P.amazon_url)l.push(`<a class="btn ghost" href="${esc(P.amazon_url)}" target="_blank" rel="noopener">Open the gift list</a>`);
   $("links").innerHTML=l.join("");$("links").hidden=!l.length;
   renderCal();renderPanel();renderMine();renderMenu();
@@ -536,7 +521,8 @@ function menuOptions(){
   const menu=P.menu||[];
   if(!menu.length)return `<option value="">No recipes on the menu yet</option>`;
   return COURSES.map(([c,l])=>{const items=menu.filter(m=>m.course===c);if(!items.length)return"";
-    return `<optgroup label="${l}">${items.map(m=>`<option value="${esc(m.name)}" data-course="${c}">${esc(m.name)}</option>`).join("")}</optgroup>`}).join("");
+    return `<optgroup label="${l}">${items.map(m=>{const near=(P.meals||[]).find(x=>x.recipe===m.name&&Math.abs((new Date(x.date)-new Date(SEL))/864e5)<=3);
+      return `<option value="${esc(m.name)}" data-course="${c}">${esc(m.name)}${near?` (already coming ${new Date(near.date+"T12:00").toLocaleDateString("en-US",{weekday:"short"})})`:""}</option>`}).join("")}</optgroup>`}).join("");
 }
 function previewHTML(n){const r=RECIPE[n];if(!r)return"";return `${esc(r.why)} · ${esc(r.time||"")}<details><summary>Ingredients &amp; method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details>`}
 function renderPanel(){
@@ -581,16 +567,8 @@ function renderMenu(){
   const menu=P.menu||[];
   $("menuList").innerHTML=menu.length?COURSES.map(([c,l])=>{const items=menu.filter(m=>m.course===c);if(!items.length)return"";
     return `<div class="course"><h3>${l}</h3>${items.map(m=>{const r=RECIPE[m.name];return `<details class="rec"><summary>${esc(m.name)}</summary>${r?`<p>${esc(r.why)} · ${esc(r.time||"")}</p><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px;font-size:.9rem">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol>`:""}</details>`}).join("")}</div>`}).join("")
-    :`<p class="muted" style="margin-top:10px">${P.is_family?"No recipes yet. Open the MealKind app, choose recipes and send them to the Care Circle.":"The family hasn't added recipes yet. Check back soon."}</p>`;
+    :`<p class="muted" style="margin-top:10px">${P.is_family?"No recipes yet. Open Family set-up and choose the recipes friends can cook.":"The family hasn't added recipes yet. Check back soon."}</p>`;
 }
-
-/* family tools */
-$("blurbBtn").onclick=()=>{const f=$("blurbForm");f.hidden=!f.hidden;if(!f.hidden){$("bName").value=P.recipient_name||"";$("bText").value=P.story||""}};
-$("blurbForm").onsubmit=async e=>{e.preventDefault();try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:TOKEN,p:{recipient_name:$("bName").value.trim(),story:$("bText").value.trim()}});$("blurbForm").hidden=true;toast("Saved");load()}catch(err){toast(errMsg(err))}};
-$("copyBtn").onclick=async()=>{const pw=$("sharePw").value;const t=`Join ${name()}'s Care Circle on MealKind to sign up for a meal: ${$("shareLink").value}${pw?`\nPassword: ${pw}`:""}`;
-  try{await navigator.clipboard.writeText(t);toast("Copied. Paste it into a text or WhatsApp.")}catch{toast(t)}};
-$("pwBtn").onclick=async()=>{const c=$("newPw").value.trim();if(!/^\d{4,8}$/.test(c)){toast(ERR.bad_code_format);return}
-  try{await rpc("mk_set_passcode",{p_slug:SLUG,p_family_token:TOKEN,p_code:c});store.set("mk_pw_"+SLUG,c);CODE=c;store.set("mk_code_"+SLUG,c);$("newPw").value="";toast("Password saved. Send the new one to your friends.");load()}catch(err){toast(errMsg(err))}};
 
 if(SLUG)load();
 </script>
