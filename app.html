@@ -110,7 +110,7 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <div class="q" id="textureQ" hidden><span class="qt">Do they need softer food?</span><div class="chips" id="texture"></div></div>
   <div class="q"><span class="qt">Allergies</span><span class="qh">Tick any that apply.</span><div class="chips" id="allergies"></div>
     <input id="fOther" maxlength="120" placeholder="Anything else to avoid? e.g. mushrooms, pork"></div>
-  <div class="q"><span class="qt">Foods to limit</span><span class="qh" id="limitHint">Tick what their care team has asked them to cut down on.</span><div class="chips" id="limits"></div></div>
+  <div class="q" id="limitQ" hidden><span class="qt">Foods to limit</span><span class="qh" id="limitHint">Tick what their care team has asked them to cut down on.</span><div class="chips" id="limits"></div></div>
   <label class="q"><span class="qt">Likes and dislikes <span class="muted small">(optional)</span></span><input id="fLikes" maxlength="200" placeholder="e.g. Loves soup; can't face anything spicy"></label>
   <label class="check" id="consentRow"><input type="checkbox" id="consent"> <span>I've read <a href="/privacy.html" target="_blank">how MealKind uses this information</a>.</span></label>
   <div class="err" id="err1" role="alert"></div>
@@ -494,7 +494,10 @@ const CONDS=[["cancer","Cancer"],["dialysis","Kidney disease / dialysis"],["card
 const CLABEL=Object.fromEntries(CONDS);
 const SOFT=["stroke","parkinsons","als","alzheimers"];
 const ALLERGIES=[["tree_nut","Tree nuts"],["peanut","Peanuts"],["milk","Dairy"],["wheat_gluten","Gluten"],["egg","Eggs"],["fish","Fish"],["shellfish","Shellfish"],["sesame","Sesame"]];
-const LIMITS=[["high_potassium","High-potassium (bananas, potatoes)"],["high_sodium","Salty foods"],["high_sugar","Sugary foods"],["acidic","Acidic (citrus, tomato)"]];
+const LIMITS=[["high_potassium","Potassium (bananas, potatoes, tomatoes)"],["high_sodium","Salty foods"],["high_sugar","Sugary foods"],["acidic","Acidic foods (citrus, tomato)"]];
+/* only the limits that matter for each illness are offered */
+const LIMITS_FOR={dialysis:["high_potassium","high_sodium","high_sugar"],cardio:["high_sodium","high_sugar"],stroke:["high_sodium","high_sugar"],cancer:["acidic","high_sugar"],gi:["acidic","high_sugar"]};
+const limitsFor=c=>LIMITS_FOR[c]||["high_sodium","high_sugar"];
 const IMPLIED={dialysis:["high_potassium","high_sodium"],cardio:["high_sodium"],stroke:["high_sodium"]};
 const CTYPES=[["breast","Breast"],["colorectal","Colon / bowel"],["headneck","Head, neck or throat"],["lung","Lung"],["upper_gi","Stomach, esophagus or pancreas"],["prostate","Prostate"],["blood","Blood (leukemia, lymphoma, myeloma)"],["gyn","Ovarian, uterine or cervical"],["brain","Brain"],["other","Other"]];
 const CTX=[["chemo","Chemotherapy"],["radiation","Radiation"],["immuno","Immunotherapy"],["surgery","Recovering from surgery"],["done","Finished treatment"]];
@@ -529,7 +532,13 @@ chips("texture",TEXTURES,false,()=>F.texture,k=>F.texture=k);
 chips("allergies",ALLERGIES,true,()=>F.allergy,k=>F.allergy=toggle(F.allergy,k));
 chips("limits",LIMITS,true,()=>F.limits,k=>F.limits=toggle(F.limits,k));
 function toggle(a,k){return a.includes(k)?a.filter(x=>x!==k):a.concat(k)}
+function renderLimits(){
+  const keep=limitsFor(F.cond);F.limits=F.limits.filter(k=>keep.includes(k));
+  chips("limits",LIMITS.filter(l=>keep.includes(l[0])),true,()=>F.limits,k=>F.limits=toggle(F.limits,k));paint("limits",F.limits);
+  $("limitQ").hidden=!F.cond;
+}
 function applyImplied(){
+  renderLimits();
   if(F.implied===F.cond)return;F.implied=F.cond;
   const want=IMPLIED[F.cond]||[];F.limits=[...new Set(F.limits.concat(want))];paint("limits",F.limits);
   $("limitHint").textContent=want.length?`We've ticked what's usually limited for ${CLABEL[F.cond].toLowerCase()}. Only untick something if their care team says it's fine.`:"Tick what their care team has asked them to cut down on.";
@@ -551,7 +560,7 @@ function fromSaved(){
   F.ctype=(d.find(x=>x.startsWith("ctype:"))||"").slice(6)||null;F.ctx=d.filter(x=>x.startsWith("tx:")).map(x=>x.slice(3));
   $("fName").value=P.recipient_name||P.display_name||"";$("fOther").value=CUSTOM.join(", ");
   $("fLikes").value=(P.food_notes&&P.food_notes.likes)||"";
-  paint("conds",F.cond);paint("texture",F.texture);paint("allergies",F.allergy);paint("limits",F.limits);paint("ctype",F.ctype);paint("ctx",F.ctx);showExtras();
+  paint("conds",F.cond);paint("texture",F.texture);paint("allergies",F.allergy);renderLimits();paint("ctype",F.ctype);paint("ctx",F.ctx);showExtras();
   PICK=new Set((P.menu||[]).map(m=>m.name));
   $("fStory").value=P.story||"";$("fWindow").value=P.drop_off_window||"";$("fDrop").value=P.drop_off_note||"";
   $("fFund").value=P.gofundme_url||"";$("fGift").value=P.amazon_url||"";
