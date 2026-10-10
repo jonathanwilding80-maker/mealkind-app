@@ -147,7 +147,7 @@ header.top a span{color:var(--gold)}
   </section>
 
   <section class="links" id="links" hidden></section>
-  <p class="ver">Version 13 · 9 Oct 2026</p>
+  <p class="ver">Version 14 · 9 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -494,7 +494,11 @@ function render(){
   $("blurb").textContent=P.story||(fam?"":"");
   const avoid=[...(P.allergy_flags||[]).filter(x=>!x.startsWith("other:")).map(x=>FLAG[x]||x),...(P.allergy_flags||[]).filter(x=>x.startsWith("other:")).map(x=>x.slice(6)),...(P.dietary_flags||[]).filter(x=>FLAG[x]).map(x=>FLAG[x])];
   const tex=((P.dietary_flags||[]).find(x=>x.startsWith("texture:"))||"").slice(8),likes=(P.food_notes&&P.food_notes.likes)||"";
-  $("notes").innerHTML=(avoid.length?`<strong>Please avoid:</strong> ${esc(avoid.join(", "))}. `:"")+(tex?`<strong>Texture:</strong> ${tex==="pureed"?"pureed":"soft, easy to chew"}. `:"")+(likes?`<strong>Good to know:</strong> ${esc(likes)}. `:"")+(P.drop_off_window?`<strong>Drop-off:</strong> ${esc(P.drop_off_window)}. `:"")+`Every recipe on this page already follows these rules.`;
+  const DF=P.dietary_flags||[],CT={breast:"breast",colorectal:"colon / bowel",headneck:"head, neck or throat",lung:"lung",upper_gi:"stomach, esophagus or pancreas",prostate:"prostate",blood:"blood",gyn:"ovarian, uterine or cervical",brain:"brain",other:""},TX={chemo:"chemotherapy",radiation:"radiation",immuno:"immunotherapy",surgery:"recovering from surgery",done:"finished treatment"};
+  const ct=(DF.find(x=>x.startsWith("ctype:"))||"").slice(6),txs=DF.filter(x=>x.startsWith("tx:")).map(x=>TX[x.slice(3)]).filter(Boolean);
+  const cancerLine=DF.includes("cond:cancer")?`<strong>About ${esc(name())}:</strong> ${ct&&CT[ct]?esc(CT[ct])+" cancer":"cancer"}${txs.length?", "+esc(txs.join(", ")):""}. `:"";
+  const safety=DF.includes("food_safety")?`<br><br><strong>Food safety:</strong> their immune system is weaker right now. Cook meat, fish and eggs all the way through, wash hands and produce well, skip anything raw, and drop the meal off hot or chilled with today's date on it.`:"";
+  $("notes").innerHTML=cancerLine+(avoid.length?`<strong>Please avoid:</strong> ${esc(avoid.join(", "))}. `:"")+(tex?`<strong>Texture:</strong> ${tex==="pureed"?"pureed":"soft, easy to chew"}. `:"")+(likes?`<strong>Good to know:</strong> ${esc(likes)}. `:"")+(P.drop_off_window?`<strong>Drop-off:</strong> ${esc(P.drop_off_window)}. `:"")+`Every recipe on this page already follows these rules.`+safety;
   $("famBox").hidden=!fam;
   const l=[];if(P.gofundme_url)l.push(`<a class="btn gold" href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">Give to the meal fund</a>`);if(P.amazon_url)l.push(`<a class="btn ghost" href="${esc(P.amazon_url)}" target="_blank" rel="noopener">Open the gift list</a>`);
   $("links").innerHTML=l.join("");$("links").hidden=!l.length;

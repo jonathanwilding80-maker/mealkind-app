@@ -97,12 +97,8 @@ footer.foot a{color:var(--soft)}
     <div class="card path">
       <div class="eyebrow">Friend or family member</div>
       <h2>Someone sent you a link?</h2>
-      <p>Open the link in their message and enter the password under it. Then pick a day and a recipe. That's all.</p>
-      <form id="join" class="form" style="gap:10px">
-        <label>Or paste the link here<input id="joinLink" placeholder="mealkind.com/care-circle.html?circle=…"></label>
-        <button class="ghost wide" type="submit">Open the Care Circle</button>
-        <div class="err" id="joinErr" role="alert"></div>
-      </form>
+      <p>Open the link in the text or email the family sent you. Enter the password written under it, then pick a day and a recipe.</p>
+      <p class="small muted">No account or app needed.</p>
     </div>
   </section>
 
@@ -117,11 +113,6 @@ footer.foot a{color:var(--soft)}
     </div>
   </section>
 
-  <section style="display:flex;flex-direction:column;gap:12px">
-    <div class="eyebrow">Recipes written for</div>
-    <div class="conds"><span>Cancer</span><span>Kidney disease and dialysis</span><span>Heart conditions</span><span>Stroke</span><span>Digestive and GI conditions</span><span>Surgery and orthopedic recovery</span><span>Parkinson's</span><span>ALS</span><span>Brain injury</span><span>Alzheimer's and dementia</span><span>Depression</span><span>Postpartum recovery</span></div>
-    <p class="small muted">Every recipe is checked against the allergies and foods to limit that the family enters. MealKind isn't medical advice; follow the care team's guidance.</p>
-  </section>
 
   <section id="about" class="card" style="display:flex;flex-direction:column;gap:10px">
     <div class="eyebrow">About MealKind</div>
@@ -130,12 +121,8 @@ footer.foot a{color:var(--soft)}
   </section>
 </main>
 <footer class="foot"><span>© 2026 MealKind · San Antonio, Texas</span><a href="mailto:hello@mealkind.com">hello@mealkind.com</a><a href="/privacy.html">Privacy</a></footer>
-<p class="ver">Version 13 · 9 Oct 2026</p>
+<p class="ver">Version 14 · 9 Oct 2026</p>
 <script>
 try{var s=JSON.parse(localStorage.getItem("mk_my_circle")||"null");if(s&&localStorage.getItem("mk_family_token_"+s))document.getElementById("mine").hidden=false}catch(e){}
-document.getElementById("join").addEventListener("submit",function(e){e.preventDefault();
-  var v=document.getElementById("joinLink").value.trim(),m=v.match(/circle=([a-z0-9]+)/i)||v.match(/^([a-f0-9]{12,})$/i);
-  if(!m){document.getElementById("joinErr").textContent="That doesn't look like a Care Circle link. Open the link straight from the family's message.";return}
-  location.href="/care-circle.html?circle="+encodeURIComponent(m[1]);});
 </script>
 </body></html>

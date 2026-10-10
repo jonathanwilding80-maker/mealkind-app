@@ -104,6 +104,9 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <p class="muted" style="margin-top:8px">This decides which recipes friends can choose from. Only you see this set-up page.</p></div>
   <label class="q"><span class="qt">Their first name</span><input id="fName" maxlength="40" autocomplete="off" placeholder="e.g. Dave"></label>
   <div class="q"><span class="qt">What are they going through?</span><div class="conds" id="conds"></div></div>
+  <div class="q" id="cancerQ" hidden><span class="qt">Which type of cancer?</span><div class="chips" id="ctype"></div>
+    <span class="qt" style="margin-top:8px">Treatment right now</span><span class="qh">Tick all that apply.</span><div class="chips" id="ctx"></div>
+    <p class="note small" id="chemoNote" hidden>During chemo the immune system is weaker, so we leave out raw and undercooked foods, and friends get food-safety tips with their recipe.</p></div>
   <div class="q" id="textureQ" hidden><span class="qt">Do they need softer food?</span><div class="chips" id="texture"></div></div>
   <div class="q"><span class="qt">Allergies</span><span class="qh">Tick any that apply.</span><div class="chips" id="allergies"></div>
     <input id="fOther" maxlength="120" placeholder="Anything else to avoid? e.g. mushrooms, pork"></div>
@@ -148,11 +151,13 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <p class="muted" style="margin-top:8px">Friends need both. Send them together in one message.</p></div>
   <div class="q"><span class="qt">Password</span><div class="pw" id="pwBig">······</div></div>
   <div class="q"><span class="qt">The message friends get</span><div class="msg" id="msgPrev"></div></div>
+  <p class="small muted" id="deskHint" hidden>On a computer: press <b>Copy message</b>, then paste it into an email, Facebook message or WhatsApp. To send it as a text, open this page on your phone.</p>
   <div class="share">
+    <button class="gold" id="shCopy" type="button">Copy message</button>
     <a class="btn gold" id="shText" href="#">Send by text</a>
     <a class="btn gold" id="shWa" href="#" target="_blank" rel="noopener">Send on WhatsApp</a>
-    <a class="btn ghost" id="shMail" href="#">Send by email</a>
-    <button class="ghost" id="shCopy" type="button">Copy message</button>
+    <a class="btn ghost" id="shGmail" href="#" target="_blank" rel="noopener">Send with Gmail</a>
+    <a class="btn ghost" id="shMail" href="#">Send by email app</a>
   </div>
   <details class="more"><summary>Change the password</summary>
     <div style="display:flex;gap:10px;margin-top:10px"><input id="newPw" inputmode="numeric" maxlength="8" placeholder="4–8 numbers"><button class="ghost" id="pwSave" type="button">Save</button></div>
@@ -177,7 +182,7 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <p class="small muted" style="text-align:center"><button class="link" id="newCircle" type="button">Set up a circle for someone else</button></p>
 </section>
 
-<p class="ver">Version 13 · 9 Oct 2026</p>
+<p class="ver">Version 14 · 9 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -491,6 +496,10 @@ const SOFT=["stroke","parkinsons","als","alzheimers"];
 const ALLERGIES=[["tree_nut","Tree nuts"],["peanut","Peanuts"],["milk","Dairy"],["wheat_gluten","Gluten"],["egg","Eggs"],["fish","Fish"],["shellfish","Shellfish"],["sesame","Sesame"]];
 const LIMITS=[["high_potassium","High-potassium (bananas, potatoes)"],["high_sodium","Salty foods"],["high_sugar","Sugary foods"],["acidic","Acidic (citrus, tomato)"]];
 const IMPLIED={dialysis:["high_potassium","high_sodium"],cardio:["high_sodium"],stroke:["high_sodium"]};
+const CTYPES=[["breast","Breast"],["colorectal","Colon / bowel"],["headneck","Head, neck or throat"],["lung","Lung"],["upper_gi","Stomach, esophagus or pancreas"],["prostate","Prostate"],["blood","Blood (leukemia, lymphoma, myeloma)"],["gyn","Ovarian, uterine or cervical"],["brain","Brain"],["other","Other"]];
+const CTX=[["chemo","Chemotherapy"],["radiation","Radiation"],["immuno","Immunotherapy"],["surgery","Recovering from surgery"],["done","Finished treatment"]];
+const SOFT_CANCER=["headneck","upper_gi"];
+const FOOD_SAFE=["sushi","raw","sprout","unpasteurized","rare","runny","smoked salmon","deli","brie","blue cheese"];
 const TEXTURES=[["regular","Regular"],["soft","Soft"],["pureed","Pureed"]];
 const COURSES=[["breakfast","Breakfast"],["lunch","Lunch"],["dinner","Dinner"],["snack","Snacks"],["dessert","Desserts"]];
 
@@ -500,7 +509,7 @@ let SLUG=store.get("mk_my_circle",null);
 const token=()=>SLUG?store.get("mk_family_token_"+SLUG,null):null;
 if(SLUG&&!token())SLUG=null;
 let P=null;                // circle as saved
-let F={cond:null,texture:"regular",allergy:[],limits:[],implied:null};
+let F={cond:null,texture:"regular",allergy:[],limits:[],implied:null,ctype:null,ctx:[]};
 let PICK=new Set();
 let ASKED_STEP=parseInt(Q.get("step")||"0",10);
 
@@ -510,7 +519,12 @@ function chips(el,items,multi,get,set){
   $(el).onclick=e=>{const b=e.target.closest(".chip");if(!b)return;set(b.dataset.k);paint(el,get())};
 }
 function paint(el,sel){document.querySelectorAll("#"+el+" .chip").forEach(b=>b.setAttribute("aria-pressed",String([].concat(sel).includes(b.dataset.k))))}
-chips("conds",CONDS,false,()=>F.cond,k=>{F.cond=k;applyImplied();$("textureQ").hidden=!SOFT.includes(k)});
+chips("conds",CONDS,false,()=>F.cond,k=>{F.cond=k;applyImplied();showExtras()});
+chips("ctype",CTYPES,false,()=>F.ctype,k=>{F.ctype=k;showExtras()});
+chips("ctx",CTX,true,()=>F.ctx,k=>{F.ctx=toggle(F.ctx,k);showExtras()});
+const needsSoft=()=>SOFT.includes(F.cond)||(F.cond==="cancer"&&SOFT_CANCER.includes(F.ctype));
+const immuneLow=()=>F.cond==="cancer"&&(F.ctx.includes("chemo")||F.ctype==="blood");
+function showExtras(){$("cancerQ").hidden=F.cond!=="cancer";$("textureQ").hidden=!needsSoft();$("chemoNote").hidden=!immuneLow()}
 chips("texture",TEXTURES,false,()=>F.texture,k=>F.texture=k);
 chips("allergies",ALLERGIES,true,()=>F.allergy,k=>F.allergy=toggle(F.allergy,k));
 chips("limits",LIMITS,true,()=>F.limits,k=>F.limits=toggle(F.limits,k));
@@ -524,7 +538,8 @@ function customTerms(){return String($("fOther").value||"").split(/[,;\/]|\band\
 function flags(){
   CUSTOM=customTerms();
   const allergy=F.allergy.concat(CUSTOM.map(t=>"other:"+t));
-  const diet=F.limits.concat(F.cond==="dialysis"?["high_phosphorus"]:[]).concat(F.cond?["cond:"+F.cond]:[]).concat(SOFT.includes(F.cond)&&F.texture!=="regular"?["texture:"+F.texture]:[]);
+  const cancer=F.cond==="cancer"?[].concat(F.ctype?["ctype:"+F.ctype]:[]).concat(F.ctx.map(x=>"tx:"+x)).concat(immuneLow()?["food_safety"]:[]):[];
+  const diet=F.limits.concat(F.cond==="dialysis"?["high_phosphorus"]:[]).concat(F.cond?["cond:"+F.cond]:[]).concat(needsSoft()&&F.texture!=="regular"?["texture:"+F.texture]:[]).concat(cancer);
   return {allergy,diet};
 }
 function fromSaved(){
@@ -533,9 +548,10 @@ function fromSaved(){
   F.cond=(d.find(x=>x.startsWith("cond:"))||"").slice(5)||null;F.implied=F.cond;
   F.texture=(d.find(x=>x.startsWith("texture:"))||"texture:regular").slice(8);
   F.limits=d.filter(x=>LIMITS.some(l=>l[0]===x));
+  F.ctype=(d.find(x=>x.startsWith("ctype:"))||"").slice(6)||null;F.ctx=d.filter(x=>x.startsWith("tx:")).map(x=>x.slice(3));
   $("fName").value=P.recipient_name||P.display_name||"";$("fOther").value=CUSTOM.join(", ");
   $("fLikes").value=(P.food_notes&&P.food_notes.likes)||"";
-  paint("conds",F.cond);paint("texture",F.texture);paint("allergies",F.allergy);paint("limits",F.limits);$("textureQ").hidden=!SOFT.includes(F.cond);
+  paint("conds",F.cond);paint("texture",F.texture);paint("allergies",F.allergy);paint("limits",F.limits);paint("ctype",F.ctype);paint("ctx",F.ctx);showExtras();
   PICK=new Set((P.menu||[]).map(m=>m.name));
   $("fStory").value=P.story||"";$("fWindow").value=P.drop_off_window||"";$("fDrop").value=P.drop_off_note||"";
   $("fFund").value=P.gofundme_url||"";$("fGift").value=P.amazon_url||"";
@@ -566,6 +582,7 @@ $("next1").onclick=async()=>{
   const name=$("fName").value.trim();
   if(!name){$("err1").textContent="Add their first name.";return}
   if(!F.cond){$("err1").textContent="Choose what they're going through.";return}
+  if(F.cond==="cancer"&&!F.ctype){$("err1").textContent="Choose the type of cancer, or Other.";return}
   if(!P&&!$("consent").checked){$("err1").textContent="Please tick the privacy box to continue.";return}
   $("err1").textContent="";const btn=$("next1");btn.disabled=true;btn.textContent="Saving…";
   const {allergy,diet}=flags();
@@ -586,7 +603,8 @@ $("next1").onclick=async()=>{
 function safeRecipes(){
   const {allergy,diet}=flags();
   const al=allergy.filter(x=>!x.startsWith("other:")),dt=diet.filter(x=>!x.includes(":"));
-  return POOL.filter(r=>(r.tags.includes(F.cond)||r.tags.includes("all"))&&vet(r,{allergy:al,diet:dt,custom:CUSTOM}).safe)
+  const extra=CUSTOM.concat(immuneLow()?FOOD_SAFE:[]);
+  return POOL.filter(r=>(r.tags.includes(F.cond)||r.tags.includes("all"))&&vet(r,{allergy:al,diet:dt,custom:extra}).safe)
     .sort((a,b)=>(b.tags.includes(F.cond)?1:0)-(a.tags.includes(F.cond)?1:0));
 }
 let SAFE=[];
@@ -637,8 +655,12 @@ async function renderShare(){
   $("pwBig").textContent=c||"······";
   const m=message(c||"");
   $("msgPrev").innerHTML=esc(m).replace("password:\n"+esc(c||""),"password:\n<b>"+esc(c||"")+"</b>");
-  $("shText").href="sms:?&body="+encodeURIComponent(m);
+  const phone=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  $("shText").hidden=!phone;$("shMail").hidden=!phone;$("deskHint").hidden=phone;
+  $("shText").href=(/iPhone|iPad|iPod/i.test(navigator.userAgent)?"sms:&body=":"sms:?body=")+encodeURIComponent(m);
   $("shWa").href="https://wa.me/?text="+encodeURIComponent(m);
+  const subj=`${who()}'s Care Circle: link and password inside`,mbody=m.replace(`2. Enter this password:\n${c}`,`2. Enter this password:\n\n    PASSWORD:  ${c}\n`);
+  $("shGmail").href="https://mail.google.com/mail/?view=cm&fs=1&su="+encodeURIComponent(subj)+"&body="+encodeURIComponent(mbody);
   $("shMail").href="mailto:?subject="+encodeURIComponent(`${who()}'s Care Circle: link and password inside`)+"&body="+encodeURIComponent(m.replace(`2. Enter this password:\n${c}`,`2. Enter this password:\n\n    PASSWORD:  ${c}\n`));
   $("toCircle").href=circleUrl();
 }
