@@ -515,7 +515,7 @@ async function load(){
 $("gate").addEventListener("submit",e=>{e.preventDefault();const c=$("code").value.trim();if(!c){$("gateErr").textContent="Enter the password.";return}
   CODE=c;store.set("mk_code_"+SLUG,c);$("gateErr").textContent="";load().then(()=>{if(!$("page").hidden)return;$("gateErr").textContent=ERR.bad_code})});
 
-function name(){return (P.recipient_name||P.display_name||"your friend")}
+function name(){return String(P.recipient_name||P.display_name||"your friend").replace(/^./,c=>c.toUpperCase())}
 function render(){
   const fam=!!P.is_family;
   $("famTag").hidden=!fam;$("famNav").hidden=!fam;
