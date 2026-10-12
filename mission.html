@@ -1,14 +1,15 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><head><script>try{if(localStorage.getItem("mk_big")==="1")document.documentElement.classList.add("big")}catch(e){}</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Our mission · MealKind</title>
 <meta name="description" content="Nobody should heal hungry. MealKind's mission is food security, nourishing meals and simple nutrition education for people going through treatment and recovery.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap">
 <style>
-:root{--forest:#1F3D2B;--forest-2:#3A6B4A;--gold:#E8A33D;--gold-soft:#FBF1DE;--cream:#FDFBF7;--card:#FFFFFF;--ink:#2B2B28;--soft:#6C675E;--line:#EFE7D8;--good-bg:#E5EFE7;--good:#2B5038;--warn:#B5471F;
+:root{--forest:#1F3D2B;--forest-2:#3A6B4A;--gold:#E8A33D;--gold-soft:#FBF1DE;--cream:#FDFBF7;--card:#FFFFFF;--ink:#2B2B28;--soft:#57524A;--line:#EFE7D8;--good-bg:#E5EFE7;--good:#2B5038;--warn:#B5471F;
 --display:"Cormorant Garamond",Georgia,serif;--body:"Jost","Helvetica Neue",Arial,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
-html,body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+html{font-size:17px}html.big{font-size:20px}
+html,body{background:var(--cream);color:var(--ink);font-family:var(--body);line-height:1.6}body{font-size:1rem}
 body{padding:0 16px 60px}
 .wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
 h1,h2,h3{font-family:var(--display);color:var(--forest);font-weight:600;line-height:1.1;text-wrap:balance}
@@ -17,8 +18,8 @@ h2{font-size:1.8rem}
 h3{font-size:1.35rem}
 p{text-wrap:pretty}
 a{color:var(--forest-2)}
-.eyebrow{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#B97A16;font-weight:600}
-.muted{color:var(--soft)}.small{font-size:.88rem}
+.eyebrow{font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;color:#B97A16;font-weight:600}
+.muted{color:var(--soft)}.small{font-size:.92rem}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
 button,.btn{font-family:var(--body);font-weight:600;font-size:1rem;border-radius:999px;padding:12px 22px;border:2px solid var(--forest);background:var(--forest);color:var(--cream);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;line-height:1.2;text-align:center}
 button.ghost,.btn.ghost{background:transparent;color:var(--forest)}
@@ -49,7 +50,8 @@ header.top nav a{color:var(--forest);font-weight:500}
 .ver{text-align:center;font-size:.72rem;color:#9A958B;margin-top:30px}
 footer.foot{max-width:720px;margin:40px auto 0;border-top:1px solid var(--line);padding-top:18px;display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;font-size:.85rem;color:var(--soft)}
 footer.foot a{color:var(--soft)}
-@media (max-width:520px){.two{grid-template-columns:1fr}}
+header.top nav a{white-space:nowrap}
+@media (max-width:520px){.two{grid-template-columns:1fr}header.top nav a.hide-sm{display:none}}
 
 .stat{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .stat div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center}
@@ -98,5 +100,10 @@ footer.foot a{color:var(--soft)}
   </section>
 </main>
 <footer class="foot"><span>© 2026 MealKind · San Antonio, Texas</span><a href="/">Home</a><a href="/privacy.html">Privacy</a></footer>
-<p class="ver">Version 20 · 11 Oct 2026</p>
+<p class="ver">Version 21 · 11 Oct 2026</p>
+<style>.textsize{font-family:var(--body);font-weight:600;font-size:.95rem;padding:6px 12px;border-radius:999px;border:1.5px solid var(--forest);background:#fff;color:var(--forest);cursor:pointer;line-height:1.2}.textsize[aria-pressed=true]{background:var(--forest);color:var(--cream)}</style>
+<script>(function(){var h=document.querySelector("header.top");if(!h)return;var b=document.createElement("button");b.type="button";b.className="textsize";
+function sync(){var on=document.documentElement.classList.contains("big");b.setAttribute("aria-pressed",String(on));b.textContent=on?"Normal text":"Larger text";}
+b.onclick=function(){var on=!document.documentElement.classList.contains("big");document.documentElement.classList.toggle("big",on);try{localStorage.setItem("mk_big",on?"1":"0")}catch(e){}sync()};
+sync();var n=h.querySelector("nav")||h.lastElementChild;if(n&&n!==h.firstElementChild){n.style.display="flex";n.style.alignItems="center";n.style.gap="12px";n.appendChild(b)}else h.appendChild(b);})();</script>
 </body></html>
