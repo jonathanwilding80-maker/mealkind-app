@@ -1,5 +1,36 @@
 <!doctype html>
-<html lang="en"><head><script>try{if(localStorage.getItem("mk_big")==="1")document.documentElement.classList.add("big")}catch(e){}</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><head><script>try{if(localStorage.getItem("mk_big")==="1")document.documentElement.classList.add("big")}catch(e){}</script><script>/* MealKind i18n: English source text, Spanish dictionary, applied to the page as it renders. */
+(function(){
+var saved=null;try{saved=localStorage.getItem("mk_lang")}catch(e){}
+var LANG=saved||((navigator.language||"").toLowerCase().indexOf("es")===0?"es":"en");
+window.MK_LANG=LANG;window.MK_LOCALE=LANG==="es"?"es-US":"en-US";
+document.documentElement.lang=LANG;
+var ES={};
+var PAT=[];
+var miss=window.__mkMiss={};
+function T(s){if(LANG!=="es"||s==null)return s;var str=String(s),m=str.match(/^(\s*)([\s\S]*?)(\s*)$/),core=m[2];if(!core)return str;
+  if(Object.prototype.hasOwnProperty.call(ES,core))return m[1]+ES[core]+m[3];
+  for(var i=0;i<PAT.length;i++){var re=new RegExp("^"+PAT[i][0]+"$");if(re.test(core))return m[1]+core.replace(re,PAT[i][1])+m[3];}
+  if(/[a-z]{3}/i.test(core))miss[core]=1;return str;}
+window.T=T;
+var ATTRS=["placeholder","aria-label","title"];
+function tr(root){if(LANG!=="es"||!root)return;
+  if(root.nodeType===3){var p=root.parentNode;if(!p||p.closest&&p.closest("script,style,[data-noi18n]"))return;var v=T(root.nodeValue);if(v!==root.nodeValue)root.nodeValue=v;return;}
+  if(root.nodeType!==1||root.closest("script,style,[data-noi18n]"))return;
+  ATTRS.forEach(function(a){if(root.hasAttribute&&root.hasAttribute(a)){var o=root.getAttribute(a),v=T(o);if(v!==o)root.setAttribute(a,v)}});
+  if(root.tagName==="OPTGROUP"&&root.label){var l=T(root.label);if(l!==root.label)root.label=l}
+  var w=document.createTreeWalker(root,5,null),n;
+  while(n=w.nextNode()){if(n.nodeType===3){var pp=n.parentNode;if(pp.closest("script,style,[data-noi18n]"))continue;var v2=T(n.nodeValue);if(v2!==n.nodeValue)n.nodeValue=v2}
+    else{ATTRS.forEach(function(a){if(n.hasAttribute(a)){var o=n.getAttribute(a),v=T(o);if(v!==o)n.setAttribute(a,v)}});if(n.tagName==="OPTGROUP"&&n.label){var l2=T(n.label);if(l2!==n.label)n.label=l2}}}}
+window.mkTranslate=tr;
+if(LANG==="es"){
+  document.addEventListener("DOMContentLoaded",function(){tr(document.body);document.title=T(document.title);
+    new MutationObserver(function(ms){ms.forEach(function(m){if(m.type==="characterData")tr(m.target);else m.addedNodes.forEach(tr)})}).observe(document.body,{childList:true,subtree:true,characterData:true});});
+  var _p=window.prompt;window.prompt=function(a,b){return _p.call(window,T(a),b)};
+  var _c=window.confirm;window.confirm=function(a){return _c.call(window,T(a))};
+}
+})();
+</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MealKind Care Circle</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap">
@@ -130,7 +161,8 @@ a{color:var(--forest-2)}
 
   <!-- HOW IT WORKS -->
   <div><h2 style="font-size:1.5rem">How to help</h2>
-  <div class="steps" style="margin-top:10px"><div><b>1</b>Tap a day below</div><div><b>2</b>Choose a recipe</div><div><b>3</b>Add your name and save it to your calendar</div></div></div>
+  <div class="steps" style="margin-top:10px"><div><b>1</b>Tap a day below</div><div><b>2</b>Choose a recipe</div><div><b>3</b>Add your name and save it to your calendar</div></div>
+  <p class="small" style="margin-top:10px;text-align:center"><strong>Cook one dish or several, on one day or many.</strong> Sign up as often as you like: every meal helps.</p></div>
 
   <!-- CALENDAR -->
   <section>
@@ -161,7 +193,7 @@ a{color:var(--forest-2)}
   <section class="card" id="bookBox" hidden></section>
   <section class="card" id="thanksWall" hidden></section>
   <section class="links" id="links" hidden></section>
-  <p class="ver">Version 23 · 11 Oct 2026</p>
+  <p class="ver">Version 25 · 12 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -183,7 +215,7 @@ const MINE=store.get("mk_mine_"+SLUG,[]);   // [{id,token}]
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const iso=d=>d.toLocaleDateString("en-CA");
 const todayISO=iso(new Date());
-const longDate=s=>new Date(s+"T12:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+const longDate=s=>new Date(s+"T12:00").toLocaleDateString(MK_LOCALE,{weekday:"long",month:"long",day:"numeric"});
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,3500)}
 const ERR={bad_code:"That password isn't right. Check the message the family sent you.",no_password_yet:"The family hasn't finished setting up yet. Ask them to send the link again when it's ready.",not_found:"This Care Circle link isn't valid.",missing_name:"Please add your name.",missing_recipe:"Please choose a recipe.",bad_date:"Please choose a day from today onward.",slow_down:"Lots of activity right now. Try again in a few minutes.",not_family:"Only the family can do that.",bad_code_format:"Passwords are 4 to 8 numbers.",not_your_slot:"Only the person who signed up can cancel this."};
 const errMsg=e=>{const m=(e&&e.message)||"";const k=Object.keys(ERR).find(k=>m.includes(k));return k?ERR[k]:"Something went wrong. Check your connection and try again."};
@@ -521,7 +553,46 @@ function booksFor(cond,soft){return BOOKS.filter(b=>b.tags.includes(cond)||(soft
 function bookUrl(b){return "https://www.amazon.com/s?k="+encodeURIComponent(b.t+" "+b.a.split(/[,&]| with /)[0].trim())+"&i=stripbooks";}
 function booksHTML(list){return list.map(b=>`<div class="book" style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)"><div aria-hidden="true" style="font-size:1.6rem">📖</div><div><a href="${bookUrl(b)}" target="_blank" rel="noopener"><strong>${b.t}</strong></a><div class="small muted">${b.a}</div><div class="small">${b.why}</div></div></div>`).join("");}
 
+/* ---- MORE BREAKFASTS (added v24): egg-free, mostly dairy- and gluten-free, so allergies still leave real choice ---- */
+[
+ ['breakfast',['all','dialysis','cardio'],'Breakfast Rice Bowl with Turkey & Peppers','Warm, savory and free of egg, dairy and gluten.','20 min',[['White rice','2 lb'],['Ground turkey (no added salt)','1 lb'],['Red bell peppers','2'],['Green onions','1 bunch'],['Dried sage','1 jar'],['Olive oil','1 bottle']],['Cook rice.','Brown turkey with sage in a little oil; add diced peppers until soft.','Spoon over rice and top with green onion.'],[],[]],
+ ['breakfast',['all','dialysis','cardio'],'Savory Grits with Peppers & Onions','Creamy without dairy: olive oil and slow cooking do the work.','25 min',[['Grits (not instant)','1 bag'],['Olive oil','1 bottle'],['Red bell peppers','2'],['Onion','1'],['Black pepper','1 jar']],['Simmer grits in water, stirring, until thick and creamy.','Sauté sliced peppers and onion in olive oil until soft.','Spoon over grits; finish with black pepper, no salt.'],[],[]],
+ ['breakfast',['all','dialysis'],'Puffed Rice Cereal with Strawberries','Light, crunchy and kidney-friendly with rice milk.','3 min',[['Puffed rice cereal','1 box'],['Rice milk (unenriched)','1/2 gal'],['Strawberries','1 pint'],['Cinnamon','1 jar']],['Pack cereal in bags or bowls.','Slice strawberries into a separate container.','Pour rice milk at serving time; dust with cinnamon.'],[],[]],
+ ['breakfast',['all','dialysis','cardio'],'Cinnamon Apple Couscous','Ready in minutes, warm and gently sweet.','10 min',[['Couscous','1 box'],['Apples','3'],['Cinnamon','1 jar'],['Rice milk (unenriched)','1/2 gal'],['Honey','1 jar']],['Bring rice milk to a simmer; stir in couscous, cover 5 min.','Stir in diced apple and cinnamon.','A small drizzle of honey to finish.'],['wheat_gluten'],[]],
+ ['breakfast',['all','dialysis','cardio'],'Turkey & Sage Breakfast Patties with Toast','Homemade sausage-style patties without the salt of store sausage.','20 min',[['Ground turkey (no added salt)','1.5 lb'],['Dried sage','1 jar'],['Garlic powder','1 jar'],['White bread','1 loaf'],['Olive oil','1 bottle']],['Mix turkey with sage, garlic powder and black pepper; shape small patties.','Cook in a little oil until cooked through (165°F).','Serve with toast; freeze extras between parchment.'],['wheat_gluten'],[]],
+ ['breakfast',['all'],'Blueberry Rice-Flour Pancakes (egg-free)','Fluffy pancakes with no egg, dairy or wheat.','20 min',[['Rice flour','1 bag'],['Baking powder','1 can'],['Oat milk','1/2 gal'],['Canola oil','1 bottle'],['Blueberries','1 pint'],['Maple syrup','1 bottle']],['Whisk rice flour and baking powder; stir in oat milk and a little oil.','Cook small pancakes; dot with blueberries before flipping.','Cool, stack with parchment and freeze; reheat in the toaster.'],[],['high_phosphorus','high_sugar']],
+ ['breakfast',['all'],'Banana Oat Breakfast Cookies','Grab-and-go, egg-free and dairy-free.','25 min',[['Rolled oats','1 canister'],['Bananas','3'],['Unsweetened applesauce','1 jar'],['Cinnamon','1 jar'],['Raisins','1 box']],['Mash bananas with applesauce; stir in oats, cinnamon and raisins.','Scoop onto a lined tray and flatten.','Bake 15 min at 350°F; cool and pack. Use certified gluten-free oats if needed.'],[],['high_potassium']],
+ ['breakfast',['all'],'Chia Pudding with Berries','Make-ahead, dairy-free and full of fiber.','5 min + overnight',[['Chia seeds','1 bag'],['Coconut milk (carton)','1/2 gal'],['Mixed berries','1 pint'],['Maple syrup','1 bottle']],['Stir chia into coconut milk with a little maple syrup.','Rest 10 min, stir again, chill overnight.','Top with berries in small jars.'],[],[]],
+ ['breakfast',['all','cardio'],'Sweet Potato & Turkey Breakfast Hash','Hearty, colorful and egg-free.','30 min',[['Sweet potatoes','2'],['Ground turkey (no added salt)','1 lb'],['Onion','1'],['Bell peppers','2'],['Olive oil','1 bottle'],['Smoked paprika','1 jar']],['Cook diced sweet potato in oil until tender.','Add onion, peppers and turkey; cook through.','Season with paprika and pepper, no salt.'],[],[]],
+ ['breakfast',['all','gi'],'Dairy-Free Mango Smoothie','Cold, smooth and easy when appetite is low.','5 min',[['Frozen mango','1 bag'],['Bananas','2'],['Oat milk','1/2 gal'],['Fresh ginger','1 knob']],['Blend mango, banana, oat milk and a little ginger until smooth.','Pour into bottles.','Keep chilled; shake before drinking.'],[],[]]
+].forEach(a=>{const r=R(a[0],a[1],a[2],a[3],a[4],a[5],a[6]);r.allergens=a[7];r.condFlags=a[8];POOL.push(r);RECIPE_SAFETY[r.n]={allergens:a[7],condFlags:a[8]};});
+
+/* ---- EGG SWAPS: where egg is only a binder or mayo, the recipe can still be made egg-free ---- */
+const EGG_SWAP_NO=/egg|scramble|omelet|frittata|quiche|custard|meringue|french toast|congee|deviled|angel food|pudding|mousse/i;
+function eggSwap(r){
+  if(EGG_SWAP_NO.test(r.n))return null;
+  const eggIngs=(r.ings||[]).filter(i=>trigHit([i[0]],TRIGGERS.egg));
+  if(!eggIngs.length)return null;
+  const ok=eggIngs.every(i=>(/^eggs?$/i.test(i[0].trim())&&parseFloat(i[1])<=2)||/mayo/i.test(i[0]));
+  if(!ok)return null;
+  const notes=[],ings=r.ings.map(i=>{
+    if(/^eggs?$/i.test(i[0].trim())){notes.push("Instead of each egg, use 1 tbsp ground flaxseed mixed with 3 tbsp water (rest 5 min).");return ["Ground flaxseed","1 bag"];}
+    if(/mayo/i.test(i[0])){notes.push("Use egg-free mayo.");return ["Egg-free mayo",i[1]];}
+    return i;});
+  return {ings,note:notes.join(" ")};
+}
+/* safe for this person, either as written or with the egg swap; returns {r, swap} or null */
+function vetWithSwap(r,flags){
+  if(vet(r,flags).safe)return {r,swap:null};
+  if(!(flags.allergy||[]).includes("egg"))return null;
+  const sw=eggSwap(r);if(!sw)return null;
+  const f2=Object.assign({},flags,{allergy:flags.allergy.filter(a=>a!=="egg")});
+  const r2=Object.assign({},r,{ings:sw.ings,allergens:(r.allergens||[]).filter(a=>a!=="egg")});
+  return vet(r2,f2).safe?{r:r2,swap:sw.note}:null;
+}
+
 const RECIPE=Object.fromEntries(POOL.map(r=>[r.n,r]));
+function rv(n){const r=RECIPE[n];if(!r||!P)return r;if((P.allergy_flags||[]).includes("egg")&&!vet(r,{allergy:["egg"],diet:[],custom:[]}).safe){const s=eggSwap(r);if(s)return Object.assign({},r,{ings:s.ings,swap:s.note})}return r}
 const COURSES=[["breakfast","Breakfast"],["lunch","Lunch"],["dinner","Dinner"],["snack","Snack"],["dessert","Dessert"]];
 const CLABEL=Object.fromEntries(COURSES);
 const FLAG={tree_nut:"tree nuts",peanut:"peanuts",milk:"dairy",wheat_gluten:"gluten",egg:"eggs",shellfish:"shellfish",fish:"fish",sesame:"sesame",high_potassium:"high-potassium foods",high_sodium:"high-sodium foods",high_sugar:"high-sugar foods",acidic:"acidic foods",spicy:"spicy foods",high_fiber:"high-fiber foods",high_phosphorus:"high-phosphorus foods"};
@@ -556,7 +627,8 @@ function render(){
   $("notes").innerHTML=cancerLine+(avoid.length?`<strong>Please avoid:</strong> ${esc(avoid.join(", "))}. `:"")+(tex?`<strong>Texture:</strong> ${tex==="pureed"?"pureed":"soft, easy to chew"}. `:"")+(likes?`<strong>Good to know:</strong> ${esc(likes)}. `:"")+(P.drop_off_window?`<strong>Drop-off:</strong> ${esc(P.drop_off_window)}. `:"")+`Every recipe on this page already follows these rules.`+safety+(helpTypes().length?`<br><br><strong>Other help they'd love:</strong> ${esc(helpTypes().join(", "))}. Tap a day to sign up.`:"");
   $("famBox").hidden=!fam;
   const l=[];if(P.gofundme_url)l.push(`<a class="btn gold" href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">Give to the meal fund</a>`);if(P.amazon_url)l.push(`<a class="btn ghost" href="${esc(P.amazon_url)}" target="_blank" rel="noopener">Open the gift list</a>`);
-  $("links").innerHTML=l.join("");$("links").hidden=!l.length;
+  const fn=P.food_notes||{};if(fn.delivery){l.push(`<a class="btn ghost" href="https://www.uber.com/us/en/gift-cards/" target="_blank" rel="noopener">🚗 Uber Eats gift card</a>`,`<a class="btn ghost" href="https://www.doordash.com/gifts/" target="_blank" rel="noopener">🛵 DoorDash gift card</a>`)}
+  $("links").innerHTML=(fn.delivery?`<p class="small" style="width:100%">${fn.gift_email?`Send e-gift cards to <strong>${esc(fn.gift_email)}</strong>. `:""}Delivery food isn't checked by MealKind, so please suggest dishes that follow the "Please avoid" list above.</p>`:"")+l.join("");$("links").hidden=!l.length;
   renderCal();renderPanel();renderMine();renderMenu();
 }
 
@@ -567,7 +639,7 @@ function renderCal(){
   const start=weekStart(),tr=P.treatment_dates||[],days=[];
   for(let i=0;i<28;i++){const d=new Date(start);d.setDate(start.getDate()+i);days.push(d)}
   const first=days[0],last=days[27];
-  $("monthLbl").textContent=first.toLocaleDateString("en-US",{month:"long"})+(first.getMonth()!==last.getMonth()?" – "+last.toLocaleDateString("en-US",{month:"long"}):"");
+  $("monthLbl").textContent=first.toLocaleDateString(MK_LOCALE,{month:"long"})+(first.getMonth()!==last.getMonth()?" – "+last.toLocaleDateString(MK_LOCALE,{month:"long"}):"");
   $("prevBtn").disabled=OFFSET<=0;
   $("cal").innerHTML=days.map(d=>{const k=iso(d),past=k<todayISO,n=(P.meals||[]).filter(m=>m.date===k).length,hn=(P.help||[]).filter(h=>h.date===k).length;
     return `<button type="button" class="day ${tr.includes(k)?"treat":""} ${cheatDays().includes(k)?"cheat":""} ${fundDays().includes(k)?"fund":""} ${past?"past":""} ${SEL===k?"sel":""}" data-day="${k}" ${past?"disabled":""} aria-label="${esc(longDate(k))}${n?`, ${n} planned`:""}${tr.includes(k)?", treatment day":""}">
@@ -581,16 +653,16 @@ function menuOptions(){
   if(!menu.length)return `<option value="">No recipes on the menu yet</option>`;
   return COURSES.map(([c,l])=>{const items=menu.filter(m=>m.course===c);if(!items.length)return"";
     return `<optgroup label="${ic(c)}${l}">${items.map(m=>{const near=(P.meals||[]).find(x=>x.recipe===m.name&&Math.abs((new Date(x.date)-new Date(SEL))/864e5)<=3);
-      return `<option value="${esc(m.name)}" data-course="${c}">${esc(m.name)}${near?` (already coming ${new Date(near.date+"T12:00").toLocaleDateString("en-US",{weekday:"short"})})`:""}</option>`}).join("")}</optgroup>`}).join("");
+      return `<option value="${esc(m.name)}" data-course="${c}">${esc(m.name)}${near?` (already coming ${new Date(near.date+"T12:00").toLocaleDateString(MK_LOCALE,{weekday:"short"})})`:""}</option>`}).join("")}</optgroup>`}).join("");
 }
-function previewHTML(n){const r=RECIPE[n];if(!r)return"";const dia=(P.dietary_flags||[]).includes("cond:dialysis");return `${esc(r.why)} · ${esc(r.time||"")}${dia?`<div class="small" style="margin-top:4px"><strong>Kidney tip:</strong> keep portions small, and remember soups and sauces count toward their daily fluid limit.</div>`:""}<details><summary>Ingredients &amp; method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details>`}
+function previewHTML(n){const r=rv(n);if(!r)return"";const dia=(P.dietary_flags||[]).includes("cond:dialysis");return `${esc(r.why)} · ${esc(r.time||"")}${r.swap?`<div class="small" style="margin-top:4px"><strong>Egg-free:</strong> ${esc(r.swap)}</div>`:""}${dia?`<div class="small" style="margin-top:4px"><strong>Kidney tip:</strong> keep portions small, and remember soups and sauces count toward their daily fluid limit.</div>`:""}<details><summary>Ingredients &amp; method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details>`}
 const REMINDERS_LIVE=false; /* switch on once text/email sending is set up */
 const cheatDays=()=>((P.food_notes||{}).cheat_days)||[];
 const fundDays=()=>((P.food_notes||{}).fund_days)||[];
 const requests=()=>(((P.food_notes||{}).requests)||[]).map(r=>typeof r==="string"?{name:r,url:""}:r).filter(r=>r&&r.name);
-const ICON={breakfast:"🍳",lunch:"🥪",dinner:"🍽️",snack:"🍎",dessert:"🍰","Ride to an appointment":"🚗","Groceries":"🛒","School run":"🎒","Kids to activities":"⚽","Walk the dogs":"🐕","Cleaning":"🧹","Yard work and trash cans":"🗑️","Errands":"📋","Lawn and yard":"🌿"};
+const ICON={breakfast:"🍳",lunch:"🥪",dinner:"🍽️",snack:"🍎",dessert:"🍰","Ride to an appointment":"🚗","Groceries":"🛒","Family support":"💛","School run":"🎒","Kids to activities":"⚽","Walk the dogs":"🐕","Cleaning":"🧹","Yard work and trash cans":"🗑️","Errands":"📋","Lawn and yard":"🌿"};
 const ic=k=>ICON[k]?ICON[k]+" ":"";
-const HELPTYPES=["Ride to an appointment","Groceries","School run","Kids to activities","Walk the dogs","Cleaning","Yard work and trash cans","Errands"];
+const HELPTYPES=["Ride to an appointment","Groceries","Family support","School run","Kids to activities","Walk the dogs","Cleaning","Yard work and trash cans","Errands"];
 const helpTypes=()=>HELPTYPES.filter(h=>(((P.food_notes||{}).help)||[]).includes(h));
 function avoidWords(){return [...(P.allergy_flags||[]).filter(x=>!x.startsWith("other:")).map(x=>FLAG[x]||x),...(P.allergy_flags||[]).filter(x=>x.startsWith("other:")).map(x=>x.slice(6))]}
 function limitWords(){return (P.dietary_flags||[]).filter(x=>FLAG[x]&&!["tree_nut","peanut","milk","wheat_gluten","egg","shellfish","fish","sesame"].includes(x)).map(x=>FLAG[x])}
@@ -654,7 +726,7 @@ function renderPanel(){
   let MODE="list";
   const setMode=m=>{MODE=m;p.querySelectorAll("[data-mode]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===m)));$("modeList").hidden=m!=="list";$("modeOwn").hidden=m!=="own";$("modeHelp").hidden=m!=="help"};
   p.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
-  p.querySelectorAll("[data-req]").forEach(b=>b.onclick=()=>{const r=req[+b.dataset.req];$("jOwn").value=r.name;$("reqLink").innerHTML=r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">See the recipe for ${esc(r.name)}</a>`:"";p.querySelectorAll("[data-req]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)))});
+  p.querySelectorAll("[data-req]").forEach(b=>b.onclick=()=>{const r=req[+b.dataset.req];$("jOwn").value=r.name;$("reqLink").innerHTML=(r.note?`<div><strong>How they like it:</strong> ${esc(r.note)}</div>`:"")+(r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">See the recipe for ${esc(r.name)}</a>`:"");p.querySelectorAll("[data-req]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)))});
   if(isF){p.querySelectorAll('[data-mode="list"],[data-mode="own"]').forEach(b=>b.hidden=true);if(helpTypes().length)setMode("help")}
   else if(!(P.menu||[]).length)setMode("own");
   if($("fundBtn"))$("fundBtn").onclick=async()=>{const fd=fundDays(),next=fd.includes(SEL)?fd.filter(d=>d!==SEL):fd.concat(SEL);
@@ -689,7 +761,7 @@ function renderPanel(){
 const STORES={heb:["H-E-B","https://www.heb.com/search?q="],walmart:["Walmart","https://www.walmart.com/search?q="],instacart:["Instacart","https://www.instacart.com/store/s?k="],amazon:["Amazon","https://www.amazon.com/s?i=amazonfresh&k="]};
 let STORE=store.get("mk_store","heb");
 const cleanIng=n=>n.replace(/\s*\(.*?\)\s*/g," ").trim();
-function shopHTML(m){const r=RECIPE[m.recipe],st=STORES[STORE]||STORES.heb;
+function shopHTML(m){const r=rv(m.recipe),st=STORES[STORE]||STORES.heb;
   return `<details class="small shop" style="margin-top:6px"><summary><strong>Shopping list</strong> (${r.ings.length} items)</summary>
   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0">Shop at:${Object.entries(STORES).map(([k,v])=>`<button type="button" class="chip" data-store="${k}" aria-pressed="${k===STORE}" style="padding:5px 10px;font-size:.85rem">${v[0]}</button>`).join("")}</div>
   <ul style="list-style:none;padding:0;display:grid;gap:6px">${r.ings.map(i=>`<li style="display:flex;gap:8px;align-items:center"><input type="checkbox" aria-label="Got it"><a href="${st[1]+encodeURIComponent(cleanIng(i[0]))}" target="_blank" rel="noopener">${esc(i[0])}</a><span class="muted">${esc(i[1]||"")}</span></li>`).join("")}</ul>
@@ -698,7 +770,7 @@ function shopHTML(m){const r=RECIPE[m.recipe],st=STORES[STORE]||STORES.heb;
 function renderMine(){
   const live=MINE.filter(m=>m.date>=todayISO&&[...(P.meals||[]),...(P.help||[])].some(x=>x.id===m.id));
   const box=$("mine");if(!live.length){box.hidden=true;return}box.hidden=false;
-  box.innerHTML=`<div class="eyebrow">Your turns</div>${live.sort((a,b)=>a.date.localeCompare(b.date)).map(m=>`<div class="meal" style="flex-direction:column;align-items:stretch;gap:6px"><div><strong>${esc(longDate(m.date))}</strong><div class="small">${esc(m.recipe)}${P.drop_off_window&&!HELPTYPES.includes(m.recipe)?" · drop off "+esc(P.drop_off_window):""}</div>${m.drop?`<div class="small muted">${esc(m.drop)}</div>`:""}${RECIPE[m.recipe]?shopHTML(m):""}<div class="small" style="margin-top:4px">Add to calendar: <a href="${gcal(m)}" target="_blank" rel="noopener">Google</a> · <a href="#" data-ics="${m.id}">Apple / Outlook</a></div></div><button class="sm ghost" style="align-self:flex-start" type="button" data-cancel="${m.id}">Can't make it</button></div>`).join("")}
+  box.innerHTML=`<div class="eyebrow">Your turns</div>${live.sort((a,b)=>a.date.localeCompare(b.date)).map(m=>`<div class="meal" style="flex-direction:column;align-items:stretch;gap:6px"><div><strong>${esc(longDate(m.date))}</strong><div class="small">${esc(m.recipe)}${P.drop_off_window&&!HELPTYPES.includes(m.recipe)?" · drop off "+esc(P.drop_off_window):""}</div>${m.drop?`<div class="small muted">${esc(m.drop)}</div>`:""}${rv(m.recipe)?shopHTML(m):""}<div class="small" style="margin-top:4px">Add to calendar: <a href="${gcal(m)}" target="_blank" rel="noopener">Google</a> · <a href="#" data-ics="${m.id}">Apple / Outlook</a></div></div><button class="sm ghost" style="align-self:flex-start" type="button" data-cancel="${m.id}">Can't make it</button></div>`).join("")}
     <p class="small muted" style="margin-top:8px">Add each turn to your phone's calendar so it reminds you.</p>`;
 }
 const ymd=d=>d.replace(/-/g,"");
@@ -709,11 +781,11 @@ function ics(m){const t=evText(m),e=x=>String(x).replace(/[\\;,]/g,c=>"\\"+c).re
   return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//MealKind//EN","BEGIN:VEVENT","UID:"+m.id+"@mealkind.com","DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z","DTSTART;VALUE=DATE:"+ymd(m.date),"DTEND;VALUE=DATE:"+ymd(nextDay(m.date)),"SUMMARY:"+e(t.title),"DESCRIPTION:"+e(t.details),"BEGIN:VALARM","TRIGGER:-PT15H","ACTION:DISPLAY","DESCRIPTION:"+e(t.title),"END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n")}
 $("mine").addEventListener("click",async e=>{
   const sb2=e.target.closest("[data-store]");if(sb2){STORE=sb2.dataset.store;store.set("mk_store",STORE);const open=[...document.querySelectorAll("#mine details.shop")].map(d=>d.open);renderMine();document.querySelectorAll("#mine details.shop").forEach((d,i)=>d.open=open[i]);return}
-  const cl=e.target.closest("[data-copylist]");if(cl){const m=MINE.find(x=>x.id===cl.dataset.copylist),r=RECIPE[m.recipe];const t=`${m.recipe}\n`+r.ings.map(i=>`- ${i[0]}${i[1]?" ("+i[1]+")":""}`).join("\n");try{await navigator.clipboard.writeText(t);toast("List copied. Paste it into your notes or a store app.")}catch{toast("Couldn't copy on this device.")}return}const ic=e.target.closest("[data-ics]");if(ic){e.preventDefault();const m=MINE.find(x=>x.id===ic.dataset.ics);const u=URL.createObjectURL(new Blob([ics(m)],{type:"text/calendar"}));const a=document.createElement("a");a.href=u;a.download="mealkind-"+m.date+".ics";document.body.appendChild(a);a.click();a.remove();return}
+  const cl=e.target.closest("[data-copylist]");if(cl){const m=MINE.find(x=>x.id===cl.dataset.copylist),r=rv(m.recipe);const t=`${m.recipe}\n`+r.ings.map(i=>`- ${i[0]}${i[1]?" ("+i[1]+")":""}`).join("\n");try{await navigator.clipboard.writeText(t);toast("List copied. Paste it into your notes or a store app.")}catch{toast("Couldn't copy on this device.")}return}const ic=e.target.closest("[data-ics]");if(ic){e.preventDefault();const m=MINE.find(x=>x.id===ic.dataset.ics);const u=URL.createObjectURL(new Blob([ics(m)],{type:"text/calendar"}));const a=document.createElement("a");a.href=u;a.download="mealkind-"+m.date+".ics";document.body.appendChild(a);a.click();a.remove();return}
   const b=e.target.closest("[data-cancel]");if(!b)return;const m=MINE.find(x=>x.id===b.dataset.cancel);
   try{await rpc("mk_release_slot",{p_slug:SLUG,p_item:m.id,p_claim_token:m.token});MINE.splice(MINE.indexOf(m),1);store.set("mk_mine_"+SLUG,MINE);toast("Cancelled. Reminders stopped.");load()}catch(err){toast(errMsg(err))}});
 function renderReq(){const r=requests(),b=$("reqBox");b.hidden=!r.length;if(!r.length)return;
-  b.innerHTML=`<div class="eyebrow">❤️ Favourites</div><h2>${esc(name())}'s favourites</h2><p class="small muted" style="margin:4px 0 10px">Want to make one of these? Tap a day, choose "${esc(name())}'s favourites", and follow the guidelines shown.</p><div class="chips">${r.map(x=>x.url?`<a class="chip" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)} ↗</a>`:`<span class="chip">${esc(x.name)}</span>`).join("")}</div>`}
+  b.innerHTML=`<div class="eyebrow">❤️ Favourites</div><h2>${esc(name())}'s favourites</h2><p class="small muted" style="margin:4px 0 10px">Want to make one of these? Tap a day, choose "${esc(name())}'s favourites", and follow the guidelines shown.</p><div class="chips">${r.map(x=>x.url?`<a class="chip" href="${esc(x.url)}" target="_blank" rel="noopener" title="${esc(x.note||"")}">${esc(x.name)} ↗</a>`:`<span class="chip" title="${esc(x.note||"")}">${esc(x.name)}</span>`).join("")}</div>`}
 const thanks=()=>((P.food_notes||{}).thanks)||[];
 function renderThanks(){
   const t=thanks(),w=$("thanksWall");w.hidden=!t.length;
@@ -731,11 +803,11 @@ $("famBox").addEventListener("click",async e=>{const b=e.target.closest("[data-t
 function renderBooks(){const DF=P.dietary_flags||[],soft=DF.some(x=>x.startsWith("texture:"))||["headneck","upper_gi"].includes((DF.find(x=>x.startsWith("ctype:"))||"").slice(6));
   const l=booksFor(condOf(),soft),b=$("bookBox");b.hidden=!l.length;if(l.length)b.innerHTML=`<div class="eyebrow">📚 Cookbook kitchen</div><h2>Trusted cookbooks</h2><p class="small muted" style="margin:4px 0 6px">Written by doctors, dietitians or health organisations, or recommended by cancer centers. Great for more ideas that fit ${esc(name())}'s diet.</p>${booksHTML(l)}`}
 function renderMenu(){renderReq();renderThanks();renderBooks();
-  const ow=[];if(P.gofundme_url)ow.push(`<a href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">give to the meal fund</a>`);if(P.amazon_url)ow.push(`<a href="${esc(P.amazon_url)}" target="_blank" rel="noopener">send something from the gift list</a>`);
+  const ow=[];if(P.gofundme_url)ow.push(`<a href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">give to the meal fund</a>`);if(P.amazon_url)ow.push(`<a href="${esc(P.amazon_url)}" target="_blank" rel="noopener">send something from the gift list</a>`);if((P.food_notes||{}).delivery)ow.push(`send a food delivery gift card (see below)`);
   $("otherWay").hidden=!ow.length;if(ow.length)$("otherWay").innerHTML=`Can't cook? You can still help: ${ow.join(" or ")}.`;
   const menu=P.menu||[];
   $("menuList").innerHTML=menu.length?COURSES.map(([c,l])=>{const items=menu.filter(m=>m.course===c);if(!items.length)return"";
-    return `<div class="course"><h3>${ic(c)}${l}</h3>${items.map(m=>{const r=RECIPE[m.name];return `<details class="rec"><summary>${esc(m.name)}</summary>${r?`<p>${esc(r.why)} · ${esc(r.time||"")}</p><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px;font-size:.9rem">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol>`:""}</details>`}).join("")}</div>`}).join("")
+    return `<div class="course"><h3>${ic(c)}${l}</h3>${items.map(m=>{const r=rv(m.name);return `<details class="rec"><summary>${esc(m.name)}</summary>${r?`<p>${esc(r.why)} · ${esc(r.time||"")}</p>${r.swap?`<p><strong>Egg-free:</strong> ${esc(r.swap)}</p>`:""}<ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px;font-size:.9rem">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol>`:""}</details>`}).join("")}</div>`}).join("")
     :`<p class="muted" style="margin-top:10px">${P.is_family?"No recipes yet. Open Family set-up and choose the recipes friends can cook.":"The family hasn't added recipes yet. Check back soon."}</p>`;
 }
 
@@ -745,5 +817,8 @@ if(SLUG)load();
 <script>(function(){var h=document.querySelector("header.top");if(!h)return;var b=document.createElement("button");b.type="button";b.className="textsize";
 function sync(){var on=document.documentElement.classList.contains("big");b.setAttribute("aria-pressed",String(on));b.textContent=on?"Normal text":"Larger text";}
 b.onclick=function(){var on=!document.documentElement.classList.contains("big");document.documentElement.classList.toggle("big",on);try{localStorage.setItem("mk_big",on?"1":"0")}catch(e){}sync()};
-sync();var n=h.querySelector("nav")||h.lastElementChild;if(n&&n!==h.firstElementChild){n.style.display="flex";n.style.alignItems="center";n.style.gap="12px";n.appendChild(b)}else h.appendChild(b);})();</script>
+sync();var g=document.createElement("button");g.type="button";g.className="textsize";g.lang=window.MK_LANG==="es"?"en":"es";g.textContent=window.MK_LANG==="es"?"English":"Español";
+g.onclick=function(){try{localStorage.setItem("mk_lang",window.MK_LANG==="es"?"en":"es")}catch(e){}location.reload()};
+var wrap=document.createElement("span");wrap.style.cssText="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end";wrap.appendChild(g);wrap.appendChild(b);
+var n=h.querySelector("nav")||h.lastElementChild;if(n&&n!==h.firstElementChild){n.style.display="flex";n.style.alignItems="center";n.style.gap="12px";n.appendChild(wrap)}else h.appendChild(wrap);})();</script>
 </body></html>

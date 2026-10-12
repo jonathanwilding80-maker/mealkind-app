@@ -1,5 +1,36 @@
 <!doctype html>
-<html lang="en"><head><script>try{if(localStorage.getItem("mk_big")==="1")document.documentElement.classList.add("big")}catch(e){}</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><head><script>try{if(localStorage.getItem("mk_big")==="1")document.documentElement.classList.add("big")}catch(e){}</script><script>/* MealKind i18n: English source text, Spanish dictionary, applied to the page as it renders. */
+(function(){
+var saved=null;try{saved=localStorage.getItem("mk_lang")}catch(e){}
+var LANG=saved||((navigator.language||"").toLowerCase().indexOf("es")===0?"es":"en");
+window.MK_LANG=LANG;window.MK_LOCALE=LANG==="es"?"es-US":"en-US";
+document.documentElement.lang=LANG;
+var ES={};
+var PAT=[];
+var miss=window.__mkMiss={};
+function T(s){if(LANG!=="es"||s==null)return s;var str=String(s),m=str.match(/^(\s*)([\s\S]*?)(\s*)$/),core=m[2];if(!core)return str;
+  if(Object.prototype.hasOwnProperty.call(ES,core))return m[1]+ES[core]+m[3];
+  for(var i=0;i<PAT.length;i++){var re=new RegExp("^"+PAT[i][0]+"$");if(re.test(core))return m[1]+core.replace(re,PAT[i][1])+m[3];}
+  if(/[a-z]{3}/i.test(core))miss[core]=1;return str;}
+window.T=T;
+var ATTRS=["placeholder","aria-label","title"];
+function tr(root){if(LANG!=="es"||!root)return;
+  if(root.nodeType===3){var p=root.parentNode;if(!p||p.closest&&p.closest("script,style,[data-noi18n]"))return;var v=T(root.nodeValue);if(v!==root.nodeValue)root.nodeValue=v;return;}
+  if(root.nodeType!==1||root.closest("script,style,[data-noi18n]"))return;
+  ATTRS.forEach(function(a){if(root.hasAttribute&&root.hasAttribute(a)){var o=root.getAttribute(a),v=T(o);if(v!==o)root.setAttribute(a,v)}});
+  if(root.tagName==="OPTGROUP"&&root.label){var l=T(root.label);if(l!==root.label)root.label=l}
+  var w=document.createTreeWalker(root,5,null),n;
+  while(n=w.nextNode()){if(n.nodeType===3){var pp=n.parentNode;if(pp.closest("script,style,[data-noi18n]"))continue;var v2=T(n.nodeValue);if(v2!==n.nodeValue)n.nodeValue=v2}
+    else{ATTRS.forEach(function(a){if(n.hasAttribute(a)){var o=n.getAttribute(a),v=T(o);if(v!==o)n.setAttribute(a,v)}});if(n.tagName==="OPTGROUP"&&n.label){var l2=T(n.label);if(l2!==n.label)n.label=l2}}}}
+window.mkTranslate=tr;
+if(LANG==="es"){
+  document.addEventListener("DOMContentLoaded",function(){tr(document.body);document.title=T(document.title);
+    new MutationObserver(function(ms){ms.forEach(function(m){if(m.type==="characterData")tr(m.target);else m.addedNodes.forEach(tr)})}).observe(document.body,{childList:true,subtree:true,characterData:true});});
+  var _p=window.prompt;window.prompt=function(a,b){return _p.call(window,T(a),b)};
+  var _c=window.confirm;window.confirm=function(a){return _c.call(window,T(a))};
+}
+})();
+</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Privacy · MealKind</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap">
 <style>
@@ -69,5 +100,8 @@ section{display:flex;flex-direction:column;gap:6px}
 <script>(function(){var h=document.querySelector("header.top");if(!h)return;var b=document.createElement("button");b.type="button";b.className="textsize";
 function sync(){var on=document.documentElement.classList.contains("big");b.setAttribute("aria-pressed",String(on));b.textContent=on?"Normal text":"Larger text";}
 b.onclick=function(){var on=!document.documentElement.classList.contains("big");document.documentElement.classList.toggle("big",on);try{localStorage.setItem("mk_big",on?"1":"0")}catch(e){}sync()};
-sync();var n=h.querySelector("nav")||h.lastElementChild;if(n&&n!==h.firstElementChild){n.style.display="flex";n.style.alignItems="center";n.style.gap="12px";n.appendChild(b)}else h.appendChild(b);})();</script>
+sync();var g=document.createElement("button");g.type="button";g.className="textsize";g.lang=window.MK_LANG==="es"?"en":"es";g.textContent=window.MK_LANG==="es"?"English":"Español";
+g.onclick=function(){try{localStorage.setItem("mk_lang",window.MK_LANG==="es"?"en":"es")}catch(e){}location.reload()};
+var wrap=document.createElement("span");wrap.style.cssText="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end";wrap.appendChild(g);wrap.appendChild(b);
+var n=h.querySelector("nav")||h.lastElementChild;if(n&&n!==h.firstElementChild){n.style.display="flex";n.style.alignItems="center";n.style.gap="12px";n.appendChild(wrap)}else h.appendChild(wrap);})();</script>
 </body></html>

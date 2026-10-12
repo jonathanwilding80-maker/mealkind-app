@@ -1,9 +1,41 @@
 <!doctype html>
-<html lang="en"><head><script>try{if(localStorage.getItem("mk_big")==="1")document.documentElement.classList.add("big")}catch(e){}</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><head><script>try{if(localStorage.getItem("mk_big")==="1")document.documentElement.classList.add("big")}catch(e){}</script><script>/* MealKind i18n: English source text, Spanish dictionary, applied to the page as it renders. */
+(function(){
+var saved=null;try{saved=localStorage.getItem("mk_lang")}catch(e){}
+var LANG=saved||((navigator.language||"").toLowerCase().indexOf("es")===0?"es":"en");
+window.MK_LANG=LANG;window.MK_LOCALE=LANG==="es"?"es-US":"en-US";
+document.documentElement.lang=LANG;
+var ES={};
+var PAT=[];
+var miss=window.__mkMiss={};
+function T(s){if(LANG!=="es"||s==null)return s;var str=String(s),m=str.match(/^(\s*)([\s\S]*?)(\s*)$/),core=m[2];if(!core)return str;
+  if(Object.prototype.hasOwnProperty.call(ES,core))return m[1]+ES[core]+m[3];
+  for(var i=0;i<PAT.length;i++){var re=new RegExp("^"+PAT[i][0]+"$");if(re.test(core))return m[1]+core.replace(re,PAT[i][1])+m[3];}
+  if(/[a-z]{3}/i.test(core))miss[core]=1;return str;}
+window.T=T;
+var ATTRS=["placeholder","aria-label","title"];
+function tr(root){if(LANG!=="es"||!root)return;
+  if(root.nodeType===3){var p=root.parentNode;if(!p||p.closest&&p.closest("script,style,[data-noi18n]"))return;var v=T(root.nodeValue);if(v!==root.nodeValue)root.nodeValue=v;return;}
+  if(root.nodeType!==1||root.closest("script,style,[data-noi18n]"))return;
+  ATTRS.forEach(function(a){if(root.hasAttribute&&root.hasAttribute(a)){var o=root.getAttribute(a),v=T(o);if(v!==o)root.setAttribute(a,v)}});
+  if(root.tagName==="OPTGROUP"&&root.label){var l=T(root.label);if(l!==root.label)root.label=l}
+  var w=document.createTreeWalker(root,5,null),n;
+  while(n=w.nextNode()){if(n.nodeType===3){var pp=n.parentNode;if(pp.closest("script,style,[data-noi18n]"))continue;var v2=T(n.nodeValue);if(v2!==n.nodeValue)n.nodeValue=v2}
+    else{ATTRS.forEach(function(a){if(n.hasAttribute(a)){var o=n.getAttribute(a),v=T(o);if(v!==o)n.setAttribute(a,v)}});if(n.tagName==="OPTGROUP"&&n.label){var l2=T(n.label);if(l2!==n.label)n.label=l2}}}}
+window.mkTranslate=tr;
+if(LANG==="es"){
+  document.addEventListener("DOMContentLoaded",function(){tr(document.body);document.title=T(document.title);
+    new MutationObserver(function(ms){ms.forEach(function(m){if(m.type==="characterData")tr(m.target);else m.addedNodes.forEach(tr)})}).observe(document.body,{childList:true,subtree:true,characterData:true});});
+  var _p=window.prompt;window.prompt=function(a,b){return _p.call(window,T(a),b)};
+  var _c=window.confirm;window.confirm=function(a){return _c.call(window,T(a))};
+}
+})();
+</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Set up meals · MealKind</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{--forest:#1F3D2B;--forest-2:#3A6B4A;--gold:#E8A33D;--gold-soft:#FBF1DE;--cream:#FDFBF7;--card:#FFFFFF;--ink:#2B2B28;--soft:#57524A;--line:#EFE7D8;--good-bg:#E5EFE7;--good:#2B5038;--warn:#B5471F;
 --display:"Cormorant Garamond",Georgia,serif;--body:"Jost","Helvetica Neue",Arial,sans-serif}
@@ -104,7 +136,7 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
 <section class="screen" id="s1" hidden>
   <div><div class="eyebrow">For the patient or family</div><h1>Who are we cooking for?</h1>
   <p class="muted" style="margin-top:8px">This decides which recipes friends can choose from. Only you see this set-up page.</p></div>
-  <label class="q"><span class="qt">Their first name</span><input id="fName" maxlength="40" autocomplete="off" placeholder="e.g. Dave"></label>
+  <label class="q"><span class="qt">Their first name</span><input id="fName" maxlength="40" autocomplete="off" placeholder="First name"></label>
   <div class="q"><span class="qt">What are they going through?</span><div class="conds" id="conds"></div></div>
   <div class="q" id="cancerQ" hidden><span class="qt">Which type of cancer?</span><div class="chips" id="ctype"></div>
     <span class="qt" style="margin-top:8px">Treatment right now</span><span class="qh">Tick all that apply.</span><div class="chips" id="ctx"></div>
@@ -134,7 +166,7 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <div><div class="eyebrow">Step 3</div><h1>A short note for friends</h1>
   <p class="muted" style="margin-top:8px">This is the first thing friends read. Keep it short and personal.</p></div>
   <label>Your note<textarea id="fStory" rows="5" maxlength="1000"></textarea></label>
-  <label>❤️ Their favourite dishes <span class="small">(optional)</span><textarea id="fReq" rows="4" maxlength="1200" placeholder="One per line. Add a recipe link if you have one, e.g.&#10;Mom's chicken soup https://...&#10;Mac and cheese"></textarea><span class="small">Friends can choose to cook one of these as well as the recommended recipes, with your diet guidelines shown alongside.</span></label>
+  <label>❤️ Their favourite dishes <span class="small">(optional)</span><textarea id="fReq" rows="4" maxlength="1200" placeholder="One dish per line. After a colon, add how they like it or the recipe, and paste a link if you have one, e.g.&#10;Mom's chicken soup: extra noodles, no celery https://...&#10;Mac and cheese: baked, not too cheesy"></textarea><span class="small">Friends can choose to cook one of these as well as the recommended recipes, with your diet guidelines shown alongside.</span></label>
   <div class="two">
     <label>Best drop-off time<input id="fWindow" maxlength="60" placeholder="e.g. 5–6 pm"></label>
     <label>Drop-off address and details<input id="fDrop" maxlength="400" placeholder="Only shown to people who sign up"></label>
@@ -145,6 +177,8 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
     <div class="form" style="margin-top:12px">
       <label>GoFundMe link<input id="fFund" type="url" placeholder="https://www.gofundme.com/..."></label>
       <label>Amazon gift list link<input id="fGift" type="url" placeholder="https://www.amazon.com/..."></label>
+      <label class="check"><input type="checkbox" id="fDelivery"> Food delivery gift cards are welcome (Uber Eats, DoorDash)</label>
+      <label>Email for e-gift cards<input id="fGiftEmail" type="email" placeholder="Where friends should send gift cards"><span class="small">Only shown to friends with the password, next to the gift card buttons.</span></label>
     </div></details>
   <div class="err" id="err3" role="alert"></div>
   <div class="navrow"><button class="ghost" type="button" data-go="2">Back</button><button id="next3" type="button">Next: share it</button></div>
@@ -156,14 +190,18 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <p class="muted" style="margin-top:8px">Friends need both. Send them together in one message.</p></div>
   <div class="q"><span class="qt">Password</span><div class="pw" id="pwBig">······</div></div>
   <div class="q"><span class="qt">The message friends get</span><div class="msg" id="msgPrev"></div></div>
-  <p class="small muted" id="deskHint" hidden>On a computer: press <b>Copy message</b>, then paste it into an email, Facebook message or WhatsApp. To send it as a text, open this page on your phone.</p>
+  <p class="small muted" id="deskHint" hidden>On a computer: press <b>Copy message</b>, then paste it into an email, Facebook message or WhatsApp. To send it as a text, press <b>Send by text</b> and scan the code with your phone.</p>
   <div class="share">
     <button class="gold" id="shCopy" type="button">Copy message</button>
     <a class="btn gold" id="shText" href="#">Send by text</a>
+    <button class="gold" id="shTextQR" type="button" hidden>Send by text</button>
     <a class="btn gold" id="shWa" href="#" target="_blank" rel="noopener">Send on WhatsApp</a>
     <a class="btn ghost" id="shGmail" href="#" target="_blank" rel="noopener">Send with Gmail</a>
     <a class="btn ghost" id="shMail" href="#">Send by email app</a>
   </div>
+  <div class="card" id="qrBox" hidden style="text-align:center"><div class="eyebrow">Send by text from your phone</div>
+    <p class="small" style="margin:6px 0 10px">Point your phone's camera at this code and tap the link that appears. Your phone opens a new text with the message and password ready. Just add who it's to.</p>
+    <div id="qr" style="display:inline-block;background:#fff;padding:10px;border-radius:12px"></div></div>
   <details class="more"><summary>Change the password</summary>
     <div style="display:flex;gap:10px;margin-top:10px"><input id="newPw" inputmode="numeric" maxlength="8" placeholder="4–8 numbers"><button class="ghost" id="pwSave" type="button">Save</button></div>
     <p class="small muted" style="margin-top:6px">Friends who already joined will need the new one.</p></details>
@@ -196,7 +234,7 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><a class="btn ghost sm" href="/app.html?list=1">All my circles</a><a class="btn ghost sm" href="/app.html?new=1">+ Set up a new circle</a></div>
 </section>
 
-<p class="ver">Version 23 · 11 Oct 2026</p>
+<p class="ver">Version 25 · 12 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -544,6 +582,44 @@ function booksFor(cond,soft){return BOOKS.filter(b=>b.tags.includes(cond)||(soft
 function bookUrl(b){return "https://www.amazon.com/s?k="+encodeURIComponent(b.t+" "+b.a.split(/[,&]| with /)[0].trim())+"&i=stripbooks";}
 function booksHTML(list){return list.map(b=>`<div class="book" style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)"><div aria-hidden="true" style="font-size:1.6rem">📖</div><div><a href="${bookUrl(b)}" target="_blank" rel="noopener"><strong>${b.t}</strong></a><div class="small muted">${b.a}</div><div class="small">${b.why}</div></div></div>`).join("");}
 
+/* ---- MORE BREAKFASTS (added v24): egg-free, mostly dairy- and gluten-free, so allergies still leave real choice ---- */
+[
+ ['breakfast',['all','dialysis','cardio'],'Breakfast Rice Bowl with Turkey & Peppers','Warm, savory and free of egg, dairy and gluten.','20 min',[['White rice','2 lb'],['Ground turkey (no added salt)','1 lb'],['Red bell peppers','2'],['Green onions','1 bunch'],['Dried sage','1 jar'],['Olive oil','1 bottle']],['Cook rice.','Brown turkey with sage in a little oil; add diced peppers until soft.','Spoon over rice and top with green onion.'],[],[]],
+ ['breakfast',['all','dialysis','cardio'],'Savory Grits with Peppers & Onions','Creamy without dairy: olive oil and slow cooking do the work.','25 min',[['Grits (not instant)','1 bag'],['Olive oil','1 bottle'],['Red bell peppers','2'],['Onion','1'],['Black pepper','1 jar']],['Simmer grits in water, stirring, until thick and creamy.','Sauté sliced peppers and onion in olive oil until soft.','Spoon over grits; finish with black pepper, no salt.'],[],[]],
+ ['breakfast',['all','dialysis'],'Puffed Rice Cereal with Strawberries','Light, crunchy and kidney-friendly with rice milk.','3 min',[['Puffed rice cereal','1 box'],['Rice milk (unenriched)','1/2 gal'],['Strawberries','1 pint'],['Cinnamon','1 jar']],['Pack cereal in bags or bowls.','Slice strawberries into a separate container.','Pour rice milk at serving time; dust with cinnamon.'],[],[]],
+ ['breakfast',['all','dialysis','cardio'],'Cinnamon Apple Couscous','Ready in minutes, warm and gently sweet.','10 min',[['Couscous','1 box'],['Apples','3'],['Cinnamon','1 jar'],['Rice milk (unenriched)','1/2 gal'],['Honey','1 jar']],['Bring rice milk to a simmer; stir in couscous, cover 5 min.','Stir in diced apple and cinnamon.','A small drizzle of honey to finish.'],['wheat_gluten'],[]],
+ ['breakfast',['all','dialysis','cardio'],'Turkey & Sage Breakfast Patties with Toast','Homemade sausage-style patties without the salt of store sausage.','20 min',[['Ground turkey (no added salt)','1.5 lb'],['Dried sage','1 jar'],['Garlic powder','1 jar'],['White bread','1 loaf'],['Olive oil','1 bottle']],['Mix turkey with sage, garlic powder and black pepper; shape small patties.','Cook in a little oil until cooked through (165°F).','Serve with toast; freeze extras between parchment.'],['wheat_gluten'],[]],
+ ['breakfast',['all'],'Blueberry Rice-Flour Pancakes (egg-free)','Fluffy pancakes with no egg, dairy or wheat.','20 min',[['Rice flour','1 bag'],['Baking powder','1 can'],['Oat milk','1/2 gal'],['Canola oil','1 bottle'],['Blueberries','1 pint'],['Maple syrup','1 bottle']],['Whisk rice flour and baking powder; stir in oat milk and a little oil.','Cook small pancakes; dot with blueberries before flipping.','Cool, stack with parchment and freeze; reheat in the toaster.'],[],['high_phosphorus','high_sugar']],
+ ['breakfast',['all'],'Banana Oat Breakfast Cookies','Grab-and-go, egg-free and dairy-free.','25 min',[['Rolled oats','1 canister'],['Bananas','3'],['Unsweetened applesauce','1 jar'],['Cinnamon','1 jar'],['Raisins','1 box']],['Mash bananas with applesauce; stir in oats, cinnamon and raisins.','Scoop onto a lined tray and flatten.','Bake 15 min at 350°F; cool and pack. Use certified gluten-free oats if needed.'],[],['high_potassium']],
+ ['breakfast',['all'],'Chia Pudding with Berries','Make-ahead, dairy-free and full of fiber.','5 min + overnight',[['Chia seeds','1 bag'],['Coconut milk (carton)','1/2 gal'],['Mixed berries','1 pint'],['Maple syrup','1 bottle']],['Stir chia into coconut milk with a little maple syrup.','Rest 10 min, stir again, chill overnight.','Top with berries in small jars.'],[],[]],
+ ['breakfast',['all','cardio'],'Sweet Potato & Turkey Breakfast Hash','Hearty, colorful and egg-free.','30 min',[['Sweet potatoes','2'],['Ground turkey (no added salt)','1 lb'],['Onion','1'],['Bell peppers','2'],['Olive oil','1 bottle'],['Smoked paprika','1 jar']],['Cook diced sweet potato in oil until tender.','Add onion, peppers and turkey; cook through.','Season with paprika and pepper, no salt.'],[],[]],
+ ['breakfast',['all','gi'],'Dairy-Free Mango Smoothie','Cold, smooth and easy when appetite is low.','5 min',[['Frozen mango','1 bag'],['Bananas','2'],['Oat milk','1/2 gal'],['Fresh ginger','1 knob']],['Blend mango, banana, oat milk and a little ginger until smooth.','Pour into bottles.','Keep chilled; shake before drinking.'],[],[]]
+].forEach(a=>{const r=R(a[0],a[1],a[2],a[3],a[4],a[5],a[6]);r.allergens=a[7];r.condFlags=a[8];POOL.push(r);RECIPE_SAFETY[r.n]={allergens:a[7],condFlags:a[8]};});
+
+/* ---- EGG SWAPS: where egg is only a binder or mayo, the recipe can still be made egg-free ---- */
+const EGG_SWAP_NO=/egg|scramble|omelet|frittata|quiche|custard|meringue|french toast|congee|deviled|angel food|pudding|mousse/i;
+function eggSwap(r){
+  if(EGG_SWAP_NO.test(r.n))return null;
+  const eggIngs=(r.ings||[]).filter(i=>trigHit([i[0]],TRIGGERS.egg));
+  if(!eggIngs.length)return null;
+  const ok=eggIngs.every(i=>(/^eggs?$/i.test(i[0].trim())&&parseFloat(i[1])<=2)||/mayo/i.test(i[0]));
+  if(!ok)return null;
+  const notes=[],ings=r.ings.map(i=>{
+    if(/^eggs?$/i.test(i[0].trim())){notes.push("Instead of each egg, use 1 tbsp ground flaxseed mixed with 3 tbsp water (rest 5 min).");return ["Ground flaxseed","1 bag"];}
+    if(/mayo/i.test(i[0])){notes.push("Use egg-free mayo.");return ["Egg-free mayo",i[1]];}
+    return i;});
+  return {ings,note:notes.join(" ")};
+}
+/* safe for this person, either as written or with the egg swap; returns {r, swap} or null */
+function vetWithSwap(r,flags){
+  if(vet(r,flags).safe)return {r,swap:null};
+  if(!(flags.allergy||[]).includes("egg"))return null;
+  const sw=eggSwap(r);if(!sw)return null;
+  const f2=Object.assign({},flags,{allergy:flags.allergy.filter(a=>a!=="egg")});
+  const r2=Object.assign({},r,{ings:sw.ings,allergens:(r.allergens||[]).filter(a=>a!=="egg")});
+  return vet(r2,f2).safe?{r:r2,swap:sw.note}:null;
+}
+
 
 const CONDS=[["cancer","Cancer"],["dialysis","Kidney disease / dialysis"],["cardio","Heart condition"],["stroke","Stroke recovery"],["gi","Digestive / GI"],["ortho","Surgery / orthopedic"],["parkinsons","Parkinson's"],["als","ALS"],["tbi","Brain injury"],["alzheimers","Alzheimer's / dementia"],["depression","Depression"],["postpartum","New baby / postpartum"]];
 const CLABEL=Object.fromEntries(CONDS);
@@ -561,7 +637,7 @@ const CTYPES=[["breast","Breast"],["colorectal","Colon / bowel"],["headneck","He
 const CTX=[["chemo","Chemotherapy"],["radiation","Radiation"],["immuno","Immunotherapy"],["surgery","Recovering from surgery"],["done","Finished treatment"]];
 const SOFT_CANCER=["headneck","upper_gi"];
 const FOOD_SAFE=["sushi","raw","sprout","unpasteurized","rare","runny","smoked salmon","deli","brie","blue cheese"];
-const HELP=["Ride to an appointment","Groceries","School run","Kids to activities","Walk the dogs","Cleaning","Yard work and trash cans","Errands"];
+const HELP=["Ride to an appointment","Groceries","Family support","School run","Kids to activities","Walk the dogs","Cleaning","Yard work and trash cans","Errands"];
 let HELPSEL=[];
 const TEXTURES=[["regular","Regular"],["soft","Soft"],["pureed","Pureed"]];
 const COURSES=[["breakfast","🍳 Breakfast"],["lunch","🥪 Lunch"],["dinner","🍽️ Dinner"],["snack","🍎 Snacks"],["dessert","🍰 Desserts"]];
@@ -589,7 +665,7 @@ function chips(el,items,multi,get,set){
 }
 function paint(el,sel){document.querySelectorAll("#"+el+" .chip").forEach(b=>b.setAttribute("aria-pressed",String([].concat(sel).includes(b.dataset.k))))}
 chips("conds",CONDS,false,()=>F.cond,k=>{F.cond=k;applyImplied();showExtras()});
-const HICON={"Ride to an appointment":"🚗","Groceries":"🛒","School run":"🎒","Kids to activities":"⚽","Walk the dogs":"🐕","Cleaning":"🧹","Yard work and trash cans":"🗑️","Errands":"📋"};
+const HICON={"Ride to an appointment":"🚗","Groceries":"🛒","Family support":"💛","School run":"🎒","Kids to activities":"⚽","Walk the dogs":"🐕","Cleaning":"🧹","Yard work and trash cans":"🗑️","Errands":"📋"};
 chips("helpChips",HELP.map(h=>[h,(HICON[h]||"")+" "+h]),true,()=>HELPSEL,k=>HELPSEL=toggle(HELPSEL,k));
 chips("ctype",CTYPES,false,()=>F.ctype,k=>{const prev=CT_IMPLIED[F.ctype]||[];F.ctype=k;
   const want=CT_IMPLIED[k]||[];F.limits=[...new Set(F.limits.filter(x=>!prev.includes(x)||want.includes(x)).concat(want))];paint("limits",F.limits);
@@ -633,8 +709,9 @@ function fromSaved(){
   paint("conds",F.cond);paint("texture",F.texture);paint("allergies",F.allergy);renderLimits();paint("ctype",F.ctype);paint("ctx",F.ctx);showExtras();
   PICK=new Set((P.menu||[]).map(m=>m.name));
   $("fShowNames").checked=!(P.food_notes&&P.food_notes.hide_names);
+  $("fDelivery").checked=!!(P.food_notes&&P.food_notes.delivery);$("fGiftEmail").value=(P.food_notes&&P.food_notes.gift_email)||"";
   HELPSEL=((P.food_notes&&P.food_notes.help)||[]).filter(h=>HELP.includes(h));paint("helpChips",HELPSEL);
-  $("fStory").value=P.story||"";$("fReq").value=((P.food_notes&&P.food_notes.requests)||[]).map(r=>typeof r==="string"?r:(r.name+(r.url?" "+r.url:""))).join("\n");$("fWindow").value=P.drop_off_window||"";$("fDrop").value=P.drop_off_note||"";
+  $("fStory").value=P.story||"";$("fReq").value=((P.food_notes&&P.food_notes.requests)||[]).map(r=>typeof r==="string"?r:(r.name+(r.note?": "+r.note:"")+(r.url?" "+r.url:""))).join("\n");$("fWindow").value=P.drop_off_window||"";$("fDrop").value=P.drop_off_note||"";
   $("fFund").value=P.gofundme_url||"";$("fGift").value=P.amazon_url||"";
 }
 const who=()=>String($("fName").value.trim()||(P&&(P.recipient_name||P.display_name))||"your loved one").replace(/^./,c=>c.toUpperCase());
@@ -686,7 +763,7 @@ function safeRecipes(){
   const {allergy,diet}=flags();
   const al=allergy.filter(x=>!x.startsWith("other:")),dt=diet.filter(x=>!x.includes(":"));
   const extra=CUSTOM.concat(immuneLow()?FOOD_SAFE:[]);
-  return POOL.filter(r=>(r.tags.includes(F.cond)||r.tags.includes("all"))&&vet(r,{allergy:al,diet:dt,custom:extra}).safe)
+  return POOL.filter(r=>r.tags.includes(F.cond)||r.tags.includes("all")).map(r=>{const v=vetWithSwap(r,{allergy:al,diet:dt,custom:extra});return v?Object.assign({},v.r,{swap:v.swap}):null}).filter(Boolean)
     .sort((a,b)=>{const sc=r=>(F.ctype&&r.tags.includes("ct:"+F.ctype)?2:0)+(r.tags.includes(F.cond)?1:0);return sc(b)-sc(a)});
 }
 let SAFE=[];
@@ -696,7 +773,7 @@ function renderRecipes(){
   const avoid=[...F.allergy.map(k=>(ALLERGIES.find(a=>a[0]===k)||[,k])[1].toLowerCase()),...CUSTOM,...F.limits.map(k=>(LIMITS.find(a=>a[0]===k)||[,k])[1].toLowerCase())];
   $("s2sub").textContent=`These ${SAFE.length} recipes suit ${F.cond==="cancer"&&CT_SHORT[F.ctype]?CT_SHORT[F.ctype]:F.cond?CLABEL[F.cond].toLowerCase():"their needs"}`+(avoid.length?` and leave out ${avoid.join(", ")}.`:".")+" Friends can only choose from the ones you tick."+(F.cond==="cancer"&&CT_TIP[F.ctype]?" "+CT_TIP[F.ctype]:"");
   $("recList").innerHTML=COURSES.map(([c,l])=>{const rs=SAFE.filter(r=>r.slot===c);if(!rs.length)return"";
-    return `<div class="course card"><h3>${l}<button type="button" class="link small" data-course="${c}">Select all ${l.replace(/^\S+\s/,"").toLowerCase()}</button></h3>${rs.map(r=>`<label class="rec"><input type="checkbox" data-n="${esc(r.n)}" ${PICK.has(r.n)?"checked":""}><span><span class="t">${esc(r.n)}</span>${F.ctype&&CT_SHORT[F.ctype]&&r.tags.includes("ct:"+F.ctype)?`<span class="for" style="background:var(--gold-soft);color:#7a5210">Best for ${esc(CT_SHORT[F.ctype])}</span>`:r.tags.includes(F.cond)?`<span class="for">For ${esc(CLABEL[F.cond].split(" /")[0].toLowerCase())}</span>`:""}<div class="w">${esc(r.why)} · ${esc(r.time||"")}</div><details><summary>Ingredients and method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol>${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details></span></label>`).join("")}</div>`}).join("")||`<p class="muted">No recipes match every restriction. Try removing one, or contact hello@mealkind.com.</p>`;
+    return `<div class="course card"><h3>${l}<button type="button" class="link small" data-course="${c}">Select all ${l.replace(/^\S+\s/,"").toLowerCase()}</button></h3>${rs.map(r=>`<label class="rec"><input type="checkbox" data-n="${esc(r.n)}" ${PICK.has(r.n)?"checked":""}><span><span class="t">${esc(r.n)}</span>${F.ctype&&CT_SHORT[F.ctype]&&r.tags.includes("ct:"+F.ctype)?`<span class="for" style="background:var(--gold-soft);color:#7a5210">Best for ${esc(CT_SHORT[F.ctype])}</span>`:r.tags.includes(F.cond)?`<span class="for">For ${esc(CLABEL[F.cond].split(" /")[0].toLowerCase())}</span>`:""}${r.swap?`<span class="for" style="background:#E8EEF7;color:#2F4A6B">Egg-free swap</span>`:""}<div class="w">${esc(r.why)} · ${esc(r.time||"")}</div>${r.swap?`<div class="w"><strong>Egg-free:</strong> ${esc(r.swap)}</div>`:""}<details><summary>Ingredients and method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol>${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details></span></label>`).join("")}</div>`}).join("")||`<p class="muted">No recipes match every restriction. Try removing one, or contact hello@mealkind.com.</p>`;
   count();
 }
 function count(){$("recCount").textContent=`${PICK.size} chosen`}
@@ -716,7 +793,8 @@ $("next2").onclick=async()=>{
 $("next3").onclick=async()=>{
   const fund=$("fFund").value.trim(),gift=$("fGift").value.trim();
   $("err3").textContent="";const btn=$("next3");btn.disabled=true;
-  try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:token(),p:{food_notes:Object.assign({},(P&&P.food_notes)||{},{hide_names:!$("fShowNames").checked,help:HELP.filter(h=>HELPSEL.includes(h)),requests:$("fReq").value.split("\n").map(x=>x.trim()).filter(Boolean).slice(0,15).map(l=>{const m=l.match(/https?:\/\/\S+/);return {name:(m?l.replace(m[0],""):l).replace(/[\s\-–—:|]+$/,"").trim().slice(0,80)||"Favourite",url:m?m[0].slice(0,400):""}})}),story:$("fStory").value.trim(),drop_off_window:$("fWindow").value.trim(),drop_off_note:$("fDrop").value.trim(),gofundme_url:fund,amazon_url:gift}});
+  try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:token(),p:{food_notes:Object.assign({},(P&&P.food_notes)||{},{delivery:$("fDelivery").checked,gift_email:$("fGiftEmail").value.trim().slice(0,120),hide_names:!$("fShowNames").checked,help:HELP.filter(h=>HELPSEL.includes(h)),requests:$("fReq").value.split("\n").map(x=>x.trim()).filter(Boolean).slice(0,15).map(l=>{const m=l.match(/https?:\/\/\S+/);let rest=(m?l.replace(m[0],""):l).trim();const cut=rest.search(/\s*[:–—]\s*|\s+-\s+/);let name=rest,note="";if(cut>0){name=rest.slice(0,cut);note=rest.slice(cut).replace(/^\s*[:–—-]\s*/,"")}
+  return {name:name.replace(/[\s\-–—:|]+$/,"").trim().slice(0,80)||"Favourite",note:note.trim().slice(0,300),url:m?m[0].slice(0,400):""}})}),story:$("fStory").value.trim(),drop_off_window:$("fWindow").value.trim(),drop_off_note:$("fDrop").value.trim(),gofundme_url:fund,amazon_url:gift}});
     await reload();go(4)}
   catch(e){$("err3").textContent=errMsg(e)}btn.disabled=false;
 };
@@ -738,7 +816,8 @@ async function renderShare(){
   const m=message(c||"");
   $("msgPrev").innerHTML=esc(m).replace("password:\n"+esc(c||""),"password:\n<b>"+esc(c||"")+"</b>");
   const phone=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  $("shText").hidden=!phone;$("shMail").hidden=!phone;$("deskHint").hidden=phone;
+  $("shText").hidden=!phone;$("shMail").hidden=!phone;$("deskHint").hidden=phone;$("shTextQR").hidden=phone;$("qrBox").hidden=true;
+  $("shTextQR").onclick=()=>{const q=$("qr");q.innerHTML="";try{new QRCode(q,{text:"SMSTO::"+m,width:220,height:220,correctLevel:QRCode.CorrectLevel.L});$("qrBox").hidden=false;$("qrBox").scrollIntoView({behavior:"smooth",block:"center"})}catch(e){toast("Couldn't make the code. Use Copy message instead.")}};
   $("shText").href=(/iPhone|iPad|iPod/i.test(navigator.userAgent)?"sms:&body=":"sms:?body=")+encodeURIComponent(m);
   $("shWa").href="https://wa.me/?text="+encodeURIComponent(m);
   const subj=`${who()}'s Care Circle: link and password inside`,mbody=m.replace(`2. Enter this password:\n${c}`,`2. Enter this password:\n\n    PASSWORD:  ${c}\n`);
@@ -789,5 +868,8 @@ async function reload(){P=await rpc("mk_get_circle",{p_slug:SLUG,p_code:null,p_f
 <script>(function(){var h=document.querySelector("header.top");if(!h)return;var b=document.createElement("button");b.type="button";b.className="textsize";
 function sync(){var on=document.documentElement.classList.contains("big");b.setAttribute("aria-pressed",String(on));b.textContent=on?"Normal text":"Larger text";}
 b.onclick=function(){var on=!document.documentElement.classList.contains("big");document.documentElement.classList.toggle("big",on);try{localStorage.setItem("mk_big",on?"1":"0")}catch(e){}sync()};
-sync();var n=h.querySelector("nav")||h.lastElementChild;if(n&&n!==h.firstElementChild){n.style.display="flex";n.style.alignItems="center";n.style.gap="12px";n.appendChild(b)}else h.appendChild(b);})();</script>
+sync();var g=document.createElement("button");g.type="button";g.className="textsize";g.lang=window.MK_LANG==="es"?"en":"es";g.textContent=window.MK_LANG==="es"?"English":"Español";
+g.onclick=function(){try{localStorage.setItem("mk_lang",window.MK_LANG==="es"?"en":"es")}catch(e){}location.reload()};
+var wrap=document.createElement("span");wrap.style.cssText="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end";wrap.appendChild(g);wrap.appendChild(b);
+var n=h.querySelector("nav")||h.lastElementChild;if(n&&n!==h.firstElementChild){n.style.display="flex";n.style.alignItems="center";n.style.gap="12px";n.appendChild(wrap)}else h.appendChild(wrap);})();</script>
 </body></html>
