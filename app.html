@@ -92,7 +92,7 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
 @media (max-width:520px){.share{grid-template-columns:1fr}.pw{font-size:2.4rem}}
 </style></head>
 <body>
-<header class="top"><a class="logo" href="/">Meal<span>Kind</span></a><nav><a href="/app.html" id="navHome" hidden>My circle</a></nav></header>
+<header class="top"><a class="logo" href="/">Meal<span>Kind</span></a><nav><a href="/app.html" id="navHome" hidden>My circles</a></nav></header>
 <main class="wrap">
 
 <!-- progress (steps 1-4 only) -->
@@ -168,6 +168,14 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <div class="navrow"><button class="ghost" type="button" data-go="3">Back</button><a class="btn" id="toCircle" href="#">See the Care Circle page</a></div>
 </section>
 
+<!-- LIST (all circles on this device) -->
+<section class="screen" id="list" hidden>
+  <div><div class="eyebrow">For the patient or family</div><h1>Your Care Circles</h1>
+  <p class="muted" style="margin-top:8px">Every circle set up on this device. Churches, dietitians and care teams can run as many as they need.</p></div>
+  <div class="menu" id="circleList"></div>
+  <a class="btn gold wide" href="/app.html?new=1">+ Set up a new Care Circle</a>
+</section>
+
 <!-- HOME (returning family) -->
 <section class="screen" id="home" hidden>
   <div><div class="eyebrow">Your Care Circle</div><h1 id="hTitle">Meals for…</h1></div>
@@ -182,10 +190,10 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <div class="card"><div class="eyebrow">Add a family helper</div>
     <p class="small" style="margin:8px 0">Want your partner, son or daughter to manage this with you? Send them this private link. It opens this set-up page on their phone. Don't send it to friends.</p>
     <button class="ghost sm" id="famLink" type="button">Copy private family link</button></div>
-  <p class="small muted" style="text-align:center"><button class="link" id="newCircle" type="button">Set up a circle for someone else</button></p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><a class="btn ghost sm" href="/app.html?list=1">All my circles</a><a class="btn ghost sm" href="/app.html?new=1">+ Set up a new circle</a></div>
 </section>
 
-<p class="ver">Version 19 · 11 Oct 2026</p>
+<p class="ver">Version 20 · 11 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -535,10 +543,16 @@ const TEXTURES=[["regular","Regular"],["soft","Soft"],["pureed","Pureed"]];
 const COURSES=[["breakfast","Breakfast"],["lunch","Lunch"],["dinner","Dinner"],["snack","Snacks"],["dessert","Desserts"]];
 
 const Q=new URLSearchParams(location.search);
-if(Q.get("circle")&&Q.get("t")){store.set("mk_family_token_"+Q.get("circle"),Q.get("t"));store.set("mk_my_circle",Q.get("circle"));history.replaceState(null,"",location.pathname)}
-let SLUG=store.get("mk_my_circle",null);
+/* every circle this device manages: [{slug,name}] */
+let CIRCLES=store.get("mk_my_circles",[]);
+(function(){const old=store.get("mk_my_circle",null);if(old&&store.get("mk_family_token_"+old,null)&&!CIRCLES.some(c=>c.slug===old))CIRCLES.push({slug:old,name:""});})();
+const saveCircles=()=>store.set("mk_my_circles",CIRCLES);
+function remember(slug,name){const c=CIRCLES.find(x=>x.slug===slug);if(c){if(name)c.name=name}else CIRCLES.unshift({slug,name:name||""});saveCircles()}
+if(Q.get("circle")&&Q.get("t")){store.set("mk_family_token_"+Q.get("circle"),Q.get("t"));remember(Q.get("circle"),"")}
+CIRCLES=CIRCLES.filter(c=>store.get("mk_family_token_"+c.slug,null));saveCircles();
+let SLUG=Q.get("new")||Q.get("list")?null:(Q.get("circle")&&store.get("mk_family_token_"+Q.get("circle"),null)?Q.get("circle"):null);
 const token=()=>SLUG?store.get("mk_family_token_"+SLUG,null):null;
-if(SLUG&&!token())SLUG=null;
+function setUrl(step){try{history.replaceState(null,"",location.pathname+(SLUG?"?circle="+encodeURIComponent(SLUG)+(step?"&step="+step:""):""))}catch{}}
 let P=null;                // circle as saved
 let F={cond:null,texture:"regular",allergy:[],limits:[],implied:null,ctype:null,ctx:[]};
 let PICK=new Set();
@@ -603,11 +617,12 @@ const who=()=>String($("fName").value.trim()||(P&&(P.recipient_name||P.display_n
 /* ---------- screens ---------- */
 const TITLES=["","Who it's for","Choose recipes","Note to friends","Share it"];
 function show(id){
-  ["s1","s2","s3","s4","home"].forEach(s=>$(s).hidden=s!==id);
+  ["s1","s2","s3","s4","home","list"].forEach(s=>$(s).hidden=s!==id);
+  if(SLUG)setUrl(+(id.slice(1))||0);
   const n=+(id.slice(1))||0;$("prog").hidden=!n;
   document.querySelectorAll(".progress i").forEach((i,k)=>i.classList.toggle("on",k<n));
   if(n)$("stepLbl").textContent=`Step ${n} of 4 · ${TITLES[n]}`;
-  $("navHome").hidden=!P||id==="home";
+  $("navHome").hidden=id==="list"||!CIRCLES.length;$("navHome").href="/app.html?list=1";
   window.scrollTo({top:0});
 }
 function go(n){
@@ -631,11 +646,11 @@ $("next1").onclick=async()=>{
   try{
     if(!P){
       const d=await rpc("mk_create_family",{p_name:name,p_allergy_flags:allergy,p_dietary_flags:diet});
-      SLUG=d.slug;store.set("mk_family_token_"+SLUG,d.family_token);store.set("mk_my_circle",SLUG);
+      SLUG=d.slug;store.set("mk_family_token_"+SLUG,d.family_token);store.set("mk_my_circle",SLUG);remember(SLUG,name);
     }else{
       await rpc("mk_update_flags",{p_slug:SLUG,p_family_token:token(),p_name:name,p_allergy_flags:allergy,p_dietary_flags:diet});
     }
-    await rpc("mk_update_page",{p_slug:SLUG,p_family_token:token(),p:{recipient_name:name,food_notes:Object.assign({},(P&&P.food_notes)||{},{likes:$("fLikes").value.trim()})}});
+    remember(SLUG,name);await rpc("mk_update_page",{p_slug:SLUG,p_family_token:token(),p:{recipient_name:name,food_notes:Object.assign({},(P&&P.food_notes)||{},{likes:$("fLikes").value.trim()})}});
     await reload();go(2);
   }catch(e){$("err1").textContent=errMsg(e)}
   btn.disabled=false;btn.textContent="Next: choose recipes";
@@ -721,12 +736,22 @@ function renderHome(){
 }
 $("famLink").onclick=async()=>{const l=location.origin+"/app.html?circle="+encodeURIComponent(SLUG)+"&t="+encodeURIComponent(token());
   try{await navigator.clipboard.writeText(l);toast("Private family link copied. Only send it to family.")}catch{toast(l)}};
-$("newCircle").onclick=()=>{if(!confirm("Start a new circle for someone else? Your current circle stays saved; open it again with your private family link."))return;store.del("mk_my_circle");location.href="/app.html"};
+async function renderList(){
+  $("circleList").innerHTML=CIRCLES.map(c=>`<a href="/app.html?circle=${encodeURIComponent(c.slug)}" data-slug="${esc(c.slug)}"><span>${esc(c.name||"Care Circle")}<small>Loading…</small></span><span aria-hidden="true">›</span></a>`).join("");
+  await Promise.all(CIRCLES.map(async c=>{const el=document.querySelector(`[data-slug="${c.slug}"] small`);
+    try{const d=await rpc("mk_get_circle",{p_slug:c.slug,p_code:null,p_family_token:store.get("mk_family_token_"+c.slug,null)});
+      const nm=(d.recipient_name||d.display_name||"Care Circle").replace(/^./,x=>x.toUpperCase());if(nm!==c.name){c.name=nm;saveCircles()}
+      el.parentNode.firstChild.textContent=nm;
+      const up=(d.meals||[]).filter(m=>m.date>=new Date().toLocaleDateString("en-CA")).length;
+      el.textContent=!(d.menu||[]).length?"Set-up not finished: choose recipes":!d.story?"Set-up not finished: write the note":!d.has_password?"Set-up not finished: share it":`${d.menu.length} recipes · ${up} meal${up===1?"":"s"} planned`;
+      if(!(d.menu||[]).length)el.parentNode.parentNode.href+="&step=2";else if(!d.story)el.parentNode.parentNode.href+="&step=3";else if(!d.has_password)el.parentNode.parentNode.href+="&step=4";
+    }catch(e){el.textContent="Couldn't load"}}));
+}
 
 /* ---------- load ---------- */
 async function reload(){P=await rpc("mk_get_circle",{p_slug:SLUG,p_code:null,p_family_token:token()})}
 (async function(){
-  if(!SLUG){show("s1");go(1);return}
+  if(!SLUG){if(CIRCLES.length&&!Q.get("new")){show("list");renderList()}else{show("s1");go(1)}return}
   try{await reload();fromSaved();
     if(ASKED_STEP>=1&&ASKED_STEP<=4)go(ASKED_STEP);
     else if(!(P.menu||[]).length)go(2);

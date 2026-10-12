@@ -78,7 +78,7 @@ footer.foot a{color:var(--soft)}
 <body>
 <header class="top"><a class="logo" href="/">Meal<span>Kind</span></a><nav><a href="#how">How it works</a><a href="#about">About</a></nav></header>
 <main class="wrap">
-  <div class="mine" id="mine" hidden><span>You have a Care Circle on this phone.</span><a class="btn sm" href="/app.html">Open it</a></div>
+  <div class="mine" id="mine" hidden><span>You have Care Circles on this device.</span><a class="btn sm" href="/app.html?list=1">Open my circles</a></div>
 
   <section class="hero">
     <div class="eyebrow">Patient navigation for food and recovery</div>
@@ -92,7 +92,7 @@ footer.foot a{color:var(--soft)}
       <h2>Set up meals for someone</h2>
       <ol><li>Tell us the illness and allergies</li><li>Tick the recipes friends can cook</li><li>Write a short note</li><li>Send one link and a password</li></ol>
       <p class="small muted">About 5 minutes. Free.</p>
-      <a class="btn wide" href="/app.html">Start setting up</a>
+      <a class="btn wide" href="/app.html?new=1">Start setting up</a>
     </div>
     <div class="card path">
       <div class="eyebrow">Friend or family member</div>
@@ -128,8 +128,8 @@ footer.foot a{color:var(--soft)}
   </section>
 </main>
 <footer class="foot"><span>© 2026 MealKind · San Antonio, Texas</span><a href="mailto:hello@mealkind.com">hello@mealkind.com</a><a href="/privacy.html">Privacy</a><a href="/mission.html">Our mission</a><a href="/clinic.html">For clinics</a></footer>
-<p class="ver">Version 19 · 11 Oct 2026</p>
+<p class="ver">Version 20 · 11 Oct 2026</p>
 <script>
-try{var s=JSON.parse(localStorage.getItem("mk_my_circle")||"null");if(s&&localStorage.getItem("mk_family_token_"+s))document.getElementById("mine").hidden=false}catch(e){}
+try{var s=JSON.parse(localStorage.getItem("mk_my_circle")||"null");var l=JSON.parse(localStorage.getItem("mk_my_circles")||"[]");if((s&&localStorage.getItem("mk_family_token_"+s))||l.length)document.getElementById("mine").hidden=false}catch(e){}
 </script>
 </body></html>

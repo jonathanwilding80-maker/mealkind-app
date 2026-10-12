@@ -123,7 +123,7 @@ header.top a span{color:var(--gold)}
     <div id="thankBox" hidden style="margin-bottom:14px"></div>
     <div class="eyebrow">Only you see this box</div>
     <p style="margin:6px 0 12px">This is the page your friends see. Tap any day on the calendar to mark it as a treatment day.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn sm gold" href="/app.html?step=4">Share link and password</a><a class="btn sm ghost" href="/app.html?step=2">Change recipes</a><a class="btn sm ghost" href="/app.html?step=3">Edit the note</a></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn sm gold" href="#" data-famstep="4">Share link and password</a><a class="btn sm ghost" href="#" data-famstep="2">Change recipes</a><a class="btn sm ghost" href="#" data-famstep="3">Edit the note</a></div>
   </section>
 
   <!-- HOW IT WORKS -->
@@ -158,7 +158,7 @@ header.top a span{color:var(--gold)}
 
   <section class="card" id="thanksWall" hidden></section>
   <section class="links" id="links" hidden></section>
-  <p class="ver">Version 19 · 11 Oct 2026</p>
+  <p class="ver">Version 20 · 11 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -518,7 +518,7 @@ $("gate").addEventListener("submit",e=>{e.preventDefault();const c=$("code").val
 function name(){return String(P.recipient_name||P.display_name||"your friend").replace(/^./,c=>c.toUpperCase())}
 function render(){
   const fam=!!P.is_family;
-  $("famTag").hidden=!fam;$("famNav").hidden=!fam;
+  $("famTag").hidden=!fam;$("famNav").hidden=!fam;document.querySelectorAll("[data-famstep]").forEach(x=>x.href="/app.html?circle="+encodeURIComponent(SLUG)+"&step="+x.dataset.famstep);$("famNav").href="/app.html?circle="+encodeURIComponent(SLUG);
   document.title=`Meals for ${name()} · MealKind`;
   $("title").textContent=`Meals for ${name()}`;
   $("photo").innerHTML=P.photo_url?`<img src="${esc(P.photo_url)}" alt="">`:esc(name()[0]||"M");
