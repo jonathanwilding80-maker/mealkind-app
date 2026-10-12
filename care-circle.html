@@ -564,7 +564,7 @@ const REMINDERS_LIVE=false; /* switch on once text/email sending is set up */
 const cheatDays=()=>((P.food_notes||{}).cheat_days)||[];
 const fundDays=()=>((P.food_notes||{}).fund_days)||[];
 const requests=()=>((P.food_notes||{}).requests)||[];
-const HELPTYPES=["Ride to an appointment","Groceries","Errands","School run","Kids to activities","Walk the dogs","Cleaning","Lawn and yard"];
+const HELPTYPES=["Ride to an appointment","Groceries","School run","Kids to activities","Walk the dogs","Cleaning","Yard work and trash cans","Errands"];
 const helpTypes=()=>HELPTYPES.filter(h=>(((P.food_notes||{}).help)||[]).includes(h));
 function avoidWords(){return [...(P.allergy_flags||[]).filter(x=>!x.startsWith("other:")).map(x=>FLAG[x]||x),...(P.allergy_flags||[]).filter(x=>x.startsWith("other:")).map(x=>x.slice(6))]}
 function limitWords(){return (P.dietary_flags||[]).filter(x=>FLAG[x]&&!["tree_nut","peanut","milk","wheat_gluten","egg","shellfish","fish","sesame"].includes(x)).map(x=>FLAG[x])}
