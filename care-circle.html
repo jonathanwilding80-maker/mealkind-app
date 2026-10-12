@@ -135,8 +135,12 @@ header.top a span{color:var(--gold)}
 .rec ul{font-size:.9rem;padding-left:18px;margin:4px 0}
 
 a{color:var(--forest-2)}
+.pick{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+.pick:last-child{border-bottom:none}
+.pick button{flex:none}
+body{padding-bottom:80px}
 .links{display:flex;gap:10px;flex-wrap:wrap}
-.toast{pointer-events:none;position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--forest);color:var(--cream);padding:12px 18px;border-radius:999px;font-size:.95rem;z-index:10;max-width:calc(100% - 32px);text-align:center}
+.toast{pointer-events:none;position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--forest);color:var(--cream);padding:12px 18px;border-radius:999px;font-size:.95rem;z-index:10;max-width:calc(100% - 32px);text-align:center}
 .ver{text-align:center;font-size:.7rem;color:#9A958B;margin-top:30px}
 @media (max-width:520px){.two{grid-template-columns:1fr}.day{min-height:54px;padding:5px}.day .n{font-size:1.1rem}.hero{flex-direction:column;text-align:center}}
 </style></head>
@@ -191,6 +195,7 @@ a{color:var(--forest-2)}
   <section class="card panel" id="dayPanel" hidden></section>
 
   <!-- MY TURNS -->
+  <section class="card" id="basket" hidden style="border:2px solid var(--gold)"></section>
   <section class="card" id="mine" hidden></section>
 
   <section class="card" id="reqBox" hidden></section>
@@ -206,8 +211,9 @@ a{color:var(--forest-2)}
   <section class="card" id="bookBox" hidden></section>
   <section class="card" id="thanksWall" hidden></section>
   <section class="links" id="links" hidden></section>
-  <p class="ver">Version 26 · 12 Oct 2026</p>
+  <p class="ver">Version 27 · 12 Oct 2026</p>
 </main>
+<div id="basketBar" hidden style="position:fixed;left:0;right:0;bottom:0;z-index:9;background:var(--forest);color:var(--cream);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-between;align-items:center;gap:10px"><span>🧺 <strong id="basketCount"></strong></span><button type="button" class="gold sm" onclick="document.getElementById('basket').scrollIntoView({behavior:'smooth',block:'start'})">Review and confirm</button></div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -642,7 +648,7 @@ function render(){
   const l=[];if(P.gofundme_url)l.push(`<a class="btn gold" href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">Give to the meal fund</a>`);if(P.amazon_url)l.push(`<a class="btn ghost" href="${esc(P.amazon_url)}" target="_blank" rel="noopener">Open the gift list</a>`);
   const fn=P.food_notes||{};if(fn.delivery){l.push(`<a class="btn ghost" href="https://www.uber.com/us/en/gift-cards/" target="_blank" rel="noopener">🚗 Uber Eats gift card</a>`,`<a class="btn ghost" href="https://www.doordash.com/gifts/" target="_blank" rel="noopener">🛵 DoorDash gift card</a>`)}
   $("links").innerHTML=(fn.delivery?`<p class="small" style="width:100%">${fn.gift_email?`Send e-gift cards to <strong>${esc(fn.gift_email)}</strong>. `:""}Delivery food isn't checked by MealKind, so please suggest dishes that follow the "Please avoid" list above.</p>`:"")+l.join("");$("links").hidden=!l.length;
-  renderCal();renderPanel();renderMine();renderMenu();
+  renderCal();renderPanel();renderMine();renderMenu();renderBasket();
 }
 
 /* calendar: 4 weeks from this week's Monday */
@@ -707,70 +713,94 @@ function dayTips(day){
     acidOK?"Season with herbs, garlic and a squeeze of lemon rather than salt.":"Season with herbs and garlic rather than salt.","Cool food quickly, and deliver it either hot or chilled, never lukewarm."];
   return `${t?`<div class="notes"><strong>${isT?"On a treatment day":"The day after treatment"}:</strong> ${esc(t)}</div>`:""}<details class="small"><summary><strong>Cooking and delivery tips</strong></summary><ul style="padding-left:18px;margin-top:6px">${always.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`;
 }
+/* ---------- picking: tap a day, add dishes, confirm everything once ---------- */
+let BASKET=store.get("mk_basket_"+SLUG,[]);   // [{date,kind:'meal'|'help',course,recipe,type,note}]
+const saveBasket=()=>{store.set("mk_basket_"+SLUG,BASKET);renderBasket()};
+const inBasket=(d,key)=>BASKET.findIndex(x=>x.date===d&&(x.recipe||x.type)===key);
+let MODE="list";
+function itemBtn(key,label){const i=inBasket(SEL,key);return `<button type="button" class="sm ${i>=0?"":"gold"}" data-add="${esc(key)}">${i>=0?"✓ Added":label}</button>`}
 function renderPanel(){
   const p=$("dayPanel");if(!SEL){p.hidden=true;return}p.hidden=false;
   const helps=(P.help||[]).filter(h=>h.date===SEL);
   const meals=(P.meals||[]).filter(m=>m.date===SEL),isT=(P.treatment_dates||[]).includes(SEL),isC=cheatDays().includes(SEL),isF=fundDays().includes(SEL);
-  const req=requests();
+  const req=requests(),menu=P.menu||[];
+  if(isF&&MODE!=="help")MODE="help";if(MODE==="own"&&!req.length)MODE="list";if(MODE==="help"&&!helpTypes().length)MODE="list";if(MODE==="list"&&!menu.length&&req.length)MODE="own";
+  const taken=[...meals.map(m=>`<div class="meal"><div><strong>${esc(m.recipe)}</strong><div class="small muted">${esc(CLABEL[m.course]||"Meal")}</div></div><div class="small">${esc(m.who||"")}</div></div>`),...helps.map(h=>`<div class="meal"><div><strong>${esc(h.type)}</strong><div class="small muted">Help${h.note?" · "+esc(h.note):""}</div></div><div class="small">${esc(h.who||"")}</div></div>`)];
+  const near=n=>(P.meals||[]).find(x=>x.recipe===n&&Math.abs((new Date(x.date)-new Date(SEL))/864e5)<=3);
+  const listHTML=COURSES.map(([c,l])=>{const items=menu.filter(m=>m.course===c);if(!items.length)return"";
+    return `<div class="course"><h3 style="font-size:1.15rem;margin:10px 0 4px">${ic(c)}${l}</h3>${items.map(m=>{const r=rv(m.name),nr=near(m.name);
+      return `<div class="pick"><div style="flex:1;min-width:0"><strong>${esc(m.name)}</strong>${nr?`<div class="small" style="color:#9a6510">Already coming ${esc(new Date(nr.date+"T12:00").toLocaleDateString(MK_LOCALE,{weekday:"long"}))}</div>`:""}${r?`<div class="small muted">${esc(r.why)} · ${esc(r.time||"")}</div><details class="small"><summary>Ingredients and method</summary>${recipeBody(r)}</details>`:""}</div>${itemBtn(m.name,"+ Cook this")}</div>`}).join("")}</div>`}).join("");
   p.innerHTML=`<div><div class="eyebrow">${isF?"Covered by the meal fund":isC?"Cheat day":isT?"Treatment day":"Selected day"}</div><h3>${esc(longDate(SEL))}</h3></div>
-    ${meals.length?`<div>${meals.map(m=>`<div class="meal"><div><strong>${esc(m.recipe)}</strong><div class="small muted">${esc(CLABEL[m.course]||"Meal")}</div></div><div class="small">${esc(m.who||"")}</div></div>`).join("")}${helps.map(h=>`<div class="meal"><div><strong>${esc(h.type)}</strong><div class="small muted">Help${h.note?" · "+esc(h.note):""}</div></div><div class="small">${esc(h.who||"")}</div></div>`).join("")}</div>`:helps.length?`<div>${helps.map(h=>`<div class="meal"><div><strong>${esc(h.type)}</strong><div class="small muted">Help${h.note?" · "+esc(h.note):""}</div></div><div class="small">${esc(h.who||"")}</div></div>`).join("")}</div>`:`<p class="muted">Nobody has signed up for this day yet.</p>`}
+    ${taken.length?`<div>${taken.join("")}</div>`:`<p class="muted">Nobody has signed up for this day yet.</p>`}
     ${dayTips(SEL)}
     ${P.is_family?`<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sm ghost" type="button" id="treatBtn">${isT?"Remove treatment day":"Mark as treatment day"}</button><button class="sm ghost" type="button" id="cheatBtn">${isC?"Remove cheat day":"Make it a cheat day"}</button><button class="sm ghost" type="button" id="fundBtn">${isF?"Open this day to meals again":"Cover this day with the meal fund"}</button></div>`:""}
     ${isF?`<div class="notes">Meals for this day are paid for from the meal fund, so no cooking is needed.${P.gofundme_url?` <a href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">Give to the meal fund</a>`:""}</div>`:""}
-    <form class="form" id="joinForm" ${isF&&!helpTypes().length?"hidden":""}>
-      <div class="eyebrow">${isF?"Offer other help":meals.length?"Bring something else":"Bring a meal"}</div>
-      <div class="chips" role="radiogroup" aria-label="What will you bring?"><button type="button" class="chip" data-mode="list" aria-pressed="true">🍲 Recommended recipes</button>${req.length?`<button type="button" class="chip" data-mode="own" aria-pressed="false">❤️ ${esc(name())}'s favourites</button>`:""}${helpTypes().length?`<button type="button" class="chip" data-mode="help" aria-pressed="false">🤝 Other help</button>`:""}</div>
-      <div id="modeHelp" hidden class="form"><label>What can you help with?<select id="jHelp">${helpTypes().map(h=>`<option value="${esc(h)}">${ic(h)}${esc(h)}</option>`).join("")}</select></label>
-        <label>Note for the family <span class="small">(optional)</span><input id="jHelpNote" maxlength="160" placeholder="e.g. I can do 2 to 4 pm"></label></div>
-      <div id="modeList"><label>Choose a recipe<select id="jRecipe">${menuOptions()}</select></label><div class="preview" id="jPrev"></div></div>
-      <div id="modeOwn" hidden class="form">
-        <div><div class="small muted" style="margin-bottom:6px">Dishes ${esc(name())} would love. Tap the one you'll make:</div><div class="chips">${req.map((r,i)=>`<button type="button" class="chip" data-req="${i}" aria-pressed="false">${esc(r.name)}</button>`).join("")}</div><div id="reqLink" class="small" style="margin-top:8px"></div></div>
-        <input type="hidden" id="jOwn">
-        <div class="two"><label>Which meal?<select id="jCourse">${COURSES.map(([c,l])=>`<option value="${c}" ${c==="dinner"?"selected":""}>${ic(c)}${l}</option>`).join("")}</select></label><span></span></div>
+    <div class="form" ${isF&&!helpTypes().length?"hidden":""}>
+      <div class="eyebrow">${isF?"Offer other help":"What would you like to make?"}</div>
+      <p class="small muted" style="margin-top:-6px">Add as many as you like, on this day or others. You'll confirm them all at the end.</p>
+      <div class="chips" role="tablist">${isF?"":`<button type="button" class="chip" data-mode="list" aria-pressed="${MODE==="list"}">🍲 Recommended recipes</button>`}${req.length&&!isF?`<button type="button" class="chip" data-mode="own" aria-pressed="${MODE==="own"}">❤️ ${esc(name())}'s favourites</button>`:""}${helpTypes().length?`<button type="button" class="chip" data-mode="help" aria-pressed="${MODE==="help"}">🤝 Other help</button>`:""}</div>
+      ${MODE==="list"?`<div>${listHTML||`<p class="muted">No recipes on the menu yet.</p>`}</div>`:""}
+      ${MODE!=="own"?"":`<div class="form">
         ${guideHTML(isC)}
-        <label class="check"><input type="checkbox" id="jOk"> I'll follow these guidelines</label>
-      </div>
+        <label class="check"><input type="checkbox" id="jOk" ${store.get("mk_ok_"+SLUG,false)?"checked":""}> I'll follow these guidelines</label>
+        <label>Which meal?<select id="jCourse">${COURSES.map(([c,l])=>`<option value="${c}" ${c==="dinner"?"selected":""}>${ic(c)}${l}</option>`).join("")}</select></label>
+        ${req.map(r=>`<div class="pick"><div style="flex:1;min-width:0"><strong>${esc(r.name)}</strong>${r.note?`<div class="small"><strong>How they like it:</strong> ${esc(r.note)}</div>`:""}${r.url?`<div class="small"><a href="${esc(r.url)}" target="_blank" rel="noopener">See the recipe for ${esc(r.name)}</a></div>`:""}</div>${itemBtn(r.name+" (favourite)","+ Cook this")}</div>`).join("")}
+      </div>`}
+      ${MODE!=="help"?"":`<div class="form">
+        <label>Note for the family <span class="small">(optional)</span><input id="jHelpNote" maxlength="160" placeholder="e.g. I can do 2 to 4 pm"></label>
+        ${helpTypes().map(h=>`<div class="pick"><div style="flex:1"><strong>${ic(h)}${esc(h)}</strong></div>${itemBtn(h,"+ I'll do this")}</div>`).join("")}
+      </div>`}
+    </div>`;
+  p.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{MODE=b.dataset.mode;renderPanel()});
+  if($("jOk"))$("jOk").onchange=e=>store.set("mk_ok_"+SLUG,e.target.checked);
+  p.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{const key=b.dataset.add,i=inBasket(SEL,key);
+    if(i>=0){BASKET.splice(i,1);saveBasket();renderPanel();return}
+    if(MODE==="own"&&!$("jOk").checked){toast("Please tick that you've checked the guidelines.");return}
+    if(MODE==="help")BASKET.push({date:SEL,kind:"help",type:key,note:($("jHelpNote")||{}).value||""});
+    else if(MODE==="own")BASKET.push({date:SEL,kind:"meal",recipe:key,course:$("jCourse").value});
+    else{const m=(P.menu||[]).find(x=>x.name===key);BASKET.push({date:SEL,kind:"meal",recipe:key,course:m?m.course:"dinner"})}
+    saveBasket();renderPanel();toast(MODE==="help"?"Added. Pick more, or review and confirm below.":"Added to your dishes. Pick more, or review and confirm below.")});
+  if($("fundBtn"))$("fundBtn").onclick=async()=>{const fd=fundDays(),next=fd.includes(SEL)?fd.filter(d=>d!==SEL):fd.concat(SEL);
+    try{await saveNotes({fund_days:next});await load();toast(fd.includes(SEL)?"Day opened to meals again":"Day covered by the meal fund")}catch(e){toast(errMsg(e))}};
+  if($("treatBtn"))$("treatBtn").onclick=async()=>{try{await rpc("mk_toggle_treatment",{p_slug:SLUG,p_family_token:TOKEN,p_date:SEL});await load();toast("Treatment day updated")}catch(e){toast(errMsg(e))}};
+  if($("cheatBtn"))$("cheatBtn").onclick=async()=>{const cd=cheatDays(),next=cd.includes(SEL)?cd.filter(d=>d!==SEL):cd.concat(SEL);
+    try{await saveNotes({cheat_days:next});await load();toast(cd.includes(SEL)?"Cheat day removed":"Cheat day added")}catch(e){toast(errMsg(e))}};
+}
+function recipeBody(r){const dia=(P.dietary_flags||[]).includes("cond:dialysis");
+  return `${r.swap?`<p><strong>Egg-free:</strong> ${esc(r.swap)}</p>`:""}${dia?`<p><strong>Kidney tip:</strong> keep portions small, and remember soups and sauces count toward their daily fluid limit.</p>`:""}<ul style="padding-left:18px;margin:4px 0">${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px;margin:4px 0">${(r.steps||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`}
+function renderBasket(){
+  BASKET=BASKET.filter(x=>x.date>=todayISO);
+  const box=$("basket"),bar=$("basketBar");if(!box)return;
+  bar.hidden=!BASKET.length;box.hidden=!BASKET.length;if(!BASKET.length)return;
+  $("basketCount").textContent=`${BASKET.length} selected`;
+  const days=[...new Set(BASKET.map(x=>x.date))].sort();
+  box.innerHTML=`<div class="eyebrow">🧺 Your selection</div><h2>Review and confirm</h2>
+    ${days.map(d=>`<div style="margin-top:10px"><strong>${esc(longDate(d))}</strong>${BASKET.map((x,i)=>x.date!==d?"":`<div class="meal"><div>${x.kind==="help"?ic(x.type)+esc(x.type):esc(x.recipe)}<div class="small muted">${x.kind==="help"?"Help":esc(CLABEL[x.course]||"Meal")}</div></div><button type="button" class="sm ghost" data-rm="${i}">Remove</button></div>`).join("")}</div>`).join("")}
+    <form class="form" id="confirmForm" style="margin-top:14px">
       <div class="two"><label>Your name<input id="jName" required autocomplete="name" value="${esc(ME.name)}"></label>
       <label>${REMINDERS_LIVE?"Mobile (for text reminders)":"Mobile (optional, so the family can reach you)"}<input id="jPhone" type="tel" autocomplete="tel" value="${esc(ME.phone)}" placeholder="(210) 555-0142"></label></div>
       <label>Email (optional)<input id="jEmail" type="email" autocomplete="email" value="${esc(ME.email)}"></label>
       <div ${REMINDERS_LIVE?"":"hidden"}><label class="check"><input type="checkbox" id="r2" checked> Text me 2 days before</label>
       <label class="check"><input type="checkbox" id="r0" checked> Text me the morning of</label></div>
-      ${REMINDERS_LIVE?"":`<p class="small muted">After you confirm, you can add it to your phone's calendar.</p>`}
-      <button type="submit" class="gold">Confirm</button>
+      ${REMINDERS_LIVE?"":`<p class="small muted">After you confirm, you can add each one to your phone's calendar.</p>`}
+      <button type="submit" class="gold">Confirm ${BASKET.length===1?"":"all "+BASKET.length}</button>
     </form>`;
-  let MODE="list";
-  const setMode=m=>{MODE=m;p.querySelectorAll("[data-mode]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===m)));$("modeList").hidden=m!=="list";$("modeOwn").hidden=m!=="own";$("modeHelp").hidden=m!=="help"};
-  p.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
-  p.querySelectorAll("[data-req]").forEach(b=>b.onclick=()=>{const r=req[+b.dataset.req];$("jOwn").value=r.name;$("reqLink").innerHTML=(r.note?`<div><strong>How they like it:</strong> ${esc(r.note)}</div>`:"")+(r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">See the recipe for ${esc(r.name)}</a>`:"");p.querySelectorAll("[data-req]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)))});
-  if(isF){p.querySelectorAll('[data-mode="list"],[data-mode="own"]').forEach(b=>b.hidden=true);if(helpTypes().length)setMode("help")}
-  else if(!(P.menu||[]).length)setMode("own");
-  if($("fundBtn"))$("fundBtn").onclick=async()=>{const fd=fundDays(),next=fd.includes(SEL)?fd.filter(d=>d!==SEL):fd.concat(SEL);
-    try{await saveNotes({fund_days:next});await load();toast(fd.includes(SEL)?"Day opened to meals again":"Day covered by the meal fund")}catch(e){toast(errMsg(e))}};
-  const upd=()=>{$("jPrev").innerHTML=previewHTML($("jRecipe").value)};upd();$("jRecipe").onchange=upd;
-  if($("treatBtn"))$("treatBtn").onclick=async()=>{try{await rpc("mk_toggle_treatment",{p_slug:SLUG,p_family_token:TOKEN,p_date:SEL});await load();toast("Treatment day updated")}catch(e){toast(errMsg(e))}};
-  if($("cheatBtn"))$("cheatBtn").onclick=async()=>{const cd=cheatDays(),next=cd.includes(SEL)?cd.filter(d=>d!==SEL):cd.concat(SEL);
-    try{await saveNotes({cheat_days:next});await load();toast(cd.includes(SEL)?"Cheat day removed":"Cheat day added")}catch(e){toast(errMsg(e))}};
-  $("joinForm").onsubmit=async e=>{e.preventDefault();
-    let recipe,course;
-    if(MODE==="help"){const n=$("jName").value.trim(),ph=$("jPhone").value.trim(),em=$("jEmail").value.trim(),t=$("jHelp").value;if(!n){toast(ERR.missing_name);return}
-      const rem=[...($("r2").checked?["2 days before"]:[]),...($("r0").checked?["Morning of"]:[]),...(em?["Email too"]:[])];
-      const btn=e.target.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="Saving…";
-      try{const r=await rpc("mk_join_help",{p_slug:SLUG,p_code:CODE,p_date:SEL,p_type:t,p_name:n,p_phone:ph||null,p_email:em||null,p_reminders:rem,p_family_token:TOKEN,p_note:$("jHelpNote").value.trim()||null});
-        Object.assign(ME,{name:n,phone:ph,email:em});store.set("mk_me",ME);
-        MINE.push({id:r.id,token:r.claim_token,date:SEL,recipe:t,drop:r.drop_off_note||""});store.set("mk_mine_"+SLUG,MINE);
-        toast(`Thank you, ${n.split(" ")[0]}! You're down for ${t.toLowerCase()}.`);SEL=null;await load();$("mine").scrollIntoView({behavior:"smooth",block:"center"});
-      }catch(err){toast(errMsg(err));btn.disabled=false;btn.textContent="Confirm"}return}
-    if(MODE==="list"){const sel=$("jRecipe"),opt=sel.options[sel.selectedIndex];if(!sel.value){toast("Choose a recipe first.");return}recipe=sel.value;course=opt.dataset.course}
-    else{const o=$("jOwn").value.trim();if(!o){toast("Tap the favourite you'll make.");return}if(!$("jOk").checked){toast("Please tick that you've checked the guidelines.");return}recipe=o+" (favourite)";course=$("jCourse").value}
-    const n=$("jName").value.trim(),ph=$("jPhone").value.trim(),em=$("jEmail").value.trim();
-    if(!n){toast(ERR.missing_name);return}
+  box.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{BASKET.splice(+b.dataset.rm,1);saveBasket();renderPanel()});
+  $("confirmForm").onsubmit=async e=>{e.preventDefault();
+    const n=$("jName").value.trim(),ph=$("jPhone").value.trim(),em=$("jEmail").value.trim();if(!n){toast(ERR.missing_name);return}
     const rem=[...($("r2").checked?["2 days before"]:[]),...($("r0").checked?["Morning of"]:[]),...(em?["Email too"]:[])];
     const btn=e.target.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="Saving…";
-    try{const r=await rpc("mk_join_meal",{p_slug:SLUG,p_code:CODE,p_date:SEL,p_course:course,p_recipe:recipe,p_name:n,p_phone:ph||null,p_email:em||null,p_reminders:rem,p_family_token:TOKEN});
-      Object.assign(ME,{name:n,phone:ph,email:em});store.set("mk_me",ME);
-      MINE.push({id:r.id,token:r.claim_token,date:SEL,recipe,drop:r.drop_off_note||""});store.set("mk_mine_"+SLUG,MINE);
-      toast(`Thank you, ${n.split(" ")[0]}! You're bringing ${recipe}.`);SEL=null;await load();$("mine").scrollIntoView({behavior:"smooth",block:"center"});
-    }catch(err){toast(errMsg(err));btn.disabled=false;btn.textContent="Confirm"}};
+    Object.assign(ME,{name:n,phone:ph,email:em});store.set("mk_me",ME);
+    const left=[];let done=0;
+    for(const x of BASKET){
+      try{const r=x.kind==="help"
+          ?await rpc("mk_join_help",{p_slug:SLUG,p_code:CODE,p_date:x.date,p_type:x.type,p_name:n,p_phone:ph||null,p_email:em||null,p_reminders:rem,p_family_token:TOKEN,p_note:x.note||null})
+          :await rpc("mk_join_meal",{p_slug:SLUG,p_code:CODE,p_date:x.date,p_course:x.course,p_recipe:x.recipe,p_name:n,p_phone:ph||null,p_email:em||null,p_reminders:rem,p_family_token:TOKEN});
+        MINE.push({id:r.id,token:r.claim_token,date:x.date,recipe:x.kind==="help"?x.type:x.recipe,drop:r.drop_off_note||""});done++;
+      }catch(err){left.push(x);toast(errMsg(err))}}
+    store.set("mk_mine_"+SLUG,MINE);BASKET=left;saveBasket();
+    if(done)toast(`Thank you, ${n.split(" ")[0]}! You're signed up for ${done} ${done===1?"turn":"turns"}.`);
+    SEL=null;await load();$("mine").scrollIntoView({behavior:"smooth",block:"start"});};
 }
 /* shopping: one list, tap an item to find it at the chosen store */
 const STORES={heb:["H-E-B","https://www.heb.com/search?q="],walmart:["Walmart","https://www.walmart.com/search?q="],instacart:["Instacart","https://www.instacart.com/store/s?k="],amazon:["Amazon","https://www.amazon.com/s?i=amazonfresh&k="]};
