@@ -159,7 +159,7 @@ header.top a span{color:var(--gold)}
 
   <section class="card" id="thanksWall" hidden></section>
   <section class="links" id="links" hidden></section>
-  <p class="ver">Version 21 · 11 Oct 2026</p>
+  <p class="ver">Version 22 · 11 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -579,6 +579,22 @@ function guideHTML(cheat){
   li.push("Label it with the dish name, the main ingredients and today's date.");
   return `<div class="notes small"><strong>${cheat?"Cheat day guidelines":"Guidelines for your own dish"}</strong>${cheat?`<div style="margin-top:4px">The family has made this a cheat day, so favourites are welcome. Allergies still apply.</div>`:""}<ul style="padding-left:18px;margin-top:6px">${li.map(x=>`<li>${x}</li>`).join("")}</ul></div>`;
 }
+/* what to expect on a given day, by condition (general guidance, not medical advice) */
+const condOf=()=>((P.dietary_flags||[]).find(x=>x.startsWith("cond:"))||"").slice(5);
+function dayTips(day){
+  const c=condOf(),tr=P.treatment_dates||[],prev=new Date(day+"T12:00");prev.setDate(prev.getDate()-1);
+  const isT=tr.includes(day),after=tr.includes(prev.toLocaleDateString("en-CA"));
+  const acidOK=!(P.dietary_flags||[]).includes("acidic");
+  let t=null;
+  if(isT){t={cancer:"Treatment days are often long and tiring, and appetite can be low. Small, mild meals work best: soups, rice, soft chicken. Cold or room-temperature food smells less, which helps with nausea.",
+    dialysis:"Dialysis days are draining. A meal that only needs warming is the biggest help. Keep soups and sauces small, because fluids count toward their daily limit.",
+    postpartum:"Appointment days with a newborn are hectic. Something that can be eaten one-handed, warm or cold, is perfect."}[c]||"Appointment days are long. Bring something easy to reheat, ready for when they get home.";}
+  else if(after){t={cancer:"The day or two after treatment can bring nausea and tiredness. Plain, gentle food and plenty to drink. Ginger, rice, toast and simple soups are often easiest.",
+    dialysis:"The day after dialysis is usually a better day for appetite. A proper, protein-rich meal is welcome."}[c]||null;}
+  const always=["Pack meals in small portions: easier to finish and easy to freeze.","Use containers they don't need to return.","Label each dish with its name, main ingredients and today's date.",
+    acidOK?"Season with herbs, garlic and a squeeze of lemon rather than salt.":"Season with herbs and garlic rather than salt.","Cool food quickly, and deliver it either hot or chilled, never lukewarm."];
+  return `${t?`<div class="notes"><strong>${isT?"On a treatment day":"The day after treatment"}:</strong> ${esc(t)}</div>`:""}<details class="small"><summary><strong>Cooking and delivery tips</strong></summary><ul style="padding-left:18px;margin-top:6px">${always.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`;
+}
 function renderPanel(){
   const p=$("dayPanel");if(!SEL){p.hidden=true;return}p.hidden=false;
   const helps=(P.help||[]).filter(h=>h.date===SEL);
@@ -586,6 +602,7 @@ function renderPanel(){
   const req=requests();
   p.innerHTML=`<div><div class="eyebrow">${isF?"Covered by the meal fund":isC?"Cheat day":isT?"Treatment day":"Selected day"}</div><h3>${esc(longDate(SEL))}</h3></div>
     ${meals.length?`<div>${meals.map(m=>`<div class="meal"><div><strong>${esc(m.recipe)}</strong><div class="small muted">${esc(CLABEL[m.course]||"Meal")}</div></div><div class="small">${esc(m.who||"")}</div></div>`).join("")}${helps.map(h=>`<div class="meal"><div><strong>${esc(h.type)}</strong><div class="small muted">Help${h.note?" · "+esc(h.note):""}</div></div><div class="small">${esc(h.who||"")}</div></div>`).join("")}</div>`:helps.length?`<div>${helps.map(h=>`<div class="meal"><div><strong>${esc(h.type)}</strong><div class="small muted">Help${h.note?" · "+esc(h.note):""}</div></div><div class="small">${esc(h.who||"")}</div></div>`).join("")}</div>`:`<p class="muted">Nobody has signed up for this day yet.</p>`}
+    ${dayTips(SEL)}
     ${P.is_family?`<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sm ghost" type="button" id="treatBtn">${isT?"Remove treatment day":"Mark as treatment day"}</button><button class="sm ghost" type="button" id="cheatBtn">${isC?"Remove cheat day":"Make it a cheat day"}</button><button class="sm ghost" type="button" id="fundBtn">${isF?"Open this day to meals again":"Cover this day with the meal fund"}</button></div>`:""}
     ${isF?`<div class="notes">Meals for this day are paid for from the meal fund, so no cooking is needed.${P.gofundme_url?` <a href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">Give to the meal fund</a>`:""}</div>`:""}
     <form class="form" id="joinForm" ${isF&&!helpTypes().length?"hidden":""}>
