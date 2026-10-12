@@ -134,7 +134,7 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <div><div class="eyebrow">Step 3</div><h1>A short note for friends</h1>
   <p class="muted" style="margin-top:8px">This is the first thing friends read. Keep it short and personal.</p></div>
   <label>Your note<textarea id="fStory" rows="5" maxlength="1000"></textarea></label>
-  <label>Favourite dishes <span class="small">(optional)</span><textarea id="fReq" rows="3" maxlength="600" placeholder="One per line, e.g.&#10;Mom's chicken soup&#10;Mac and cheese"></textarea><span class="small">Friends can choose to make one of these instead of a recipe from the list. They'll see your allergies and foods to avoid as guidelines.</span></label>
+  <label>❤️ Their favourite dishes <span class="small">(optional)</span><textarea id="fReq" rows="4" maxlength="1200" placeholder="One per line. Add a recipe link if you have one, e.g.&#10;Mom's chicken soup https://...&#10;Mac and cheese"></textarea><span class="small">Friends can choose to cook one of these as well as the recommended recipes, with your diet guidelines shown alongside.</span></label>
   <div class="two">
     <label>Best drop-off time<input id="fWindow" maxlength="60" placeholder="e.g. 5–6 pm"></label>
     <label>Drop-off address and details<input id="fDrop" maxlength="400" placeholder="Only shown to people who sign up"></label>
@@ -183,19 +183,20 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <div><div class="eyebrow">Your Care Circle</div><h1 id="hTitle">Meals for…</h1></div>
   <div class="stats"><div><b id="stRec">0</b>recipes</div><div><b id="stMeals">0</b>meals planned</div><div><b id="stPw">–</b>password</div></div>
   <div class="menu">
-    <a class="btn main" id="hCircle" href="#">Open the calendar<small>See who's cooking and mark treatment days</small></a>
-    <button type="button" data-go="4">Share the link and password<small>Text, WhatsApp or email</small></button>
-    <button type="button" data-go="2">Change the recipes<small id="hRecSub">Add or remove recipes friends can choose</small></button>
-    <button type="button" data-go="3">Edit the note and drop-off<small>What friends read first</small></button>
-    <button type="button" data-go="1">Update illness and allergies<small id="hCond"></small></button>
+    <a class="btn main" id="hCircle" href="#">📅 Open the calendar<small>See who's cooking and mark treatment days</small></a>
+    <button type="button" data-go="4">📤 Share the link and password<small>Text, WhatsApp or email</small></button>
+    <button type="button" data-go="2">🍲 Change the recipes<small id="hRecSub">Add or remove recipes friends can choose</small></button>
+    <button type="button" data-go="3">✏️ Edit the note, favourites and help<small>What friends read first</small></button>
+    <button type="button" data-go="1">🩺 Update illness and allergies<small id="hCond"></small></button>
   </div>
+  <div class="card" id="hBooks" hidden></div>
   <div class="card"><div class="eyebrow">Add a family helper</div>
     <p class="small" style="margin:8px 0">Want your partner, son or daughter to manage this with you? Send them this private link. It opens this set-up page on their phone. Don't send it to friends.</p>
     <button class="ghost sm" id="famLink" type="button">Copy private family link</button></div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><a class="btn ghost sm" href="/app.html?list=1">All my circles</a><a class="btn ghost sm" href="/app.html?new=1">+ Set up a new circle</a></div>
 </section>
 
-<p class="ver">Version 22 · 11 Oct 2026</p>
+<p class="ver">Version 23 · 11 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -522,6 +523,27 @@ TRIGGERS.high_fiber={w:['bean','lentil','chickpea','hummus','bran','whole wheat'
  ['dessert',['cancer','ct:colorectal','ct:headneck','ct:blood'],'Soft Baked Apples (peeled)','Warm, tender and easy to digest.','45 min',[['Apples','6'],['Cinnamon','1 jar'],['Brown sugar','1 bag'],['Unsalted butter','1 stick']],['Peel and core apples.','Fill with a little butter, sugar and cinnamon.','Bake 35 min at 375°F until completely soft.'],['milk'],['high_sugar']]
 ].forEach(a=>{const r=R(a[0],a[1],a[2],a[3],a[4],a[5],a[6]);r.allergens=a[7];r.condFlags=a[8];POOL.push(r);RECIPE_SAFETY[r.n]={allergens:a[7],condFlags:a[8]};});
 
+/* ---- COOKBOOK KITCHEN: books by doctors, dietitians or health organisations, or recommended by cancer centers.
+   tags = conditions; "swallow" = soft / swallowing difficulty. ---- */
+const BOOKS=[
+ {t:"The Cancer-Fighting Kitchen",a:"Rebecca Katz with Mat Edelson",why:"Recommended by Dana-Farber Cancer Institute. Flavorful recipes for treatment and recovery.",tags:["cancer"]},
+ {t:"What to Eat During Cancer Treatment",a:"American Cancer Society, Jeanne Besser & Barbara Grant RD",why:"Recipes organised by side effect: nausea, mouth sores, low appetite.",tags:["cancer"]},
+ {t:"Eating Well Through Cancer",a:"Holly Clegg & Gerald Miletello MD",why:"Recommended by Dana-Farber. Easy recipes written with an oncologist.",tags:["cancer"]},
+ {t:"The Cancer Diet Cookbook",a:"Dionne Detraz RD",why:"Recommended by Dana-Farber. Comforting recipes from an oncology dietitian.",tags:["cancer"]},
+ {t:"Easy-to-Swallow, Easy-to-Chew Cookbook",a:"Donna Weihofen RD, JoAnne Robbins PhD & Paula Sullivan",why:"Recommended by Dana-Farber. For anyone who finds chewing or swallowing hard.",tags:["swallow","stroke","parkinsons","als","alzheimers"]},
+ {t:"The Renal Diet Cookbook",a:"Susan Zogheib MHS RD",why:"Written by a dietitian for kidney disease and dialysis.",tags:["dialysis"]},
+ {t:"American Heart Association Low-Salt Cookbook",a:"American Heart Association",why:"Low-sodium cooking from the heart experts.",tags:["cardio","stroke","dialysis"]},
+ {t:"Prevent a Second Heart Attack",a:"Janet Bond Brill PhD RD",why:"A dietitian's plan for eating after a heart event.",tags:["cardio"]},
+ {t:"The Complete Low-FODMAP Diet",a:"Sue Shepherd PhD & Peter Gibson MD",why:"From the researchers behind the low-FODMAP approach for gut conditions.",tags:["gi"]},
+ {t:"The MIND Diet",a:"Maggie Moon MS RD",why:"A dietitian's guide to eating for brain health.",tags:["alzheimers","tbi","parkinsons"]},
+ {t:"This Is Your Brain on Food",a:"Uma Naidoo MD",why:"A Harvard psychiatrist and chef on food and mood, with recipes.",tags:["depression","tbi"]},
+ {t:"Eat, Drink, and Be Healthy",a:"Walter Willett MD",why:"Recommended by Dana-Farber. Harvard Medical School's guide to healthy eating.",tags:["ortho","depression","postpartum"]},
+ {t:"The First Forty Days",a:"Heng Ou with Amely Greeven",why:"Nourishing recipes for the weeks after birth.",tags:["postpartum"]}
+];
+function booksFor(cond,soft){return BOOKS.filter(b=>b.tags.includes(cond)||(soft&&b.tags.includes("swallow")));}
+function bookUrl(b){return "https://www.amazon.com/s?k="+encodeURIComponent(b.t+" "+b.a.split(/[,&]| with /)[0].trim())+"&i=stripbooks";}
+function booksHTML(list){return list.map(b=>`<div class="book" style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)"><div aria-hidden="true" style="font-size:1.6rem">📖</div><div><a href="${bookUrl(b)}" target="_blank" rel="noopener"><strong>${b.t}</strong></a><div class="small muted">${b.a}</div><div class="small">${b.why}</div></div></div>`).join("");}
+
 
 const CONDS=[["cancer","Cancer"],["dialysis","Kidney disease / dialysis"],["cardio","Heart condition"],["stroke","Stroke recovery"],["gi","Digestive / GI"],["ortho","Surgery / orthopedic"],["parkinsons","Parkinson's"],["als","ALS"],["tbi","Brain injury"],["alzheimers","Alzheimer's / dementia"],["depression","Depression"],["postpartum","New baby / postpartum"]];
 const CLABEL=Object.fromEntries(CONDS);
@@ -542,7 +564,7 @@ const FOOD_SAFE=["sushi","raw","sprout","unpasteurized","rare","runny","smoked s
 const HELP=["Ride to an appointment","Groceries","School run","Kids to activities","Walk the dogs","Cleaning","Yard work and trash cans","Errands"];
 let HELPSEL=[];
 const TEXTURES=[["regular","Regular"],["soft","Soft"],["pureed","Pureed"]];
-const COURSES=[["breakfast","Breakfast"],["lunch","Lunch"],["dinner","Dinner"],["snack","Snacks"],["dessert","Desserts"]];
+const COURSES=[["breakfast","🍳 Breakfast"],["lunch","🥪 Lunch"],["dinner","🍽️ Dinner"],["snack","🍎 Snacks"],["dessert","🍰 Desserts"]];
 
 const Q=new URLSearchParams(location.search);
 /* every circle this device manages: [{slug,name}] */
@@ -567,7 +589,8 @@ function chips(el,items,multi,get,set){
 }
 function paint(el,sel){document.querySelectorAll("#"+el+" .chip").forEach(b=>b.setAttribute("aria-pressed",String([].concat(sel).includes(b.dataset.k))))}
 chips("conds",CONDS,false,()=>F.cond,k=>{F.cond=k;applyImplied();showExtras()});
-chips("helpChips",HELP.map(h=>[h,h]),true,()=>HELPSEL,k=>HELPSEL=toggle(HELPSEL,k));
+const HICON={"Ride to an appointment":"🚗","Groceries":"🛒","School run":"🎒","Kids to activities":"⚽","Walk the dogs":"🐕","Cleaning":"🧹","Yard work and trash cans":"🗑️","Errands":"📋"};
+chips("helpChips",HELP.map(h=>[h,(HICON[h]||"")+" "+h]),true,()=>HELPSEL,k=>HELPSEL=toggle(HELPSEL,k));
 chips("ctype",CTYPES,false,()=>F.ctype,k=>{const prev=CT_IMPLIED[F.ctype]||[];F.ctype=k;
   const want=CT_IMPLIED[k]||[];F.limits=[...new Set(F.limits.filter(x=>!prev.includes(x)||want.includes(x)).concat(want))];paint("limits",F.limits);
   if(want.length)$("limitHint").textContent=`We've ticked what usually helps with ${CT_SHORT[k]}. Only untick something if their care team says it's fine.`;showExtras()});
@@ -611,7 +634,7 @@ function fromSaved(){
   PICK=new Set((P.menu||[]).map(m=>m.name));
   $("fShowNames").checked=!(P.food_notes&&P.food_notes.hide_names);
   HELPSEL=((P.food_notes&&P.food_notes.help)||[]).filter(h=>HELP.includes(h));paint("helpChips",HELPSEL);
-  $("fStory").value=P.story||"";$("fReq").value=((P.food_notes&&P.food_notes.requests)||[]).join("\n");$("fWindow").value=P.drop_off_window||"";$("fDrop").value=P.drop_off_note||"";
+  $("fStory").value=P.story||"";$("fReq").value=((P.food_notes&&P.food_notes.requests)||[]).map(r=>typeof r==="string"?r:(r.name+(r.url?" "+r.url:""))).join("\n");$("fWindow").value=P.drop_off_window||"";$("fDrop").value=P.drop_off_note||"";
   $("fFund").value=P.gofundme_url||"";$("fGift").value=P.amazon_url||"";
 }
 const who=()=>String($("fName").value.trim()||(P&&(P.recipient_name||P.display_name))||"your loved one").replace(/^./,c=>c.toUpperCase());
@@ -673,7 +696,7 @@ function renderRecipes(){
   const avoid=[...F.allergy.map(k=>(ALLERGIES.find(a=>a[0]===k)||[,k])[1].toLowerCase()),...CUSTOM,...F.limits.map(k=>(LIMITS.find(a=>a[0]===k)||[,k])[1].toLowerCase())];
   $("s2sub").textContent=`These ${SAFE.length} recipes suit ${F.cond==="cancer"&&CT_SHORT[F.ctype]?CT_SHORT[F.ctype]:F.cond?CLABEL[F.cond].toLowerCase():"their needs"}`+(avoid.length?` and leave out ${avoid.join(", ")}.`:".")+" Friends can only choose from the ones you tick."+(F.cond==="cancer"&&CT_TIP[F.ctype]?" "+CT_TIP[F.ctype]:"");
   $("recList").innerHTML=COURSES.map(([c,l])=>{const rs=SAFE.filter(r=>r.slot===c);if(!rs.length)return"";
-    return `<div class="course card"><h3>${l}<button type="button" class="link small" data-course="${c}">Select all ${l.toLowerCase()}</button></h3>${rs.map(r=>`<label class="rec"><input type="checkbox" data-n="${esc(r.n)}" ${PICK.has(r.n)?"checked":""}><span><span class="t">${esc(r.n)}</span>${F.ctype&&CT_SHORT[F.ctype]&&r.tags.includes("ct:"+F.ctype)?`<span class="for" style="background:var(--gold-soft);color:#7a5210">Best for ${esc(CT_SHORT[F.ctype])}</span>`:r.tags.includes(F.cond)?`<span class="for">For ${esc(CLABEL[F.cond].split(" /")[0].toLowerCase())}</span>`:""}<div class="w">${esc(r.why)} · ${esc(r.time||"")}</div><details><summary>Ingredients and method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol>${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details></span></label>`).join("")}</div>`}).join("")||`<p class="muted">No recipes match every restriction. Try removing one, or contact hello@mealkind.com.</p>`;
+    return `<div class="course card"><h3>${l}<button type="button" class="link small" data-course="${c}">Select all ${l.replace(/^\S+\s/,"").toLowerCase()}</button></h3>${rs.map(r=>`<label class="rec"><input type="checkbox" data-n="${esc(r.n)}" ${PICK.has(r.n)?"checked":""}><span><span class="t">${esc(r.n)}</span>${F.ctype&&CT_SHORT[F.ctype]&&r.tags.includes("ct:"+F.ctype)?`<span class="for" style="background:var(--gold-soft);color:#7a5210">Best for ${esc(CT_SHORT[F.ctype])}</span>`:r.tags.includes(F.cond)?`<span class="for">For ${esc(CLABEL[F.cond].split(" /")[0].toLowerCase())}</span>`:""}<div class="w">${esc(r.why)} · ${esc(r.time||"")}</div><details><summary>Ingredients and method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol>${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details></span></label>`).join("")}</div>`}).join("")||`<p class="muted">No recipes match every restriction. Try removing one, or contact hello@mealkind.com.</p>`;
   count();
 }
 function count(){$("recCount").textContent=`${PICK.size} chosen`}
@@ -693,7 +716,7 @@ $("next2").onclick=async()=>{
 $("next3").onclick=async()=>{
   const fund=$("fFund").value.trim(),gift=$("fGift").value.trim();
   $("err3").textContent="";const btn=$("next3");btn.disabled=true;
-  try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:token(),p:{food_notes:Object.assign({},(P&&P.food_notes)||{},{hide_names:!$("fShowNames").checked,help:HELP.filter(h=>HELPSEL.includes(h)),requests:$("fReq").value.split("\n").map(x=>x.trim()).filter(Boolean).slice(0,15)}),story:$("fStory").value.trim(),drop_off_window:$("fWindow").value.trim(),drop_off_note:$("fDrop").value.trim(),gofundme_url:fund,amazon_url:gift}});
+  try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:token(),p:{food_notes:Object.assign({},(P&&P.food_notes)||{},{hide_names:!$("fShowNames").checked,help:HELP.filter(h=>HELPSEL.includes(h)),requests:$("fReq").value.split("\n").map(x=>x.trim()).filter(Boolean).slice(0,15).map(l=>{const m=l.match(/https?:\/\/\S+/);return {name:(m?l.replace(m[0],""):l).replace(/[\s\-–—:|]+$/,"").trim().slice(0,80)||"Favourite",url:m?m[0].slice(0,400):""}})}),story:$("fStory").value.trim(),drop_off_window:$("fWindow").value.trim(),drop_off_note:$("fDrop").value.trim(),gofundme_url:fund,amazon_url:gift}});
     await reload();go(4)}
   catch(e){$("err3").textContent=errMsg(e)}btn.disabled=false;
 };
@@ -735,6 +758,7 @@ function renderHome(){
   $("stPw").textContent=pw()||"–";
   $("hCircle").href=circleUrl();
   $("hCond").textContent=F.cond?CLABEL[F.cond]:"";
+  const bl=booksFor(F.cond,needsSoft());$("hBooks").hidden=!bl.length;if(bl.length)$("hBooks").innerHTML=`<div class="eyebrow">📚 Cookbook kitchen</div><h3 style="margin:4px 0">Trusted cookbooks for ${esc(CLABEL[F.cond].toLowerCase())}</h3><p class="small muted">Written by doctors, dietitians or health organisations, or recommended by cancer centers.</p>${booksHTML(bl)}`;
 }
 $("famLink").onclick=async()=>{const l=location.origin+"/app.html?circle="+encodeURIComponent(SLUG)+"&t="+encodeURIComponent(token());
   try{await navigator.clipboard.writeText(l);toast("Private family link copied. Only send it to family.")}catch{toast(l)}};
