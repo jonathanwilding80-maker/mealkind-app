@@ -60,6 +60,12 @@ header.top a span{color:var(--gold)}
 .day .cnt{font-size:.7rem;background:var(--good-bg);color:var(--good);border-radius:999px;padding:1px 6px;align-self:flex-start;font-weight:600}
 .day.treat{border-color:var(--gold);background:var(--gold-soft)}
 .day.treat .n{color:#9a6510}
+.day.fund{background:repeating-linear-gradient(135deg,#fff 0 6px,#EEF3EF 6px 12px)}
+.day.fund::before{content:"$";position:absolute;bottom:4px;right:6px;color:var(--forest-2);font-size:.8rem;font-weight:700}
+.day.cheat::after{content:"\2605";position:absolute;top:4px;right:6px;color:#C0504D;font-size:.8rem}
+.chip{font-family:var(--body);font-weight:500;font-size:.92rem;padding:8px 12px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--forest);border-color:var(--forest);color:var(--cream)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
 .day.sel{outline:3px solid var(--forest);outline-offset:1px}
 .day.past{opacity:.35;cursor:default}
 .day.empty{visibility:hidden}
@@ -114,6 +120,7 @@ header.top a span{color:var(--gold)}
 
   <!-- FAMILY ONLY -->
   <section class="card" id="famBox" hidden>
+    <div id="thankBox" hidden style="margin-bottom:14px"></div>
     <div class="eyebrow">Only you see this box</div>
     <p style="margin:6px 0 12px">This is the page your friends see. Tap any day on the calendar to mark it as a treatment day.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn sm gold" href="/app.html?step=4">Share link and password</a><a class="btn sm ghost" href="/app.html?step=2">Change recipes</a><a class="btn sm ghost" href="/app.html?step=3">Edit the note</a></div>
@@ -121,15 +128,16 @@ header.top a span{color:var(--gold)}
 
   <!-- HOW IT WORKS -->
   <div><h2 style="font-size:1.5rem">How to help</h2>
-  <div class="steps" style="margin-top:10px"><div><b>1</b>Tap a day below</div><div><b>2</b>Choose a recipe</div><div><b>3</b>Add your name; we'll text a reminder</div></div></div>
+  <div class="steps" style="margin-top:10px"><div><b>1</b>Tap a day below</div><div><b>2</b>Choose a recipe or bring your own</div><div><b>3</b>Add your name and save it to your calendar</div></div></div>
 
   <!-- CALENDAR -->
   <section>
     <div class="calhead"><h2 id="monthLbl">Calendar</h2>
       <div style="display:flex;gap:8px"><button class="sm ghost" id="prevBtn" type="button" aria-label="Earlier weeks">‹</button><button class="sm ghost" id="nextBtn" type="button" aria-label="Later weeks">›</button></div></div>
-    <div class="legend" style="margin:6px 0 10px"><span><i style="background:var(--gold-soft);border-color:var(--gold)"></i>Treatment day</span><span><i style="background:var(--good-bg);border-color:var(--good-bg)"></i>Meals planned</span></div>
+    <div class="legend" style="margin:6px 0 10px"><span><i style="background:var(--gold-soft);border-color:var(--gold)"></i>Treatment day</span><span><i style="background:var(--good-bg);border-color:var(--good-bg)"></i>Meals planned</span><span><b style="color:#C0504D">★</b> Cheat day</span><span><b style="color:var(--forest-2)">$</b> Covered by meal fund</span></div>
     <div class="grid" id="dows"></div>
     <div class="grid" id="cal" style="margin-top:6px"></div>
+    <p class="small muted" id="otherWay" style="margin-top:10px" hidden></p>
   </section>
 
   <!-- SELECTED DAY -->
@@ -137,6 +145,8 @@ header.top a span{color:var(--gold)}
 
   <!-- MY TURNS -->
   <section class="card" id="mine" hidden></section>
+
+  <section class="card" id="reqBox" hidden></section>
 
   <!-- RECIPES -->
   <section class="card">
@@ -146,8 +156,9 @@ header.top a span{color:var(--gold)}
     <div id="menuList"></div>
   </section>
 
+  <section class="card" id="thanksWall" hidden></section>
   <section class="links" id="links" hidden></section>
-  <p class="ver">Version 14 · 9 Oct 2026</p>
+  <p class="ver">Version 17 · 11 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -498,7 +509,7 @@ function render(){
   const ct=(DF.find(x=>x.startsWith("ctype:"))||"").slice(6),txs=DF.filter(x=>x.startsWith("tx:")).map(x=>TX[x.slice(3)]).filter(Boolean);
   const cancerLine=DF.includes("cond:cancer")?`<strong>About ${esc(name())}:</strong> ${ct&&CT[ct]?esc(CT[ct])+" cancer":"cancer"}${txs.length?", "+esc(txs.join(", ")):""}. `:"";
   const safety=DF.includes("food_safety")?`<br><br><strong>Food safety:</strong> their immune system is weaker right now. Cook meat, fish and eggs all the way through, wash hands and produce well, skip anything raw, and drop the meal off hot or chilled with today's date on it.`:"";
-  $("notes").innerHTML=cancerLine+(avoid.length?`<strong>Please avoid:</strong> ${esc(avoid.join(", "))}. `:"")+(tex?`<strong>Texture:</strong> ${tex==="pureed"?"pureed":"soft, easy to chew"}. `:"")+(likes?`<strong>Good to know:</strong> ${esc(likes)}. `:"")+(P.drop_off_window?`<strong>Drop-off:</strong> ${esc(P.drop_off_window)}. `:"")+`Every recipe on this page already follows these rules.`+safety;
+  $("notes").innerHTML=cancerLine+(avoid.length?`<strong>Please avoid:</strong> ${esc(avoid.join(", "))}. `:"")+(tex?`<strong>Texture:</strong> ${tex==="pureed"?"pureed":"soft, easy to chew"}. `:"")+(likes?`<strong>Good to know:</strong> ${esc(likes)}. `:"")+(P.drop_off_window?`<strong>Drop-off:</strong> ${esc(P.drop_off_window)}. `:"")+`Every recipe on this page already follows these rules.`+safety+(helpTypes().length?`<br><br><strong>Other help they'd love:</strong> ${esc(helpTypes().join(", "))}. Tap a day to sign up.`:"");
   $("famBox").hidden=!fam;
   const l=[];if(P.gofundme_url)l.push(`<a class="btn gold" href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">Give to the meal fund</a>`);if(P.amazon_url)l.push(`<a class="btn ghost" href="${esc(P.amazon_url)}" target="_blank" rel="noopener">Open the gift list</a>`);
   $("links").innerHTML=l.join("");$("links").hidden=!l.length;
@@ -514,9 +525,9 @@ function renderCal(){
   const first=days[0],last=days[27];
   $("monthLbl").textContent=first.toLocaleDateString("en-US",{month:"long"})+(first.getMonth()!==last.getMonth()?" – "+last.toLocaleDateString("en-US",{month:"long"}):"");
   $("prevBtn").disabled=OFFSET<=0;
-  $("cal").innerHTML=days.map(d=>{const k=iso(d),past=k<todayISO,n=(P.meals||[]).filter(m=>m.date===k).length;
-    return `<button type="button" class="day ${tr.includes(k)?"treat":""} ${past?"past":""} ${SEL===k?"sel":""}" data-day="${k}" ${past?"disabled":""} aria-label="${esc(longDate(k))}${n?`, ${n} planned`:""}${tr.includes(k)?", treatment day":""}">
-      <span class="n">${d.getDate()}</span>${n?`<span class="cnt">${n} meal${n>1?"s":""}</span>`:""}</button>`}).join("");
+  $("cal").innerHTML=days.map(d=>{const k=iso(d),past=k<todayISO,n=(P.meals||[]).filter(m=>m.date===k).length,hn=(P.help||[]).filter(h=>h.date===k).length;
+    return `<button type="button" class="day ${tr.includes(k)?"treat":""} ${cheatDays().includes(k)?"cheat":""} ${fundDays().includes(k)?"fund":""} ${past?"past":""} ${SEL===k?"sel":""}" data-day="${k}" ${past?"disabled":""} aria-label="${esc(longDate(k))}${n?`, ${n} planned`:""}${tr.includes(k)?", treatment day":""}">
+      <span class="n">${d.getDate()}</span>${n?`<span class="cnt">${n} meal${n>1?"s":""}</span>`:""}${hn?`<span class="cnt" style="background:var(--gold-soft);color:#7a5210">${hn} help</span>`:""}</button>`}).join("");
 }
 $("cal").addEventListener("click",e=>{const b=e.target.closest("[data-day]");if(!b||b.disabled)return;SEL=SEL===b.dataset.day?null:b.dataset.day;renderCal();renderPanel();if(SEL)$("dayPanel").scrollIntoView({behavior:"smooth",block:"start"})});
 $("prevBtn").onclick=()=>{if(OFFSET>0){OFFSET--;renderCal()}};$("nextBtn").onclick=()=>{if(OFFSET<3){OFFSET++;renderCal()}};
@@ -528,46 +539,123 @@ function menuOptions(){
     return `<optgroup label="${l}">${items.map(m=>{const near=(P.meals||[]).find(x=>x.recipe===m.name&&Math.abs((new Date(x.date)-new Date(SEL))/864e5)<=3);
       return `<option value="${esc(m.name)}" data-course="${c}">${esc(m.name)}${near?` (already coming ${new Date(near.date+"T12:00").toLocaleDateString("en-US",{weekday:"short"})})`:""}</option>`}).join("")}</optgroup>`}).join("");
 }
-function previewHTML(n){const r=RECIPE[n];if(!r)return"";return `${esc(r.why)} · ${esc(r.time||"")}<details><summary>Ingredients &amp; method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details>`}
+function previewHTML(n){const r=RECIPE[n];if(!r)return"";const dia=(P.dietary_flags||[]).includes("cond:dialysis");return `${esc(r.why)} · ${esc(r.time||"")}${dia?`<div class="small" style="margin-top:4px"><strong>Kidney tip:</strong> keep portions small, and remember soups and sauces count toward their daily fluid limit.</div>`:""}<details><summary>Ingredients &amp; method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details>`}
+const REMINDERS_LIVE=false; /* switch on once text/email sending is set up */
+const cheatDays=()=>((P.food_notes||{}).cheat_days)||[];
+const fundDays=()=>((P.food_notes||{}).fund_days)||[];
+const requests=()=>((P.food_notes||{}).requests)||[];
+const HELPTYPES=["Lawn and yard","School run","Kids to activities","Walk the dogs","Cleaning","Ride to an appointment","Groceries","Errands"];
+const helpTypes=()=>((P.food_notes||{}).help)||[];
+function avoidWords(){return [...(P.allergy_flags||[]).filter(x=>!x.startsWith("other:")).map(x=>FLAG[x]||x),...(P.allergy_flags||[]).filter(x=>x.startsWith("other:")).map(x=>x.slice(6))]}
+function limitWords(){return (P.dietary_flags||[]).filter(x=>FLAG[x]&&!["tree_nut","peanut","milk","wheat_gluten","egg","shellfish","fish","sesame"].includes(x)).map(x=>FLAG[x])}
+function guideHTML(cheat){
+  const DF=P.dietary_flags||[],tex=(DF.find(x=>x.startsWith("texture:"))||"").slice(8),al=avoidWords(),lim=limitWords();
+  const li=[];
+  if(al.length)li.push(`<strong>No ${esc(al.join(", "))}</strong>, not even a little. Check sauces, stock and seasoning packets too.`);
+  if(lim.length&&!cheat)li.push(`Keep it low in ${esc(lim.map(w=>w.replace(/^high-/,"").replace(/ foods$/,"")).join(", "))}: cook from fresh, season with herbs, lemon or garlic instead of salt.`);
+  if(tex)li.push(tex==="pureed"?"Everything needs to be pureed smooth.":"Make it soft and easy to chew: no crusts, crunchy bits or tough meat.");
+  if(DF.includes("food_safety"))li.push("Cook meat, fish and eggs all the way through. Nothing raw.");
+  li.push("Label it with the dish name, the main ingredients and today's date.");
+  return `<div class="notes small"><strong>${cheat?"Cheat day guidelines":"Guidelines for your own dish"}</strong>${cheat?`<div style="margin-top:4px">The family has made this a cheat day, so favourites are welcome. Allergies still apply.</div>`:""}<ul style="padding-left:18px;margin-top:6px">${li.map(x=>`<li>${x}</li>`).join("")}</ul></div>`;
+}
 function renderPanel(){
   const p=$("dayPanel");if(!SEL){p.hidden=true;return}p.hidden=false;
-  const meals=(P.meals||[]).filter(m=>m.date===SEL),isT=(P.treatment_dates||[]).includes(SEL);
-  p.innerHTML=`<div><div class="eyebrow">${isT?"Treatment day":"Selected day"}</div><h3>${esc(longDate(SEL))}</h3></div>
-    ${meals.length?`<div>${meals.map(m=>`<div class="meal"><div><strong>${esc(m.recipe)}</strong><div class="small muted">${esc(CLABEL[m.course]||"Meal")}</div></div><div class="small">${esc(m.who||"")}</div></div>`).join("")}</div>`:`<p class="muted">Nobody has signed up for this day yet.</p>`}
-    ${P.is_family?`<div><button class="sm ghost" type="button" id="treatBtn">${isT?"Remove treatment day":"Mark as treatment day"}</button></div>`:""}
-    <form class="form" id="joinForm">
+  const helps=(P.help||[]).filter(h=>h.date===SEL);
+  const meals=(P.meals||[]).filter(m=>m.date===SEL),isT=(P.treatment_dates||[]).includes(SEL),isC=cheatDays().includes(SEL),isF=fundDays().includes(SEL);
+  const req=requests();
+  p.innerHTML=`<div><div class="eyebrow">${isF?"Covered by the meal fund":isC?"Cheat day":isT?"Treatment day":"Selected day"}</div><h3>${esc(longDate(SEL))}</h3></div>
+    ${meals.length?`<div>${meals.map(m=>`<div class="meal"><div><strong>${esc(m.recipe)}</strong><div class="small muted">${esc(CLABEL[m.course]||"Meal")}</div></div><div class="small">${esc(m.who||"")}</div></div>`).join("")}${helps.map(h=>`<div class="meal"><div><strong>${esc(h.type)}</strong><div class="small muted">Help${h.note?" · "+esc(h.note):""}</div></div><div class="small">${esc(h.who||"")}</div></div>`).join("")}</div>`:helps.length?`<div>${helps.map(h=>`<div class="meal"><div><strong>${esc(h.type)}</strong><div class="small muted">Help${h.note?" · "+esc(h.note):""}</div></div><div class="small">${esc(h.who||"")}</div></div>`).join("")}</div>`:`<p class="muted">Nobody has signed up for this day yet.</p>`}
+    ${P.is_family?`<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sm ghost" type="button" id="treatBtn">${isT?"Remove treatment day":"Mark as treatment day"}</button><button class="sm ghost" type="button" id="cheatBtn">${isC?"Remove cheat day":"Make it a cheat day"}</button><button class="sm ghost" type="button" id="fundBtn">${isF?"Open this day to meals again":"Cover this day with the meal fund"}</button></div>`:""}
+    ${isF?`<div class="notes">Meals for this day are paid for from the meal fund, so no cooking is needed.${P.gofundme_url?` <a href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">Give to the meal fund</a>`:""}</div>`:""}
+    <form class="form" id="joinForm" ${isF&&!helpTypes().length?"hidden":""}>
       <div class="eyebrow">${meals.length?"Bring something else":"Bring a meal"}</div>
-      <label>Choose a recipe<select id="jRecipe" required>${menuOptions()}</select></label>
-      <div class="preview" id="jPrev"></div>
+      <div class="chips" role="radiogroup" aria-label="What will you bring?"><button type="button" class="chip" data-mode="list" aria-pressed="true">A recipe from the list</button><button type="button" class="chip" data-mode="own" aria-pressed="false">My own dish${req.length?" or a request":""}</button>${helpTypes().length?`<button type="button" class="chip" data-mode="help" aria-pressed="false">Other help</button>`:""}</div>
+      <div id="modeHelp" hidden class="form"><label>What can you help with?<select id="jHelp">${helpTypes().map(h=>`<option>${esc(h)}</option>`).join("")}</select></label>
+        <label>Note for the family <span class="small">(optional)</span><input id="jHelpNote" maxlength="160" placeholder="e.g. I can do 2 to 4 pm"></label></div>
+      <div id="modeList"><label>Choose a recipe<select id="jRecipe">${menuOptions()}</select></label><div class="preview" id="jPrev"></div></div>
+      <div id="modeOwn" hidden class="form">
+        ${req.length?`<div><div class="small muted" style="margin-bottom:6px">${esc(name())}'s favourites. Tap one to make it:</div><div class="chips">${req.map(r=>`<button type="button" class="chip" data-req="${esc(r)}">${esc(r)}</button>`).join("")}</div></div>`:""}
+        <div class="two"><label>What are you bringing?<input id="jOwn" maxlength="120" placeholder="e.g. Chicken and rice soup"></label>
+        <label>Which meal?<select id="jCourse">${COURSES.map(([c,l])=>`<option value="${c}" ${c==="dinner"?"selected":""}>${l}</option>`).join("")}</select></label></div>
+        ${guideHTML(isC)}
+        <label class="check"><input type="checkbox" id="jOk"> I've checked my dish against these guidelines</label>
+      </div>
       <div class="two"><label>Your name<input id="jName" required autocomplete="name" value="${esc(ME.name)}"></label>
       <label>Mobile (for text reminders)<input id="jPhone" type="tel" autocomplete="tel" value="${esc(ME.phone)}" placeholder="(210) 555-0142"></label></div>
       <label>Email (optional)<input id="jEmail" type="email" autocomplete="email" value="${esc(ME.email)}"></label>
-      <label class="check"><input type="checkbox" id="r2" checked> Remind me 2 days before</label>
-      <label class="check"><input type="checkbox" id="r0" checked> Remind me the morning of</label>
+      <div ${REMINDERS_LIVE?"":"hidden"}><label class="check"><input type="checkbox" id="r2" checked> Text me 2 days before</label>
+      <label class="check"><input type="checkbox" id="r0" checked> Text me the morning of</label></div>
+      ${REMINDERS_LIVE?"":`<p class="small muted">After you confirm, you can add it to your phone's calendar.</p>`}
       <button type="submit" class="gold">Confirm</button>
     </form>`;
+  let MODE="list";
+  const setMode=m=>{MODE=m;p.querySelectorAll("[data-mode]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===m)));$("modeList").hidden=m!=="list";$("modeOwn").hidden=m!=="own";$("modeHelp").hidden=m!=="help"};
+  p.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+  p.querySelectorAll("[data-req]").forEach(b=>b.onclick=()=>{$("jOwn").value=b.dataset.req;p.querySelectorAll("[data-req]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)))});
+  if(isF){p.querySelectorAll('[data-mode="list"],[data-mode="own"]').forEach(b=>b.hidden=true);if(helpTypes().length)setMode("help")}
+  else if(!(P.menu||[]).length)setMode("own");
+  if($("fundBtn"))$("fundBtn").onclick=async()=>{const fd=fundDays(),next=fd.includes(SEL)?fd.filter(d=>d!==SEL):fd.concat(SEL);
+    try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:TOKEN,p:{food_notes:Object.assign({},P.food_notes||{},{fund_days:next})}});await load();toast(fd.includes(SEL)?"Day opened to meals again":"Day covered by the meal fund")}catch(e){toast(errMsg(e))}};
   const upd=()=>{$("jPrev").innerHTML=previewHTML($("jRecipe").value)};upd();$("jRecipe").onchange=upd;
   if($("treatBtn"))$("treatBtn").onclick=async()=>{try{await rpc("mk_toggle_treatment",{p_slug:SLUG,p_family_token:TOKEN,p_date:SEL});await load();toast("Treatment day updated")}catch(e){toast(errMsg(e))}};
-  $("joinForm").onsubmit=async e=>{e.preventDefault();const sel=$("jRecipe"),opt=sel.options[sel.selectedIndex];
+  if($("cheatBtn"))$("cheatBtn").onclick=async()=>{const cd=cheatDays(),next=cd.includes(SEL)?cd.filter(d=>d!==SEL):cd.concat(SEL);
+    try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:TOKEN,p:{food_notes:Object.assign({},P.food_notes||{},{cheat_days:next})}});await load();toast(cd.includes(SEL)?"Cheat day removed":"Cheat day added")}catch(e){toast(errMsg(e))}};
+  $("joinForm").onsubmit=async e=>{e.preventDefault();
+    let recipe,course;
+    if(MODE==="help"){const n=$("jName").value.trim(),ph=$("jPhone").value.trim(),em=$("jEmail").value.trim(),t=$("jHelp").value;if(!n){toast(ERR.missing_name);return}
+      const rem=[...($("r2").checked?["2 days before"]:[]),...($("r0").checked?["Morning of"]:[]),...(em?["Email too"]:[])];
+      const btn=e.target.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="Saving…";
+      try{const r=await rpc("mk_join_help",{p_slug:SLUG,p_code:CODE,p_date:SEL,p_type:t,p_name:n,p_phone:ph||null,p_email:em||null,p_reminders:rem,p_family_token:TOKEN,p_note:$("jHelpNote").value.trim()||null});
+        Object.assign(ME,{name:n,phone:ph,email:em});store.set("mk_me",ME);
+        MINE.push({id:r.id,token:r.claim_token,date:SEL,recipe:t,drop:r.drop_off_note||""});store.set("mk_mine_"+SLUG,MINE);
+        toast(`Thank you, ${n.split(" ")[0]}! You're down for ${t.toLowerCase()}.`);SEL=null;await load();$("mine").scrollIntoView({behavior:"smooth",block:"center"});
+      }catch(err){toast(errMsg(err));btn.disabled=false;btn.textContent="Confirm"}return}
+    if(MODE==="list"){const sel=$("jRecipe"),opt=sel.options[sel.selectedIndex];if(!sel.value){toast("Choose a recipe first.");return}recipe=sel.value;course=opt.dataset.course}
+    else{const o=$("jOwn").value.trim();if(!o){toast("Write what you're bringing.");return}if(!$("jOk").checked){toast("Please tick that you've checked the guidelines.");return}recipe=o+" (own dish)";course=$("jCourse").value}
     const n=$("jName").value.trim(),ph=$("jPhone").value.trim(),em=$("jEmail").value.trim();
-    if(!sel.value){toast("Choose a recipe first.");return}if(!n){toast(ERR.missing_name);return}
+    if(!n){toast(ERR.missing_name);return}
     const rem=[...($("r2").checked?["2 days before"]:[]),...($("r0").checked?["Morning of"]:[]),...(em?["Email too"]:[])];
     const btn=e.target.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="Saving…";
-    try{const r=await rpc("mk_join_meal",{p_slug:SLUG,p_code:CODE,p_date:SEL,p_course:opt.dataset.course,p_recipe:sel.value,p_name:n,p_phone:ph||null,p_email:em||null,p_reminders:rem,p_family_token:TOKEN});
+    try{const r=await rpc("mk_join_meal",{p_slug:SLUG,p_code:CODE,p_date:SEL,p_course:course,p_recipe:recipe,p_name:n,p_phone:ph||null,p_email:em||null,p_reminders:rem,p_family_token:TOKEN});
       Object.assign(ME,{name:n,phone:ph,email:em});store.set("mk_me",ME);
-      MINE.push({id:r.id,token:r.claim_token,date:SEL,recipe:sel.value,drop:r.drop_off_note||""});store.set("mk_mine_"+SLUG,MINE);
-      toast(`Thank you, ${n.split(" ")[0]}! You're bringing ${sel.value}.`);SEL=null;await load();$("mine").scrollIntoView({behavior:"smooth",block:"center"});
+      MINE.push({id:r.id,token:r.claim_token,date:SEL,recipe,drop:r.drop_off_note||""});store.set("mk_mine_"+SLUG,MINE);
+      toast(`Thank you, ${n.split(" ")[0]}! You're bringing ${recipe}.`);SEL=null;await load();$("mine").scrollIntoView({behavior:"smooth",block:"center"});
     }catch(err){toast(errMsg(err));btn.disabled=false;btn.textContent="Confirm"}};
 }
 function renderMine(){
-  const live=MINE.filter(m=>m.date>=todayISO&&(P.meals||[]).some(x=>x.id===m.id));
+  const live=MINE.filter(m=>m.date>=todayISO&&[...(P.meals||[]),...(P.help||[])].some(x=>x.id===m.id));
   const box=$("mine");if(!live.length){box.hidden=true;return}box.hidden=false;
-  box.innerHTML=`<div class="eyebrow">Your turns</div>${live.sort((a,b)=>a.date.localeCompare(b.date)).map(m=>`<div class="meal"><div><strong>${esc(longDate(m.date))}</strong><div class="small">${esc(m.recipe)}${P.drop_off_window?" · drop off "+esc(P.drop_off_window):""}</div>${m.drop?`<div class="small muted">${esc(m.drop)}</div>`:""}</div><button class="sm ghost" type="button" data-cancel="${m.id}">Can't make it</button></div>`).join("")}
-    <p class="small muted" style="margin-top:8px">We'll text or email you before each turn.</p>`;
+  box.innerHTML=`<div class="eyebrow">Your turns</div>${live.sort((a,b)=>a.date.localeCompare(b.date)).map(m=>`<div class="meal"><div><strong>${esc(longDate(m.date))}</strong><div class="small">${esc(m.recipe)}${P.drop_off_window&&!HELPTYPES.includes(m.recipe)?" · drop off "+esc(P.drop_off_window):""}</div>${m.drop?`<div class="small muted">${esc(m.drop)}</div>`:""}${RECIPE[m.recipe]?`<details class="small" style="margin-top:4px"><summary>Shopping list</summary><ul style="padding-left:18px">${RECIPE[m.recipe].ings.map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul></details>`:""}<div class="small" style="margin-top:4px">Add to calendar: <a href="${gcal(m)}" target="_blank" rel="noopener">Google</a> · <a href="#" data-ics="${m.id}">Apple / Outlook</a></div></div><button class="sm ghost" type="button" data-cancel="${m.id}">Can't make it</button></div>`).join("")}
+    <p class="small muted" style="margin-top:8px">Add each turn to your phone's calendar so it reminds you.</p>`;
 }
-$("mine").addEventListener("click",async e=>{const b=e.target.closest("[data-cancel]");if(!b)return;const m=MINE.find(x=>x.id===b.dataset.cancel);
+const ymd=d=>d.replace(/-/g,"");
+const nextDay=d=>{const x=new Date(d+"T12:00");x.setDate(x.getDate()+1);return x.toLocaleDateString("en-CA")};
+function evText(m){return {title:`MealKind: ${m.recipe} for ${name()}`,details:`${P.drop_off_window?"Drop off "+P.drop_off_window+". ":""}${m.drop||""}\nCare Circle: ${location.origin}/care-circle.html?circle=${SLUG}`}}
+function gcal(m){const t=evText(m);return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(t.title)+"&dates="+ymd(m.date)+"/"+ymd(nextDay(m.date))+"&details="+encodeURIComponent(t.details)}
+function ics(m){const t=evText(m),e=x=>String(x).replace(/[\\;,]/g,c=>"\\"+c).replace(/\n/g,"\\n");
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//MealKind//EN","BEGIN:VEVENT","UID:"+m.id+"@mealkind.com","DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z","DTSTART;VALUE=DATE:"+ymd(m.date),"DTEND;VALUE=DATE:"+ymd(nextDay(m.date)),"SUMMARY:"+e(t.title),"DESCRIPTION:"+e(t.details),"BEGIN:VALARM","TRIGGER:-PT15H","ACTION:DISPLAY","DESCRIPTION:"+e(t.title),"END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n")}
+$("mine").addEventListener("click",async e=>{const ic=e.target.closest("[data-ics]");if(ic){e.preventDefault();const m=MINE.find(x=>x.id===ic.dataset.ics);const u=URL.createObjectURL(new Blob([ics(m)],{type:"text/calendar"}));const a=document.createElement("a");a.href=u;a.download="mealkind-"+m.date+".ics";document.body.appendChild(a);a.click();a.remove();return}
+  const b=e.target.closest("[data-cancel]");if(!b)return;const m=MINE.find(x=>x.id===b.dataset.cancel);
   try{await rpc("mk_release_slot",{p_slug:SLUG,p_item:m.id,p_claim_token:m.token});MINE.splice(MINE.indexOf(m),1);store.set("mk_mine_"+SLUG,MINE);toast("Cancelled. Reminders stopped.");load()}catch(err){toast(errMsg(err))}});
-function renderMenu(){
+function renderReq(){const r=requests(),b=$("reqBox");b.hidden=!r.length;if(!r.length)return;
+  b.innerHTML=`<div class="eyebrow">Requests</div><h2>${esc(name())}'s favourites</h2><p class="small muted" style="margin:4px 0 10px">Want to make one of these? Tap a day, choose "My own dish or a request", and follow the guidelines.</p><div class="chips">${r.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div>`}
+const thanks=()=>((P.food_notes||{}).thanks)||[];
+function renderThanks(){
+  const t=thanks(),w=$("thanksWall");w.hidden=!t.length;
+  if(t.length)w.innerHTML=`<div class="eyebrow">From the family</div><h2>Thank you</h2>${t.slice().reverse().slice(0,10).map(x=>`<div class="meal"><div>${esc(x.text)}<div class="small muted">${esc(longDate(x.date))}</div></div></div>`).join("")}`;
+  const b=$("thankBox");if(!P.is_family){b.hidden=true;return}
+  const done=new Set(t.map(x=>x.id)),recent=[...(P.meals||[]),...(P.help||[]).map(h=>({...h,recipe:h.type}))].filter(m=>m.date<=todayISO&&!done.has(m.id));
+  b.hidden=!recent.length;
+  b.innerHTML=`<div class="eyebrow">Say thank you</div>${recent.map(m=>`<div class="meal"><div><strong>${esc(m.who||"A friend")}</strong><div class="small muted">${esc(m.recipe)} · ${esc(longDate(m.date))}</div></div><button class="sm gold" type="button" data-thank="${m.id}">Thank</button></div>`).join("")}`;
+}
+$("famBox").addEventListener("click",async e=>{const b=e.target.closest("[data-thank]");if(!b)return;
+  const m=[...(P.meals||[]),...(P.help||[]).map(h=>({...h,recipe:h.type}))].find(x=>x.id===b.dataset.thank);
+  const text=prompt("Your thank-you note (everyone in the circle sees it):",`Thank you ${String(m.who||"").split(" ")[0]} for the ${m.recipe.replace(/ \(own dish\)$/,"")}! ${name()} loved it.`);
+  if(!text)return;
+  try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:TOKEN,p:{food_notes:Object.assign({},P.food_notes||{},{thanks:thanks().concat({id:m.id,date:todayISO,text:text.slice(0,300)}).slice(-40)})}});await load();toast("Thank-you posted")}catch(err){toast(errMsg(err))}});
+function renderMenu(){renderReq();renderThanks();
+  const ow=[];if(P.gofundme_url)ow.push(`<a href="${esc(P.gofundme_url)}" target="_blank" rel="noopener">give to the meal fund</a>`);if(P.amazon_url)ow.push(`<a href="${esc(P.amazon_url)}" target="_blank" rel="noopener">send something from the gift list</a>`);
+  $("otherWay").hidden=!ow.length;if(ow.length)$("otherWay").innerHTML=`Can't cook? You can still help: ${ow.join(" or ")}.`;
   const menu=P.menu||[];
   $("menuList").innerHTML=menu.length?COURSES.map(([c,l])=>{const items=menu.filter(m=>m.course===c);if(!items.length)return"";
     return `<div class="course"><h3>${l}</h3>${items.map(m=>{const r=RECIPE[m.name];return `<details class="rec"><summary>${esc(m.name)}</summary>${r?`<p>${esc(r.why)} · ${esc(r.time||"")}</p><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol style="padding-left:18px;font-size:.9rem">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol>`:""}</details>`}).join("")}</div>`}).join("")
