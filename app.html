@@ -529,7 +529,7 @@ const CTYPES=[["breast","Breast"],["colorectal","Colon / bowel"],["headneck","He
 const CTX=[["chemo","Chemotherapy"],["radiation","Radiation"],["immuno","Immunotherapy"],["surgery","Recovering from surgery"],["done","Finished treatment"]];
 const SOFT_CANCER=["headneck","upper_gi"];
 const FOOD_SAFE=["sushi","raw","sprout","unpasteurized","rare","runny","smoked salmon","deli","brie","blue cheese"];
-const HELP=["Lawn and yard","School run","Kids to activities","Walk the dogs","Cleaning","Ride to an appointment","Groceries","Errands"];
+const HELP=["Ride to an appointment","Groceries","Errands","School run","Kids to activities","Walk the dogs","Cleaning","Lawn and yard"];
 let HELPSEL=[];
 const TEXTURES=[["regular","Regular"],["soft","Soft"],["pureed","Pureed"]];
 const COURSES=[["breakfast","Breakfast"],["lunch","Lunch"],["dinner","Dinner"],["snack","Snacks"],["dessert","Desserts"]];
@@ -676,7 +676,7 @@ $("next2").onclick=async()=>{
 $("next3").onclick=async()=>{
   const fund=$("fFund").value.trim(),gift=$("fGift").value.trim();
   $("err3").textContent="";const btn=$("next3");btn.disabled=true;
-  try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:token(),p:{food_notes:Object.assign({},(P&&P.food_notes)||{},{hide_names:!$("fShowNames").checked,help:HELPSEL,requests:$("fReq").value.split("\n").map(x=>x.trim()).filter(Boolean).slice(0,15)}),story:$("fStory").value.trim(),drop_off_window:$("fWindow").value.trim(),drop_off_note:$("fDrop").value.trim(),gofundme_url:fund,amazon_url:gift}});
+  try{await rpc("mk_update_page",{p_slug:SLUG,p_family_token:token(),p:{food_notes:Object.assign({},(P&&P.food_notes)||{},{hide_names:!$("fShowNames").checked,help:HELP.filter(h=>HELPSEL.includes(h)),requests:$("fReq").value.split("\n").map(x=>x.trim()).filter(Boolean).slice(0,15)}),story:$("fStory").value.trim(),drop_off_window:$("fWindow").value.trim(),drop_off_note:$("fDrop").value.trim(),gofundme_url:fund,amazon_url:gift}});
     await reload();go(4)}
   catch(e){$("err3").textContent=errMsg(e)}btn.disabled=false;
 };
