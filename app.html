@@ -613,7 +613,7 @@ function show(id){
 function go(n){
   if(n===1){$("consentRow").hidden=!!P;show("s1")}
   if(n===2){renderRecipes();show("s2")}
-  if(n===3){if(!$("fStory").value.trim()){const nm=who().replace(/^./,c=>c.toUpperCase());$("fStory").value=`Hi everyone,\n\nAs many of you know, ${nm} is going through a difficult time with their health right now. So many of you have asked how you can help, and this is one of the most meaningful ways.\n\nA home-cooked meal brings comfort on the hard days and gives our family one less thing to worry about. Every recipe here has been chosen to suit what ${nm} can eat right now.\n\nNot much of a cook? Please don't worry. There are other ways to help on this page, and we're grateful for your support in whatever way you can give it.\n\nThank you for your kindness, your love, and for being part of ${nm}'s circle. It means more than we can say.`}show("s3")}
+  if(n===3){if(!$("fStory").value.trim()){const nm=who().replace(/^./,c=>c.toUpperCase());$("fStory").value=`Hi everyone,\n\nAs many of you know, ${nm} is going through a difficult time with their health right now. So many of you have asked how you can help, and this is one of the most meaningful ways.\n\nA home-cooked meal brings comfort on the hard days and gives our family one less thing to worry about. Every recipe here has been chosen to suit what ${nm} can eat right now.\n\nNot much of a cook? Please don't worry. There are other ways to help on this page, and we're grateful for your support in whatever way you can give it.\n\nThank you for your kindness, care, and support. It means so much to the family.`}show("s3")}
   if(n===4){renderShare();show("s4")}
   if(n===0){renderHome();show("home")}
 }
