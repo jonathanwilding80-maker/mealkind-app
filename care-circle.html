@@ -158,7 +158,7 @@ header.top a span{color:var(--gold)}
 
   <section class="card" id="thanksWall" hidden></section>
   <section class="links" id="links" hidden></section>
-  <p class="ver">Version 18 · 11 Oct 2026</p>
+  <p class="ver">Version 19 · 11 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -477,10 +477,30 @@ function isSafeFor(r,allergyFlags,dietaryFlags){
   return vet(r,{allergy:allergyFlags,diet:dietaryFlags,custom:activeFlags().custom}).safe;
 }
 
+/* ---- CANCER BY TYPE (added v19): recipes tuned to the type of cancer and treatment.
+   ct:<type> tags mark the best fit. Built from ACS / NCI eating-during-treatment guidance; pending dietitian review. ---- */
+TRIGGERS.spicy={w:['chili','chile','jalapeño','jalapeno','hot sauce','cayenne','red pepper flake','sriracha','chipotle','curry','salsa','harissa','wasabi','horseradish']};
+TRIGGERS.high_fiber={w:['bean','lentil','chickpea','hummus','bran','whole wheat','whole-wheat','whole grain','brown rice','quinoa','flaxseed','chia','popcorn','almond','walnut','pecan','cashew','pistachio','seed','kale','broccoli','oat','granola','dried fruit','raisin','prune'],
+  x:['green bean','butternut','nutmeg','peanut butter','seedless']};
+[
+ ['breakfast',['cancer','ct:headneck','ct:upper_gi','ct:colorectal','ct:blood'],'Chicken & Rice Congee','Silky rice porridge: easy to swallow and gentle on the stomach.','60 min',[['White rice','1 cup'],['Low-sodium chicken broth','2 qt'],['Boneless chicken thighs','1 lb'],['Fresh ginger','1 knob'],['Green onions','1 bunch']],['Simmer rice, broth and sliced ginger 45 min, stirring now and then, until soft and creamy.','Add finely sliced chicken; cook 10 min until cooked through.','Top with a little green onion. Pack in small containers.'],[],[]],
+ ['breakfast',['cancer','ct:headneck','ct:colorectal'],'Soft Polenta with a Poached Egg','Smooth, warm and soft, with protein from the egg.','20 min',[['Polenta (fine cornmeal)','1 bag'],['Whole milk','1 qt'],['Unsalted butter','1 stick'],['Eggs','1 dozen']],['Whisk polenta into simmering milk and water; stir 10 min until smooth.','Stir in a little butter.','Poach eggs until the whites and yolks are fully set; serve on top.'],['milk','egg'],[]],
+ ['breakfast',['cancer','ct:breast','ct:prostate','ct:gyn','ct:lung','ct:brain'],'Berry & Flaxseed Overnight Oats','Fiber and plant goodness, ready in the fridge.','5 min',[['Rolled oats','1 canister'],['Milk','1/2 gal'],['Ground flaxseed','1 bag'],['Blueberries','1 pint'],['Cinnamon','1 jar']],['Stir oats, milk, flaxseed and cinnamon in jars.','Top with berries.','Chill overnight; eat cold or warmed.'],['milk'],[]],
+ ['lunch',['cancer','ct:headneck','ct:upper_gi'],'Mild Butternut Squash Soup','Smooth, sweet and soothing: no acid, no spice.','45 min',[['Butternut squash','1 large'],['Onion','1'],['Low-sodium vegetable broth','1 qt'],['Unsalted butter','1 stick'],['Ground nutmeg','1 jar']],['Soften diced onion in butter.','Add peeled, cubed squash and broth; simmer 25 min until very soft.','Blend completely smooth; add a pinch of nutmeg.'],['milk'],[]],
+ ['lunch',['cancer','ct:colorectal','ct:upper_gi','ct:blood'],'Soft Chicken Noodle Soup','Simple, low-fiber comfort that is easy on the gut.','35 min',[['Chicken breast','1.5 lb'],['Egg noodles','1 bag'],['Carrots','4'],['Low-sodium chicken broth','2 qt'],['Dried thyme','1 jar']],['Simmer chicken in broth with thyme 20 min; remove and shred.','Add peeled, thinly sliced carrots and noodles; cook until very soft.','Return chicken; cool and pack.'],['wheat_gluten','egg'],[]],
+ ['lunch',['cancer','ct:breast','ct:prostate','ct:gyn','ct:lung'],'Hummus Plate with Soft Pita & Cucumber','Plant protein and fresh crunch for good-appetite days.','10 min',[['Hummus','1 tub'],['Soft pita bread','1 pack'],['Cucumbers','2'],['Cherry tomatoes','1 pint'],['Olive oil','1 bottle']],['Spoon hummus into containers and drizzle with oil.','Slice cucumber and tomatoes.','Pack pita separately so it stays soft.'],['sesame','wheat_gluten'],[]],
+ ['dinner',['cancer','ct:colorectal','ct:upper_gi','ct:headneck','ct:blood'],'Poached Chicken, White Rice & Soft Carrots','Plain, tender and low in fiber: the gentlest dinner on the list.','35 min',[['Chicken breast','2 lb'],['White rice','2 lb'],['Carrots','6'],['Low-sodium chicken broth','1 qt'],['Unsalted butter','1 stick']],['Poach chicken gently in broth 15-18 min to 165°F; slice thin.','Cook rice in some of the broth.','Steam peeled carrots until very soft; toss with a little butter.'],['milk'],[]],
+ ['dinner',['cancer','ct:headneck','ct:upper_gi'],"Turkey Shepherd's Pie with Soft Mash",'Everything soft and moist, under a blanket of mash.','60 min',[['Ground turkey','1.5 lb'],['Carrots','3'],['Frozen peas','1 bag'],['Potatoes','3 lb'],['Unsalted butter','1 stick'],['Milk','1 qt'],['Low-sodium chicken broth','1 qt']],['Brown turkey; add finely diced carrots, peas and a little broth; simmer until soft.','Mash potatoes with butter and milk until smooth.','Spread mash over the filling; bake 25 min at 375°F.'],['milk'],[]],
+ ['dinner',['cancer','ct:breast','ct:prostate','ct:lung','ct:gyn','ct:brain'],'Sheet-Pan Salmon, Sweet Potato & Broccoli','Omega-3s, color and protein on one pan.','35 min',[['Salmon fillets','4'],['Sweet potatoes','3'],['Broccoli','2 heads'],['Olive oil','1 bottle'],['Garlic powder','1 jar']],['Roast cubed sweet potato 15 min at 425°F.','Add broccoli and salmon; season with oil and garlic powder.','Roast 12-15 min until salmon flakes and is cooked through.'],['fish'],[]],
+ ['dinner',['cancer','ct:breast','ct:prostate','ct:gyn','ct:lung','ct:brain'],'Red Lentil & Carrot Stew','Hearty plant protein, mild and warming.','40 min',[['Red lentils','1 lb'],['Carrots','4'],['Onion','1'],['Celery','3 stalks'],['Low-sodium vegetable broth','2 qt'],['Olive oil','1 bottle'],['Ground cumin','1 jar']],['Soften onion, carrot and celery in oil.','Add lentils, broth and cumin; simmer 25 min until thick.','Serve with rice or soft bread.'],[],[]],
+ ['snack',['cancer','ct:headneck','ct:upper_gi'],'Avocado Vanilla Shake','Smooth, high-calorie sips when chewing is hard.','5 min',[['Avocados','2'],['Whole milk','1/2 gal'],['Vanilla extract','1 bottle'],['Honey','1 jar']],['Blend avocado, milk, a little honey and vanilla until silky.','Pour into bottles.','Keep chilled; shake before drinking.'],['milk'],[]],
+ ['dessert',['cancer','ct:colorectal','ct:headneck','ct:blood'],'Soft Baked Apples (peeled)','Warm, tender and easy to digest.','45 min',[['Apples','6'],['Cinnamon','1 jar'],['Brown sugar','1 bag'],['Unsalted butter','1 stick']],['Peel and core apples.','Fill with a little butter, sugar and cinnamon.','Bake 35 min at 375°F until completely soft.'],['milk'],['high_sugar']]
+].forEach(a=>{const r=R(a[0],a[1],a[2],a[3],a[4],a[5],a[6]);r.allergens=a[7];r.condFlags=a[8];POOL.push(r);RECIPE_SAFETY[r.n]={allergens:a[7],condFlags:a[8]};});
+
 const RECIPE=Object.fromEntries(POOL.map(r=>[r.n,r]));
 const COURSES=[["breakfast","Breakfast"],["lunch","Lunch"],["dinner","Dinner"],["snack","Snack"],["dessert","Dessert"]];
 const CLABEL=Object.fromEntries(COURSES);
-const FLAG={tree_nut:"tree nuts",peanut:"peanuts",milk:"dairy",wheat_gluten:"gluten",egg:"eggs",shellfish:"shellfish",fish:"fish",sesame:"sesame",high_potassium:"high-potassium foods",high_sodium:"high-sodium foods",high_sugar:"high-sugar foods",acidic:"acidic foods",high_phosphorus:"high-phosphorus foods"};
+const FLAG={tree_nut:"tree nuts",peanut:"peanuts",milk:"dairy",wheat_gluten:"gluten",egg:"eggs",shellfish:"shellfish",fish:"fish",sesame:"sesame",high_potassium:"high-potassium foods",high_sodium:"high-sodium foods",high_sugar:"high-sugar foods",acidic:"acidic foods",spicy:"spicy foods",high_fiber:"high-fiber foods",high_phosphorus:"high-phosphorus foods"};
 
 let P=null,SEL=null,OFFSET=0;
 async function load(){

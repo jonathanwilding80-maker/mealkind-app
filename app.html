@@ -185,7 +185,7 @@ details.more summary{cursor:pointer;color:var(--forest-2);font-weight:500}
   <p class="small muted" style="text-align:center"><button class="link" id="newCircle" type="button">Set up a circle for someone else</button></p>
 </section>
 
-<p class="ver">Version 18 · 11 Oct 2026</p>
+<p class="ver">Version 19 · 11 Oct 2026</p>
 </main>
 <div class="toast" id="toast" hidden></div>
 
@@ -492,14 +492,37 @@ function isSafeFor(r,allergyFlags,dietaryFlags){
   return vet(r,{allergy:allergyFlags,diet:dietaryFlags,custom:activeFlags().custom}).safe;
 }
 
+/* ---- CANCER BY TYPE (added v19): recipes tuned to the type of cancer and treatment.
+   ct:<type> tags mark the best fit. Built from ACS / NCI eating-during-treatment guidance; pending dietitian review. ---- */
+TRIGGERS.spicy={w:['chili','chile','jalapeño','jalapeno','hot sauce','cayenne','red pepper flake','sriracha','chipotle','curry','salsa','harissa','wasabi','horseradish']};
+TRIGGERS.high_fiber={w:['bean','lentil','chickpea','hummus','bran','whole wheat','whole-wheat','whole grain','brown rice','quinoa','flaxseed','chia','popcorn','almond','walnut','pecan','cashew','pistachio','seed','kale','broccoli','oat','granola','dried fruit','raisin','prune'],
+  x:['green bean','butternut','nutmeg','peanut butter','seedless']};
+[
+ ['breakfast',['cancer','ct:headneck','ct:upper_gi','ct:colorectal','ct:blood'],'Chicken & Rice Congee','Silky rice porridge: easy to swallow and gentle on the stomach.','60 min',[['White rice','1 cup'],['Low-sodium chicken broth','2 qt'],['Boneless chicken thighs','1 lb'],['Fresh ginger','1 knob'],['Green onions','1 bunch']],['Simmer rice, broth and sliced ginger 45 min, stirring now and then, until soft and creamy.','Add finely sliced chicken; cook 10 min until cooked through.','Top with a little green onion. Pack in small containers.'],[],[]],
+ ['breakfast',['cancer','ct:headneck','ct:colorectal'],'Soft Polenta with a Poached Egg','Smooth, warm and soft, with protein from the egg.','20 min',[['Polenta (fine cornmeal)','1 bag'],['Whole milk','1 qt'],['Unsalted butter','1 stick'],['Eggs','1 dozen']],['Whisk polenta into simmering milk and water; stir 10 min until smooth.','Stir in a little butter.','Poach eggs until the whites and yolks are fully set; serve on top.'],['milk','egg'],[]],
+ ['breakfast',['cancer','ct:breast','ct:prostate','ct:gyn','ct:lung','ct:brain'],'Berry & Flaxseed Overnight Oats','Fiber and plant goodness, ready in the fridge.','5 min',[['Rolled oats','1 canister'],['Milk','1/2 gal'],['Ground flaxseed','1 bag'],['Blueberries','1 pint'],['Cinnamon','1 jar']],['Stir oats, milk, flaxseed and cinnamon in jars.','Top with berries.','Chill overnight; eat cold or warmed.'],['milk'],[]],
+ ['lunch',['cancer','ct:headneck','ct:upper_gi'],'Mild Butternut Squash Soup','Smooth, sweet and soothing: no acid, no spice.','45 min',[['Butternut squash','1 large'],['Onion','1'],['Low-sodium vegetable broth','1 qt'],['Unsalted butter','1 stick'],['Ground nutmeg','1 jar']],['Soften diced onion in butter.','Add peeled, cubed squash and broth; simmer 25 min until very soft.','Blend completely smooth; add a pinch of nutmeg.'],['milk'],[]],
+ ['lunch',['cancer','ct:colorectal','ct:upper_gi','ct:blood'],'Soft Chicken Noodle Soup','Simple, low-fiber comfort that is easy on the gut.','35 min',[['Chicken breast','1.5 lb'],['Egg noodles','1 bag'],['Carrots','4'],['Low-sodium chicken broth','2 qt'],['Dried thyme','1 jar']],['Simmer chicken in broth with thyme 20 min; remove and shred.','Add peeled, thinly sliced carrots and noodles; cook until very soft.','Return chicken; cool and pack.'],['wheat_gluten','egg'],[]],
+ ['lunch',['cancer','ct:breast','ct:prostate','ct:gyn','ct:lung'],'Hummus Plate with Soft Pita & Cucumber','Plant protein and fresh crunch for good-appetite days.','10 min',[['Hummus','1 tub'],['Soft pita bread','1 pack'],['Cucumbers','2'],['Cherry tomatoes','1 pint'],['Olive oil','1 bottle']],['Spoon hummus into containers and drizzle with oil.','Slice cucumber and tomatoes.','Pack pita separately so it stays soft.'],['sesame','wheat_gluten'],[]],
+ ['dinner',['cancer','ct:colorectal','ct:upper_gi','ct:headneck','ct:blood'],'Poached Chicken, White Rice & Soft Carrots','Plain, tender and low in fiber: the gentlest dinner on the list.','35 min',[['Chicken breast','2 lb'],['White rice','2 lb'],['Carrots','6'],['Low-sodium chicken broth','1 qt'],['Unsalted butter','1 stick']],['Poach chicken gently in broth 15-18 min to 165°F; slice thin.','Cook rice in some of the broth.','Steam peeled carrots until very soft; toss with a little butter.'],['milk'],[]],
+ ['dinner',['cancer','ct:headneck','ct:upper_gi'],"Turkey Shepherd's Pie with Soft Mash",'Everything soft and moist, under a blanket of mash.','60 min',[['Ground turkey','1.5 lb'],['Carrots','3'],['Frozen peas','1 bag'],['Potatoes','3 lb'],['Unsalted butter','1 stick'],['Milk','1 qt'],['Low-sodium chicken broth','1 qt']],['Brown turkey; add finely diced carrots, peas and a little broth; simmer until soft.','Mash potatoes with butter and milk until smooth.','Spread mash over the filling; bake 25 min at 375°F.'],['milk'],[]],
+ ['dinner',['cancer','ct:breast','ct:prostate','ct:lung','ct:gyn','ct:brain'],'Sheet-Pan Salmon, Sweet Potato & Broccoli','Omega-3s, color and protein on one pan.','35 min',[['Salmon fillets','4'],['Sweet potatoes','3'],['Broccoli','2 heads'],['Olive oil','1 bottle'],['Garlic powder','1 jar']],['Roast cubed sweet potato 15 min at 425°F.','Add broccoli and salmon; season with oil and garlic powder.','Roast 12-15 min until salmon flakes and is cooked through.'],['fish'],[]],
+ ['dinner',['cancer','ct:breast','ct:prostate','ct:gyn','ct:lung','ct:brain'],'Red Lentil & Carrot Stew','Hearty plant protein, mild and warming.','40 min',[['Red lentils','1 lb'],['Carrots','4'],['Onion','1'],['Celery','3 stalks'],['Low-sodium vegetable broth','2 qt'],['Olive oil','1 bottle'],['Ground cumin','1 jar']],['Soften onion, carrot and celery in oil.','Add lentils, broth and cumin; simmer 25 min until thick.','Serve with rice or soft bread.'],[],[]],
+ ['snack',['cancer','ct:headneck','ct:upper_gi'],'Avocado Vanilla Shake','Smooth, high-calorie sips when chewing is hard.','5 min',[['Avocados','2'],['Whole milk','1/2 gal'],['Vanilla extract','1 bottle'],['Honey','1 jar']],['Blend avocado, milk, a little honey and vanilla until silky.','Pour into bottles.','Keep chilled; shake before drinking.'],['milk'],[]],
+ ['dessert',['cancer','ct:colorectal','ct:headneck','ct:blood'],'Soft Baked Apples (peeled)','Warm, tender and easy to digest.','45 min',[['Apples','6'],['Cinnamon','1 jar'],['Brown sugar','1 bag'],['Unsalted butter','1 stick']],['Peel and core apples.','Fill with a little butter, sugar and cinnamon.','Bake 35 min at 375°F until completely soft.'],['milk'],['high_sugar']]
+].forEach(a=>{const r=R(a[0],a[1],a[2],a[3],a[4],a[5],a[6]);r.allergens=a[7];r.condFlags=a[8];POOL.push(r);RECIPE_SAFETY[r.n]={allergens:a[7],condFlags:a[8]};});
+
 
 const CONDS=[["cancer","Cancer"],["dialysis","Kidney disease / dialysis"],["cardio","Heart condition"],["stroke","Stroke recovery"],["gi","Digestive / GI"],["ortho","Surgery / orthopedic"],["parkinsons","Parkinson's"],["als","ALS"],["tbi","Brain injury"],["alzheimers","Alzheimer's / dementia"],["depression","Depression"],["postpartum","New baby / postpartum"]];
 const CLABEL=Object.fromEntries(CONDS);
 const SOFT=["stroke","parkinsons","als","alzheimers"];
 const ALLERGIES=[["tree_nut","Tree nuts"],["peanut","Peanuts"],["milk","Dairy"],["wheat_gluten","Gluten"],["egg","Eggs"],["fish","Fish"],["shellfish","Shellfish"],["sesame","Sesame"]];
-const LIMITS=[["high_potassium","Potassium (bananas, potatoes, tomatoes)"],["high_sodium","Salty foods"],["high_sugar","Sugary foods"],["acidic","Acidic foods (citrus, tomato)"]];
+const LIMITS=[["high_potassium","Potassium (bananas, potatoes, tomatoes)"],["high_sodium","Salty foods"],["high_sugar","Sugary foods"],["acidic","Acidic foods (citrus, tomato)"],["spicy","Spicy foods"],["high_fiber","High-fiber foods (beans, whole grains, nuts)"]];
 /* only the limits that matter for each illness are offered */
-const LIMITS_FOR={dialysis:["high_potassium","high_sodium","high_sugar"],cardio:["high_sodium","high_sugar"],stroke:["high_sodium","high_sugar"],cancer:["acidic","high_sugar"],gi:["acidic","high_sugar"]};
+const LIMITS_FOR={dialysis:["high_potassium","high_sodium","high_sugar"],cardio:["high_sodium","high_sugar"],stroke:["high_sodium","high_sugar"],cancer:["acidic","spicy","high_fiber","high_sugar"],gi:["acidic","spicy","high_fiber","high_sugar"]};
+const CT_IMPLIED={headneck:["acidic","spicy"],upper_gi:["acidic","spicy"],colorectal:["high_fiber"]};
+const CT_SHORT={breast:"breast cancer",colorectal:"colon / bowel cancer",headneck:"head & neck cancer",lung:"lung cancer",upper_gi:"stomach & esophagus",prostate:"prostate cancer",blood:"blood cancers",gyn:"gynecological cancer",brain:"brain cancer"};
+const CT_TIP={headneck:"Soft, moist and mild: nothing acidic, spicy or crunchy.",upper_gi:"Small, soft, mild meals are easiest to manage.",colorectal:"Lower-fiber meals are easier on the gut during treatment.",blood:"Everything cooked through, nothing raw.",breast:"Plant-forward, protein-rich meals help through treatment.",prostate:"Plant-forward, protein-rich meals help through treatment.",lung:"Calorie- and protein-rich meals help keep strength up.",gyn:"Plant-forward, protein-rich meals help through treatment.",brain:"Steady, balanced meals help with energy."};
 const limitsFor=c=>LIMITS_FOR[c]||["high_sodium","high_sugar"];
 const IMPLIED={dialysis:["high_potassium","high_sodium"],cardio:["high_sodium"],stroke:["high_sodium"]};
 const CTYPES=[["breast","Breast"],["colorectal","Colon / bowel"],["headneck","Head, neck or throat"],["lung","Lung"],["upper_gi","Stomach, esophagus or pancreas"],["prostate","Prostate"],["blood","Blood (leukemia, lymphoma, myeloma)"],["gyn","Ovarian, uterine or cervical"],["brain","Brain"],["other","Other"]];
@@ -529,7 +552,9 @@ function chips(el,items,multi,get,set){
 function paint(el,sel){document.querySelectorAll("#"+el+" .chip").forEach(b=>b.setAttribute("aria-pressed",String([].concat(sel).includes(b.dataset.k))))}
 chips("conds",CONDS,false,()=>F.cond,k=>{F.cond=k;applyImplied();showExtras()});
 chips("helpChips",HELP.map(h=>[h,h]),true,()=>HELPSEL,k=>HELPSEL=toggle(HELPSEL,k));
-chips("ctype",CTYPES,false,()=>F.ctype,k=>{F.ctype=k;showExtras()});
+chips("ctype",CTYPES,false,()=>F.ctype,k=>{const prev=CT_IMPLIED[F.ctype]||[];F.ctype=k;
+  const want=CT_IMPLIED[k]||[];F.limits=[...new Set(F.limits.filter(x=>!prev.includes(x)||want.includes(x)).concat(want))];paint("limits",F.limits);
+  if(want.length)$("limitHint").textContent=`We've ticked what usually helps with ${CT_SHORT[k]}. Only untick something if their care team says it's fine.`;showExtras()});
 chips("ctx",CTX,true,()=>F.ctx,k=>{F.ctx=toggle(F.ctx,k);showExtras()});
 const needsSoft=()=>SOFT.includes(F.cond)||(F.cond==="cancer"&&SOFT_CANCER.includes(F.ctype));
 const immuneLow=()=>F.cond==="cancer"&&(F.ctx.includes("chemo")||F.ctype==="blood");
@@ -622,16 +647,16 @@ function safeRecipes(){
   const al=allergy.filter(x=>!x.startsWith("other:")),dt=diet.filter(x=>!x.includes(":"));
   const extra=CUSTOM.concat(immuneLow()?FOOD_SAFE:[]);
   return POOL.filter(r=>(r.tags.includes(F.cond)||r.tags.includes("all"))&&vet(r,{allergy:al,diet:dt,custom:extra}).safe)
-    .sort((a,b)=>(b.tags.includes(F.cond)?1:0)-(a.tags.includes(F.cond)?1:0));
+    .sort((a,b)=>{const sc=r=>(F.ctype&&r.tags.includes("ct:"+F.ctype)?2:0)+(r.tags.includes(F.cond)?1:0);return sc(b)-sc(a)});
 }
 let SAFE=[];
 function renderRecipes(){
   SAFE=safeRecipes();
   const names=new Set(SAFE.map(r=>r.n));PICK=new Set([...PICK].filter(n=>names.has(n)));
   const avoid=[...F.allergy.map(k=>(ALLERGIES.find(a=>a[0]===k)||[,k])[1].toLowerCase()),...CUSTOM,...F.limits.map(k=>(LIMITS.find(a=>a[0]===k)||[,k])[1].toLowerCase())];
-  $("s2sub").textContent=`These ${SAFE.length} recipes suit ${F.cond?CLABEL[F.cond].toLowerCase():"their needs"}`+(avoid.length?` and leave out ${avoid.join(", ")}.`:".")+" Friends can only choose from the ones you tick.";
+  $("s2sub").textContent=`These ${SAFE.length} recipes suit ${F.cond==="cancer"&&CT_SHORT[F.ctype]?CT_SHORT[F.ctype]:F.cond?CLABEL[F.cond].toLowerCase():"their needs"}`+(avoid.length?` and leave out ${avoid.join(", ")}.`:".")+" Friends can only choose from the ones you tick."+(F.cond==="cancer"&&CT_TIP[F.ctype]?" "+CT_TIP[F.ctype]:"");
   $("recList").innerHTML=COURSES.map(([c,l])=>{const rs=SAFE.filter(r=>r.slot===c);if(!rs.length)return"";
-    return `<div class="course card"><h3>${l}<button type="button" class="link small" data-course="${c}">Select all ${l.toLowerCase()}</button></h3>${rs.map(r=>`<label class="rec"><input type="checkbox" data-n="${esc(r.n)}" ${PICK.has(r.n)?"checked":""}><span><span class="t">${esc(r.n)}</span>${r.tags.includes(F.cond)?`<span class="for">For ${esc(CLABEL[F.cond].split(" /")[0].toLowerCase())}</span>`:""}<div class="w">${esc(r.why)} · ${esc(r.time||"")}</div><details><summary>Ingredients and method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol>${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details></span></label>`).join("")}</div>`}).join("")||`<p class="muted">No recipes match every restriction. Try removing one, or contact hello@mealkind.com.</p>`;
+    return `<div class="course card"><h3>${l}<button type="button" class="link small" data-course="${c}">Select all ${l.toLowerCase()}</button></h3>${rs.map(r=>`<label class="rec"><input type="checkbox" data-n="${esc(r.n)}" ${PICK.has(r.n)?"checked":""}><span><span class="t">${esc(r.n)}</span>${F.ctype&&CT_SHORT[F.ctype]&&r.tags.includes("ct:"+F.ctype)?`<span class="for" style="background:var(--gold-soft);color:#7a5210">Best for ${esc(CT_SHORT[F.ctype])}</span>`:r.tags.includes(F.cond)?`<span class="for">For ${esc(CLABEL[F.cond].split(" /")[0].toLowerCase())}</span>`:""}<div class="w">${esc(r.why)} · ${esc(r.time||"")}</div><details><summary>Ingredients and method</summary><ul>${(r.ings||[]).map(i=>`<li>${esc(i[0])}${i[1]?" · "+esc(i[1]):""}</li>`).join("")}</ul><ol>${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details></span></label>`).join("")}</div>`}).join("")||`<p class="muted">No recipes match every restriction. Try removing one, or contact hello@mealkind.com.</p>`;
   count();
 }
 function count(){$("recCount").textContent=`${PICK.size} chosen`}
