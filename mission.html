@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Our mission · MealKind</title>
+<meta name="description" content="Nobody should heal hungry. MealKind's mission is food security, nourishing meals and simple nutrition education for people going through treatment and recovery.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap">
+<style>
+:root{--forest:#1F3D2B;--forest-2:#3A6B4A;--gold:#E8A33D;--gold-soft:#FBF1DE;--cream:#FDFBF7;--card:#FFFFFF;--ink:#2B2B28;--soft:#6C675E;--line:#EFE7D8;--good-bg:#E5EFE7;--good:#2B5038;--warn:#B5471F;
+--display:"Cormorant Garamond",Georgia,serif;--body:"Jost","Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+body{padding:0 16px 60px}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);color:var(--forest);font-weight:600;line-height:1.1;text-wrap:balance}
+h1{font-size:clamp(2.1rem,7vw,3.2rem)}
+h2{font-size:1.8rem}
+h3{font-size:1.35rem}
+p{text-wrap:pretty}
+a{color:var(--forest-2)}
+.eyebrow{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#B97A16;font-weight:600}
+.muted{color:var(--soft)}.small{font-size:.88rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+button,.btn{font-family:var(--body);font-weight:600;font-size:1rem;border-radius:999px;padding:12px 22px;border:2px solid var(--forest);background:var(--forest);color:var(--cream);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;line-height:1.2;text-align:center}
+button.ghost,.btn.ghost{background:transparent;color:var(--forest)}
+button.gold,.btn.gold{background:var(--gold);border-color:var(--gold);color:#2A1E08}
+button.sm,.btn.sm{padding:8px 14px;font-size:.9rem}
+button.link{background:none;border:none;color:var(--forest-2);padding:0;text-decoration:underline;font-weight:500}
+button.wide,.btn.wide{width:100%}
+button:disabled{opacity:.5;cursor:default}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input,select,textarea{font:inherit;width:100%;padding:12px 14px;border:1.5px solid #E2D9C6;border-radius:12px;background:#fff;color:var(--ink)}
+input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:var(--forest);padding:0}
+label{display:flex;flex-direction:column;gap:6px;font-size:.92rem;font-weight:500;color:var(--soft)}
+label.check{flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-weight:400;font-size:1rem}
+.form{display:grid;gap:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) 0 6px;max-width:720px;margin:0 auto}
+header.top .logo{font-family:var(--display);font-size:1.7rem;font-weight:700;color:var(--forest);text-decoration:none}
+header.top .logo span{color:var(--gold)}
+header.top nav{display:flex;gap:14px;align-items:center;font-size:.92rem}
+header.top nav a{color:var(--forest);font-weight:500}
+.tag{font-size:.75rem;background:var(--good-bg);color:var(--good);border-radius:999px;padding:4px 10px;font-weight:600;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-weight:500;font-size:.95rem;padding:9px 14px;border-radius:999px;border:1.5px solid #E2D9C6;background:#fff;color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--forest);border-color:var(--forest);color:var(--cream)}
+.note{background:var(--gold-soft);border-radius:14px;padding:12px 16px;font-size:.95rem}
+.err{color:var(--warn);font-size:.92rem;min-height:1.2em}
+.toast{pointer-events:none;position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--forest);color:var(--cream);padding:12px 18px;border-radius:999px;font-size:.95rem;z-index:10;max-width:calc(100% - 32px);text-align:center}
+.ver{text-align:center;font-size:.72rem;color:#9A958B;margin-top:30px}
+footer.foot{max-width:720px;margin:40px auto 0;border-top:1px solid var(--line);padding-top:18px;display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;font-size:.85rem;color:var(--soft)}
+footer.foot a{color:var(--soft)}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-size:2.6rem;color:var(--forest);line-height:1}
+.stat span{font-size:.9rem;color:var(--soft)}
+.ways{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ways div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}
+.ways h3{font-size:1.25rem;margin-bottom:4px}
+.soon{display:inline-block;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;background:var(--gold-soft);color:#8a5b0c;border-radius:999px;padding:3px 10px}
+@media (max-width:560px){.ways,.stat{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header class="top"><a class="logo" href="/">Meal<span>Kind</span></a><nav><a href="/">Home</a></nav></header>
+<main class="wrap" style="margin-top:16px">
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <div class="eyebrow">Our mission</div>
+    <h1>Nobody should heal hungry.</h1>
+    <p style="font-size:1.1rem">Good food is part of recovery. MealKind exists to bring food security, nourishing meals and simple nutrition know-how to people going through treatment and recovery, whether or not they have family and friends around them.</p>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2>Why it matters</h2>
+    <div class="stat">
+      <div><b>23 vs 15</b><span>hospital readmissions within 30 days, per 100 stays, for patients with and without malnutrition</span></div>
+      <div><b>50%+</b><span>higher readmission rate when a patient is malnourished</span></div>
+    </div>
+    <p class="small muted">Source: <a href="https://hcup-us.ahrq.gov/reports/statbriefs/sb218-Malnutrition-Readmissions-2013.jsp" target="_blank" rel="noopener">Agency for Healthcare Research and Quality, HCUP Statistical Brief #218</a> (US hospital data).</p>
+    <p>Treatment can take away appetite, energy and the ability to shop and cook. The people around a patient want to help but often don't know what's safe to bring. MealKind's Care Circles solve that for families who have support. MealKind Social is how we reach those who don't.</p>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <div><span class="soon">In development</span></div>
+    <h2>MealKind Social: our give-back program</h2>
+    <div class="ways">
+      <div><h3>Ask for meals</h3><p class="small">People going through treatment without support can request nourishing meals that fit their diet.</p></div>
+      <div><h3>Cook for someone</h3><p class="small">Volunteers cook a meal from our condition-specific recipes for someone in their community who has asked for help.</p></div>
+      <div><h3>Give</h3><p class="small">Fund meals for an individual, or support an existing local food organization we partner with.</p></div>
+      <div><h3>Learn</h3><p class="small">Simple nutrition education for patients and caregivers: what to eat, what to avoid and easy meals for hard days.</p></div>
+    </div>
+  </section>
+
+  <section class="card" style="display:flex;flex-direction:column;gap:10px">
+    <h2>Help us build it</h2>
+    <p>We're looking for clinics, dietitians, food banks, churches and community kitchens to partner with, starting in San Antonio.</p>
+    <div><a class="btn" href="mailto:hello@mealkind.com?subject=MealKind%20Social">Get in touch</a></div>
+  </section>
+</main>
+<footer class="foot"><span>© 2026 MealKind · San Antonio, Texas</span><a href="/">Home</a><a href="/privacy.html">Privacy</a></footer>
+<p class="ver">Version 18 · 11 Oct 2026</p>
+</body></html>
